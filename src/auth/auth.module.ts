@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
@@ -15,6 +15,7 @@ import { CsrfProtectionMiddleware } from 'src/session/middleware/csrfProtection.
 import { RolesModule } from 'src/roles/roles.module';
 import { UsersModule } from 'src/users/users.module';
 import { LocalAuthGuard } from './strategies/local-auth.guard'; 
+import { CsrfValidationMiddleware } from '../session/middleware/csrfValidation.middleware';
 
 @Module({
     controllers: [AuthController],
@@ -41,5 +42,16 @@ import { LocalAuthGuard } from './strategies/local-auth.guard';
 export class AuthModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
         consumer.apply(CsrfProtectionMiddleware).forRoutes('auth/firebase/login');
+
+        consumer
+            .apply(CsrfValidationMiddleware)
+            .exclude(
+                { path: 'auth/firebase/login', method: RequestMethod.POST },
+              // { path: 'auth/firebase/signup', method: RequestMethod.POST },
+                { path: 'auth/firebase/credentials', method: RequestMethod.POST },
+                { path: 'auth/firebase/credentials/otp', method: RequestMethod.PUT }
+            )
+            .forRoutes({ path: '*', method: RequestMethod.ALL });
+
     }
 }

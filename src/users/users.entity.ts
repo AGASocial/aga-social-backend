@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsAlpha, IsArray, IsAscii, IsEmail, IsEnum, IsLowercase, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, Length, Matches, MaxLength } from "class-validator";
-import { GeneratedSecret } from "speakeasy"; 
 
 
 export class User {
@@ -70,10 +69,4 @@ export class User {
     @MaxLength(20, { each: true })
     role: string;  //Role
 
-    @ApiProperty({
-        description: "User otp secret"
-    })
-    @IsOptional()
-    @IsObject()
-    otp_secret?: GeneratedSecret //Secret
 }

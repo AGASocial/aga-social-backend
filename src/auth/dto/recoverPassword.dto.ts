@@ -30,11 +30,5 @@ export class RecoverPasswordDto {
     @Length(8,30, {message: 'Password needs to be of 8 characters and up to 30'})
     public new_password: string;
 
-    @ApiProperty({
-        description: 'Otp used to validate the user'
-    })
-    @IsNotEmpty()
-    @IsNumberString()
-    @MaxLength(12)
-    public otp: string;
+    
 }

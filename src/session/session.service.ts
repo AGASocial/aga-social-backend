@@ -8,14 +8,21 @@ import { timeMultiplier, jwtTime, refreshTime } from 'src/utils/constants';
 export class SessionService {
     constructor(private usersService: UsersService, private rolesService: RolesService) { }
 
-    async getSessionTime(userSnap: DocumentSnapshot): Promise<number> {
-        let sessionTime = Number(jwtTime);
-        const userRole = await this.usersService.getUserRole(userSnap);
+    async getSessionTime(user: any): Promise<number> {
+        console.log('getSessionTime executing...');
 
-        if (userRole) {
-            const roleSnap = await this.rolesService.getRole(userRole);
-            const roleSessionTime: number = roleSnap.get("session_time");
-            sessionTime = roleSessionTime;
+        let sessionTime = Number(jwtTime);
+        const userSnap: DocumentSnapshot = user?.snapshot; 
+
+        if (userSnap) {
+            const userRole = await this.usersService.getUserRole(userSnap);
+
+            if (userRole) {
+                console.log('User has role. Getting role session time...');
+                const roleSnap = await this.rolesService.getRole(userRole);
+                const roleSessionTime: number = roleSnap.get('session_time');
+                sessionTime = roleSessionTime;
+            }
         }
 
         sessionTime *= timeMultiplier;
@@ -23,30 +30,17 @@ export class SessionService {
         return sessionTime;
     }
 
+    async getRefreshTime(user: any): Promise<number> {
+        console.log('getRefreshTime executing...');
 
-
-    async getRefreshTime(userSnap: DocumentSnapshot): Promise<number> {
         let userRefreshTime = 0;
-        const userRoles = await this.usersService.getUserRole(userSnap);
+        
 
-        if (userRoles.length !== 0) {
-            const roleSnap = await this.rolesService.getRole(userRoles[0]);
-            userRefreshTime = roleSnap.get("refresh_time") * timeMultiplier;
-        } else {
+        
+            console.log('Getting default refresh time...');
             userRefreshTime = Number(refreshTime) * timeMultiplier;
-        }
+        
 
-        const jwtRefreshTime = String(userRefreshTime).concat("s");
         return userRefreshTime;
     }
-
-
-
-
-
-
-
-
-
-
 }

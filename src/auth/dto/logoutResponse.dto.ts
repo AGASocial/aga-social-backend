@@ -14,7 +14,7 @@ export class LogOutResponseDto {
 
     @ApiProperty({
         description: 'Descriptive response message, it should return "LOGINSUCCESSFUL"',
-        default: "LOGOUTSUCCESSFUL",  //modified
+        default: "LOGOUTSUCCESSFUL",  
         type: String
     })
     @IsString()

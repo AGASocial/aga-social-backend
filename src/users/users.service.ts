@@ -26,6 +26,9 @@ export class UsersService {
                 throw new BadRequestException('EMAILEXISTS');
             }
         }
+        console.log('Email Checker - Email:', email);
+        console.log('Email Checker - isEmailWanted:', isEmailWanted);
+
         return emailQuerySnapshot;
     }
 
@@ -40,6 +43,8 @@ export class UsersService {
             throw new BadRequestException('USERDOESNOTEXIST');
         }
         const docSnapshot = userQuerySnapshot.docs[0];
+        console.log('Search User - Username:', username);
+
         return docSnapshot.id;
     }
 
@@ -53,13 +58,9 @@ export class UsersService {
         return userSnap;
     }
 
-    async getUserOtpSecret(userSnap: DocumentSnapshot): Promise<GeneratedSecret> {
-        let userOtpSecret = await userSnap.get("otp_secret");
-        return userOtpSecret;
-    }
-
-    async getUserRole(userSnap: DocumentSnapshot): Promise<string | null> {
-        const userRole = await userSnap.get("role");
+   
+    async getUserRole(user: any): Promise<string | null> {
+        const userRole = user?.role; // Aquí obtenemos directamente la propiedad "role" del objeto de usuario
 
         if (typeof userRole !== 'undefined') {
             try {
@@ -67,6 +68,7 @@ export class UsersService {
                 if (roleSnap == null) {
                     throw new BadRequestException('USERHASNONEXISTINGROLE');
                 }
+                console.log('Get User Role - User Role:', userRole);
                 return userRole; // Retorna el rol del usuario si existe y es válido
             } catch (error: unknown) {
                 console.warn(`[ERROR]: ${error}`);
@@ -79,17 +81,21 @@ export class UsersService {
 
 
 
-    async passwordCheck(password: string, firestoreUserSnap: DocumentSnapshot): Promise<boolean> {
+
+    async passwordCheck(password: string, firestoreUserSnap: any): Promise<boolean> {
         const doPasswordsMatch: boolean = await this.hashService.compareHashedStrings(
             password,
             firestoreUserSnap.get("password")
-        )as boolean;
+        ) as boolean;
+
         if (!doPasswordsMatch) {
             throw new BadRequestException('WRONGCREDENTIALS');
         }
 
-        return doPasswordsMatch; // Retorna true si las contraseñas coinciden, de lo contrario, se lanzará la excepción antes.
+        console.log('Password Check - Do Passwords Match:', doPasswordsMatch);
+        return doPasswordsMatch;
     }
+
 
 
     extractID(jwtToken: string): string | null {
@@ -99,6 +105,7 @@ export class UsersService {
 
             // Obtener el ID del usuario del payload (suponiendo que el campo es "id")
             const userId: string = payload.id;
+            console.log('Extract ID - User ID');
 
             return userId;
         } catch (error: unknown) {
@@ -115,7 +122,7 @@ export class UsersService {
 
             // Obtener el correo electrónico del usuario del payload (suponiendo que el campo es "email")
             const userEmail: string = payload.email;
-
+            console.log('Extract Email - User Email');
             return userEmail;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
@@ -126,16 +133,15 @@ export class UsersService {
 
     extractExpiration(jwtToken: string): number | null {
         try {
-            // Decodificar el token JWT y obtener el payload
             const payload: any = this.jwtService.decode(jwtToken);
 
-            // Obtener la fecha de expiración del token del payload (campo "exp")
             const expiration: number = payload.exp;
+            console.log('Extract Expiration - Token Expiration:');
 
             return expiration;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            return null; // Retorna null en caso de error al decodificar o si no se encuentra la fecha de expiración en el payload
+            return null;
         }
     }
 

@@ -16,7 +16,6 @@ import { GetRoleByIdResponseDto } from 'src/roles/dto/getRoleByIdResponse.dto';
 import { GetRolesResponseDto } from 'src/roles/dto/getRolesResponse.dto';
 import { UpdateRoleDto } from './dto/updateRole.dto';
 import { DataControlInterceptor } from './interceptor/dataControl.interceptor';
-import { OtpValidatorGuard } from 'src/auth/otpValidator.guard';
 
 
 @Controller('authorization')
@@ -51,8 +50,8 @@ export class AuthorizationController {
         return await this.authorizationService.createNewRole(createNewRoleDto);
     }
 
-    //@UseInterceptors(DataControlInterceptor)
-    @UseGuards(JwtAuthGuard, OtpValidatorGuard)
+    @UseInterceptors(DataControlInterceptor)
+    @UseGuards(JwtAuthGuard)
     @Put('firebase/roles/:roleId')
     async updateRole(@Param('roleId') roleId: string, @Body() updateRoleDto: UpdateRoleDto, @Req() req: Request) {
         updateRoleDto.role = roleId;

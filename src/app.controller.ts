@@ -12,7 +12,6 @@ import { AuthorizationService } from './authorization/authorization.service';
 import { GetUserByIdDto } from './users/dto/getUserById.dto';
 import { GetUserByIdResponseDto } from './users/dto/getUserByIdResponse.dto';
 import { DataFiltererService } from './utils/dataFilterer.service';
-import { OtpValidatorGuard } from './auth/otpValidator.guard';
 import { PrivacyGuard } from './authorization/privacy.guard';
 import { ExceptedRoles } from './authorization/exceptedRoles.decorator';
 import { doubleCsrfProtection, generateToken, stage, validateRequest } from './utils/constants';
@@ -39,7 +38,7 @@ export class AppController {
     }
 
 
-   @UseGuards( JwtAuthGuard, OtpValidatorGuard, PoliciesGuard, StageGuard)
+   @UseGuards( JwtAuthGuard, PoliciesGuard, StageGuard)
     @Roles("admin")
    @CheckPolicies(new ManageUser())
     @Get('mock/admin')
@@ -96,7 +95,7 @@ export class AppController {
 
 
     @UseInterceptors(DataControlInterceptor)
-    @UseGuards(JwtAuthGuard, OtpValidatorGuard, PrivacyGuard)
+    @UseGuards(JwtAuthGuard, PrivacyGuard)
     @ExceptedRoles("admin")
     @Get('users/:userId')
     async getUserById(@Param('userId') userId: string, @Req() req: Request): Promise<GetUserByIdResponseDto> {

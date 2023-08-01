@@ -25,12 +25,6 @@ export class SignUpDtoResponse {
     @IsUppercase()
     public message: string;
 
-    @ApiProperty({
-        description: 'Otp secret for the user, used to validate 2fa'
-    })
-    @IsNotEmpty()
-    @IsUrl()
-    public otp: string;
 
     
 }

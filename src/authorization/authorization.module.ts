@@ -18,7 +18,6 @@ import { RolesModule } from 'src/roles/roles.module';
 import { SessionModule } from 'src/session/session.module';
 import { DataControlInterceptor } from './interceptor/dataControl.interceptor';
 import { DataFiltererService } from 'src/utils/dataFilterer.service';
-import { OtpValidatorGuard } from 'src/auth/otpValidator.guard';
 
 @Module({
   controllers: [AuthorizationController],
@@ -26,7 +25,7 @@ import { OtpValidatorGuard } from 'src/auth/otpValidator.guard';
     secret: jwtSecret,
     signOptions: {expiresIn: jwtTime}
   }), HttpModule, UsersModule],
-  providers: [AuthorizationService, DataControlInterceptor, DataFiltererService, OtpValidatorGuard, RolesGuard, HashService,SessionSerializer, JwtStrategy, FirebaseService, AuthService, JwtService, StageGuard],
+  providers: [AuthorizationService, DataControlInterceptor, DataFiltererService, RolesGuard, HashService,SessionSerializer, JwtStrategy, FirebaseService, AuthService, JwtService, StageGuard],
   exports: [AuthorizationService]
 })
 export class AuthorizationModule {}

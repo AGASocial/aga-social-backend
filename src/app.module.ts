@@ -20,9 +20,9 @@ import { RolesModule } from './roles/roles.module';
 import { UnauthenticatedMiddleware } from './session/middleware/unauthenticated.middleware';
 import { DataControlInterceptor } from './authorization/interceptor/dataControl.interceptor';
 import { DataFiltererService } from './utils/dataFilterer.service';
-import { OtpValidatorGuard } from './auth/otpValidator.guard';
 import { HashService } from './utils/hash.service';
 import { CsrfValidationMiddleware } from './session/middleware/csrfValidation.middleware';
+import { CsrfProtectionMiddleware } from './session/middleware/csrfProtection.middleware';
 import { AuthenticatedGuard } from './auth/authenticated.guard';
 
 
@@ -40,15 +40,12 @@ import { AuthenticatedGuard } from './auth/authenticated.guard';
         PoliciesGuard,
         FirebaseService,
         HashService,
-        OtpValidatorGuard,
+        
         {
             provide: APP_GUARD,
             useClass: RolesGuard,
         },
-        {
-            provide: APP_GUARD,
-            useClass: AuthenticatedGuard,
-        },
+       
         {
             provide: APP_GUARD,
             useClass: ThrottlerGuard,
@@ -56,11 +53,9 @@ import { AuthenticatedGuard } from './auth/authenticated.guard';
     ],
 })
 export class AppModule implements NestModule {
-
     configure(consumer: MiddlewareConsumer) {
         consumer
-            .apply(UnauthenticatedMiddleware)
-            .exclude({ path: 'auth/firebase/logout', method: RequestMethod.GET })
+            .apply(CsrfProtectionMiddleware)
             .forRoutes({ path: '*', method: RequestMethod.ALL });
 
         consumer
@@ -72,5 +67,11 @@ export class AppModule implements NestModule {
                 { path: 'auth/firebase/credentials/otp', method: RequestMethod.PUT }
             )
             .forRoutes({ path: '*', method: RequestMethod.ALL });
+
+        consumer
+            .apply(UnauthenticatedMiddleware)
+            .exclude({ path: 'auth/firebase/logout', method: RequestMethod.GET })
+            .forRoutes({ path: '*', method: RequestMethod.ALL });
+
     }
 }

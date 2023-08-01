@@ -2,11 +2,13 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { Auth, getAuth } from 'firebase/auth'
-import { CollectionReference, Firestore, getFirestore, collection } from 'firebase/firestore'
+import { CollectionReference, Firestore, getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore'
 import { ConfigService } from '@nestjs/config';
 import { Config } from 'src/models/config.model';
 import * as admin from 'firebase-admin';
 import * as dotenv from 'dotenv';
+import { signInWithEmailAndPassword } from '@firebase/auth';
+
 dotenv.config();
 
 export const firebaseAdmin = admin;
@@ -56,8 +58,11 @@ export class FirebaseService {
         this.app = initializeApp(firebaseConfig);
         this.auth = getAuth(this.app);
         this.fireStore = getFirestore(this.app)
+       
+
         this._createUsersCollection();
         this._createRolesCollection();
+       
 
 
        
@@ -66,12 +71,21 @@ export class FirebaseService {
 
     private _createUsersCollection() {
         this.usersCollection = collection(this.fireStore, 'users');
+      
     }
 
     private _createRolesCollection() {
         this.rolesCollection = collection(this.fireStore, 'roles');
+       
     }
-    
+
+
+    async getUserByEmail(email: string): Promise<any> {
+        const usersRef = collection(this.fireStore, 'users');
+        const emailQuery = query(usersRef, where('email', '==', email), limit(1));
+        const emailQuerySnapshot = await getDocs(emailQuery);
+        return emailQuerySnapshot.empty ? null : emailQuerySnapshot.docs[0].data();
+    }
 }
 
 

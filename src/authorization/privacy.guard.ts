@@ -4,13 +4,13 @@ import e, { Request } from "express";
 import { Observable } from "rxjs";
 import { UsersService } from "src/users/users.service";
 
-//Protects routes taking in consideration the privacy of the resource
 @Injectable()
 export class PrivacyGuard implements CanActivate {
-    
-    constructor(private reflector: Reflector, private usersService: UsersService){}
 
-    async canActivate(context: ExecutionContext): Promise<boolean>  {
+    constructor(private reflector: Reflector, private usersService: UsersService) { }
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        console.log('PrivacyGuard - Checking privacy...'); // Agregado console.log()
 
         const exceptedRoles = this.reflector.getAllAndOverride<string[]>('excepted_roles', [
             context.getHandler(),
@@ -22,13 +22,13 @@ export class PrivacyGuard implements CanActivate {
         const jwtToken: string = req.signedCookies.bearer_token;
         const userId = this.usersService.extractID(jwtToken);
 
-        if(userId == requiredId) {
+        if (userId == requiredId) {
             return true
         }
         else {
             if (exceptedRoles != undefined) {
                 const userSnap = await this.usersService.getUserById(userId);
-                let userRoles = await this.usersService.getUserRole(userSnap); 
+                let userRoles = await this.usersService.getUserRole(userSnap);
                 return exceptedRoles.some((role) => userRoles.includes(role));
             }
             else {

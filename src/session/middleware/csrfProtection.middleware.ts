@@ -1,15 +1,18 @@
-import { NestMiddleware } from "@nestjs/common";
+import { NestMiddleware, Logger } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
-import { csrfCookieName, /*generateToken */ } from "src/utils/constants";
-import { generateToken } from 'src/utils/csrfUtils'
+import { csrfCookieName } from "src/utils/constants";
+import { generateToken } from 'src/utils/csrfUtils';
 
-//Generates a CSFR Token and adds it to a cookie
 export class CsrfProtectionMiddleware implements NestMiddleware {
 
     use(req: Request, res: Response, next: NextFunction) {
-        const csrfToken = generateToken(res,req);
-        res.cookie(csrfCookieName,csrfToken, {httpOnly: false});
+        console.log('CsrfProtectionMiddleware executing...'); // Agregado console.log()
+        const csrfToken = generateToken(res, req);
 
+        console.log(`Generated CSRF token: ${csrfToken}`); // Agregado console.log()
+        res.cookie(csrfCookieName, csrfToken, { httpOnly: false });
+
+        console.log(`CSRF token added to cookie: ${csrfCookieName}`); // Agregado console.log()
         next();
     }
 }
