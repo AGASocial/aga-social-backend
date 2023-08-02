@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { SetRoleToUserDto } from './dto/setRoleToUser.dto';
-import { DocumentReference, DocumentSnapshot, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { DocumentReference, DocumentSnapshot, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, collection, where, deleteDoc } from 'firebase/firestore';
 import { SetRoleToUserResponseDto } from './dto/setRoleToUserResponse.dto';
 import { DeleteRoleOfUserDto } from './dto/deleteRoleOfUser.dto';
 import { CreateNewRoleDto } from './dto/createNewRole.dto';
@@ -20,7 +20,9 @@ import { UpdateRoleDto } from './dto/updateRole.dto';
 import { UpdateRoleResponseDto } from './dto/updateRoleResponse.dto';
 import { GetUserByIdDto } from 'src/users/dto/getUserById.dto';
 import { GetRoleByIdDto } from 'src/roles/dto/getRoleById.dto';
-
+import * as admin from 'firebase-admin';
+import { GetRolesResponseDto } from '../roles/dto/getRolesResponse.dto';
+import { DocResult } from '../utils/docResult.entity';
 
 
 
@@ -33,149 +35,205 @@ export class AuthorizationService {
         return await this.usersService.getUserById(userId);
     }
 
-    async setRoleToUser(setRoleToUserDto: SetRoleToUserDto): Promise<SetRoleToUserResponseDto> {
-        const {user, role} = setRoleToUserDto;
+    async setRoleToUser(email: string, roleName: string): Promise<SetRoleToUserResponseDto> {
+        try {
+            const usersRef = collection(this.firebaseService.fireStore, 'users');
+            const querySnapshot = await getDocs(query(usersRef, where('email', '==', email)));
 
-        const userSnap = await this.usersService.getUserById(user);
-        const roleSnap = await this.rolesService.getRoleById(role);
-        const roleId: string = roleSnap.id;
-        let userRoles = userSnap.get("roles");
-
-        if (userRoles.includes(roleId)){
-            throw new BadRequestException('USERALREADYHASROLE');
-        }
-        else{
-            userRoles.push(roleId);
-            try {
-                const userReference = doc(this.firebaseService.usersCollection, user);
-                await updateDoc(userReference, {roles: userRoles}); 
-                const setRoleToUserDtoResponse: SetRoleToUserResponseDto = {statusCode: 200, message: "ROLESETTOUSER"};
-                return setRoleToUserDtoResponse;
-            } catch (error: unknown) {
-                console.warn(`[Error]: ${error}`);
+            if (querySnapshot.empty) {
+                console.log(`User with the following email not found: ${email}`);
+                throw new NotFoundException('USERNOTFOUND');
             }
+
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data();
+
+            const currentRoles: Role[] = userData.role || [];
+
+            const rolesCollectionRef = collection(this.firebaseService.fireStore, 'roles');
+            const roleQuerySnapshot = await getDocs(query(rolesCollectionRef, where('name', '==', roleName)));
+
+            if (roleQuerySnapshot.empty) {
+                console.log(`Role with name "${roleName}" not found in the roles collection.`);
+                throw new NotFoundException('ROLENOTFOUND');
+            }
+
+            const roleDoc = roleQuerySnapshot.docs[0];
+            const roleData = roleDoc.data();
+
+            const newRole: Role = {
+                name: roleData.name,
+                description: roleData.description,
+                isDefault: roleData.isDefault,
+                isActive: roleData.isActive,
+            };
+
+            const updatedRoles = [...currentRoles, newRole];
+
+            await updateDoc(userDoc.ref, { role: updatedRoles });
+
+            const response: SetRoleToUserResponseDto = {
+                statusCode: 200,
+                message: 'ROLESSETSUCCESS',
+            };
+
+            console.log(`Updated User Roles`, updatedRoles);
+
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
         }
     }
 
-    async deleteRoleOfUser(deleteRoleOfUserDto: DeleteRoleOfUserDto): Promise<DeleteRoleOfUserResponseDto> {
-        const {user, role} = deleteRoleOfUserDto;
 
-        const userSnap = await this.usersService.getUserById(user);
-        const roleSnap = await this.rolesService.getRoleById(role);
-        const roleId: string = roleSnap.id;
-        let userRoles = userSnap.get("roles");
 
-        if (!(userRoles.includes(roleId))){
-            throw new BadRequestException('USERHASNOTROLE');
-        }
-        else{
-            const userRoleIndex: number = userRoles.indexOf(roleId);
-            userRoles.splice(userRoleIndex,1);
-            try {
-                const userReference = doc(this.firebaseService.usersCollection, user);
-                await updateDoc(userReference, {roles: userRoles}); 
-                const deleteRoleOfUserDtoResponse: DeleteRoleOfUserResponseDto = {statusCode: 200, message: "ROLEREVOKED"};
-                return deleteRoleOfUserDtoResponse;
-            } catch (error: unknown) {
-                console.warn(`[Error]: ${error}`);
+
+    async deleteRoleOfUser(email: string, roleName: string): Promise<SetRoleToUserResponseDto> {
+        try {
+            const usersRef = collection(this.firebaseService.fireStore, 'users');
+            const querySnapshot = await getDocs(query(usersRef, where('email', '==', email)));
+
+            if (querySnapshot.empty) {
+                console.log(`User with the following email not found: ${email}`);
+                throw new NotFoundException('USERNOTFOUND');
             }
+
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data();
+
+            const currentRoles: Role[] = userData.role || [];
+
+            const roleIndex = currentRoles.findIndex((role) => role.name === roleName);
+
+            if (roleIndex === -1) {
+                console.log(`Role with name "${roleName}" not found in the user's roles.`);
+                throw new NotFoundException('ROLENOTFOUND');
+            }
+
+            currentRoles.splice(roleIndex, 1);
+
+            await updateDoc(userDoc.ref, { role: currentRoles });
+
+            const response: SetRoleToUserResponseDto = {
+                statusCode: 200,
+                message: 'ROLEDELETEDSUCCESS',
+            };
+
+            console.log(`Updated User Roles`, currentRoles);
+
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            // Manejar cualquier error o excepción aquí
+            throw new InternalServerErrorException('INTERNALERROR');
         }
-        
     }
 
-   
+
+
+
+
+    async deleteRoleFirebase(roleName: string): Promise<SetRoleToUserResponseDto> {
+        try {
+            const rolesCollectionRef = collection(this.firebaseService.fireStore, 'roles');
+            const roleQuerySnapshot = await getDocs(query(rolesCollectionRef, where('name', '==', roleName)));
+
+            if (roleQuerySnapshot.empty) {
+                console.log(`Role with name "${roleName}" not found in the roles collection.`);
+                throw new NotFoundException('ROLENOTFOUND');
+            }
+
+            const roleDoc = roleQuerySnapshot.docs[0];
+            await deleteDoc(roleDoc.ref);
+
+            const response: SetRoleToUserResponseDto = {
+                statusCode: 200,
+                message: 'ROLEDELETEDSUCCESS',
+            };
+
+            console.log(`Role "${roleName}" has been deleted successfully.`);
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            // Manejar cualquier error o excepción aquí
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
+
+
+
    
 
     
-    async createNewRole(createNewRoleDto: CreateNewRoleDto): Promise<CreateNewRoleResponseDto>{
-        const roleName = createNewRoleDto.role_name;
-        const rolePolicies: Policy[] = createNewRoleDto.policies;
-        const roleRules: Rule[] = createNewRoleDto.rules;
-    
-        if(await this.rolesService.getRole(roleName) != null){
+    async createNewRole(createNewRoleDto: CreateNewRoleDto): Promise<CreateNewRoleResponseDto> {
+        const roleName = createNewRoleDto.name;
+        const roleDescription = createNewRoleDto.description;
+        const roleDefault = createNewRoleDto.isDefault;
+        const roleActive = createNewRoleDto.isActive;
+
+        console.log('Creating new role...');
+
+        if (await this.rolesService.getRole(roleName) != null) {
+            console.log(`Role with name '${roleName}' already exists.`);
             throw new BadRequestException('ROLEALREADYEXISTS');
-        }
-        else{
-            const id: string = uuidv4();
-            const role: Role = {role_name:roleName, policies: rolePolicies, rules: roleRules, stages: createNewRoleDto.stages, session_time: String(createNewRoleDto.session_time), refresh_time: String(createNewRoleDto.refresh_time), status: "disabled"};
+        } else {
+            const newRole = {
+                id: uuidv4(),
+                name: roleName,
+                description: roleDescription,
+                isDefault: roleDefault,
+                isActive: roleActive,
+            };
             try {
-                let docReference: DocumentReference = doc(this.firebaseService.rolesCollection, id);
-                await setDoc(docReference, role);
+                console.log('Saving new role to the database...');
+                let docReference: DocumentReference = doc(this.firebaseService.rolesCollection, newRole.id);
+                await setDoc(docReference, newRole);
+                console.log('New role saved successfully!');
             } catch (error: unknown) {
                 console.warn(`[ERROR]: ${error}`);
+                throw new BadRequestException('UNABLETOCREATEROLE');
             }
         }
 
-        const createNewRoleDtoResponse: CreateNewRoleResponseDto = {statusCode: 201, message: 'ROLECREATED'};
+        const createNewRoleDtoResponse: CreateNewRoleResponseDto = { statusCode: 201, message: 'ROLECREATED' };
+        console.log('Role creation complete.');
         return createNewRoleDtoResponse;
     }
 
-    async updateRole(updateRoleDto: UpdateRoleDto): Promise<UpdateRoleResponseDto> {
-        const {role} = updateRoleDto;
-        await this.rolesService.getRoleById(role);
-        
+    async updateRole(roleName: string, newData: Partial<UpdateRoleDto>): Promise<UpdateRoleResponseDto> {
         try {
-            const roleReference = doc(this.firebaseService.rolesCollection,role);
-            for (let [key, value] of Object.entries(updateRoleDto)) {
-                if((key != "role") && (value != undefined)){
-                    if(key == 'role_name'){
-                        updateDoc(roleReference, { role_name: value});
-                    }
-                    else if (key == 'policies'){
-                        let newPolicies: Policy[] = updateRoleDto.policies;
-                        updateDoc(roleReference, { policies: newPolicies});
-                    }
-                    else if (key == 'rules'){
-                        let newRules: Rule[] = updateRoleDto.rules;
-                        updateDoc(roleReference, { rules: newRules});
-                    }
-                    else if (key == 'stages'){
-                        updateDoc(roleReference, { stages: value});
-                    }
-                    else if (key == 'session_time'){
-                        updateDoc(roleReference, { session_time: value});
-                    }
-                    else if (key == 'refresh_time'){
-                        updateDoc(roleReference, { refresh_time: value});
-                    }
-                }
+            console.log('Initializing updateRole...');
+            const roleCollectionRef = admin.firestore().collection('roles');
+
+            const querySnapshot = await roleCollectionRef.where('name', '==', roleName).get();
+
+            if (querySnapshot.empty) {
+                console.log(`The role "${roleName}" does not exist.`);
+                throw new Error('ROLEDOESNOTEXIST.');
             }
-            const updateRoleResponseDto: UpdateRoleResponseDto = {statusCode: 200, message: "ROLEUPDATED"};
-            return updateRoleResponseDto;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
+
+            const batch = admin.firestore().batch();
+            querySnapshot.forEach((doc) => {
+                batch.update(doc.ref, newData);
+            });
+
+            await batch.commit();
+            console.log(`Updated info for role "${roleName}"`);
+
+            // Retornar la respuesta con el código de estado y el mensaje
+            const response: UpdateRoleResponseDto = {
+                statusCode: 200,
+                message: 'ROLEUPDATED',
+            };
+
+            return response;
+        } catch (error) {
+            console.error('There was an error updating the role data:', error);
+            throw error;
         }
     }
 
-    async enableRole(enableRoleDto: SetRoleStatusDto): Promise<SetRoleStatusResponseDto>{
-        const {role} = enableRoleDto;
-        await this.rolesService.getRoleById(role);
-
-        try {
-            const roleReference = doc(this.firebaseService.rolesCollection,role);
-            updateDoc(roleReference, {status: "enabled"});
-            const enableRoleResponseDto: SetRoleStatusResponseDto = {statusCode: 200, message: "ROLEENABLED"};
-            return enableRoleResponseDto;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-        }
-    }
-
-    async disableRole(disableRoleDto: SetRoleStatusDto): Promise<SetRoleStatusResponseDto>{
-        const {role} = disableRoleDto;
-        await this.rolesService.getRoleById(role);
-
-        try {
-            const roleReference = doc(this.firebaseService.rolesCollection,role);
-            updateDoc(roleReference, {status: "disabled"});
-            const disableRoleResponseDto: SetRoleStatusResponseDto = {statusCode: 200, message: "ROLEEDISABLED"};
-            return disableRoleResponseDto;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-        }
-    }
-
-    
 
    
 
@@ -195,28 +253,44 @@ export class AuthorizationService {
     } 
 
 
-
-    async getRoles(getRolesDto: GetRolesDto){
-        
-        return await this.rolesService.getRoles(getRolesDto);
-    } 
-
   
-    async getUserRules(userSnap: DocumentSnapshot): Promise<Rule[]> {
-        let userRoles = await this.usersService.getUserRole(userSnap)
-        let userRules: Rule[] = [];
-        for (let role of userRoles) {
-            let roleSnap = await this.rolesService.getRole(role);
-            let roleRules = roleSnap.get("rules");
-            if (typeof (roleRules) != 'undefined') {
-                let roleRulesHandler: Rule[] = roleRules;
-                userRules = userRules.concat(roleRulesHandler);
-            }
-            else {
-                roleRules = [];
-            }
+  
+
+    async getAllRoles(getRolesDto: GetRolesDto): Promise<GetRolesResponseDto> {
+        try {
+            console.log('Initializing getAllRoles...');
+            const rolesRef = this.firebaseService.rolesCollection;
+            const roleQuery = query(rolesRef, orderBy("name"));
+            console.log('Role query created.');
+
+            const roleQuerySnapshot = await getDocs(roleQuery);
+            console.log('Role query snapshot obtained.');
+
+            let queryResult = [];
+            roleQuerySnapshot.forEach((doc) => {
+                const data = doc.data();
+                queryResult.push({
+                    name: data.name,
+                    description: data.description,
+                    isActive: data.isActive,
+                    isDefault: data.isDefault,
+                });
+            });
+            console.log('Roles data collected.');
+
+            const getRolesDtoResponse: GetRolesResponseDto = {
+                statusCode: 200,
+                message: "ROLESGOT",
+                rolesFound: queryResult,
+            };
+            console.log('Response created.');
+
+            return getRolesDtoResponse;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('Error al obtener los roles.');
         }
-        return userRules;
     }
+
    
 }

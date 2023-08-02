@@ -18,12 +18,10 @@ import { throttlerLimit, timeToLive } from './utils/constants';
 import { SessionModule } from './session/session.module';
 import { RolesModule } from './roles/roles.module';
 import { UnauthenticatedMiddleware } from './session/middleware/unauthenticated.middleware';
-import { DataControlInterceptor } from './authorization/interceptor/dataControl.interceptor';
 import { DataFiltererService } from './utils/dataFilterer.service';
 import { HashService } from './utils/hash.service';
 import { CsrfValidationMiddleware } from './session/middleware/csrfValidation.middleware';
 import { CsrfProtectionMiddleware } from './session/middleware/csrfProtection.middleware';
-import { AuthenticatedGuard } from './auth/authenticated.guard';
 
 
 @Module({
@@ -34,7 +32,6 @@ import { AuthenticatedGuard } from './auth/authenticated.guard';
     controllers: [AppController, AuthController, AuthorizationController],
     providers: [
         AppService,
-        DataControlInterceptor,
         DataFiltererService,
         StageGuard,
         PoliciesGuard,

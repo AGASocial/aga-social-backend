@@ -14,7 +14,6 @@ import { RefreshDto } from "./dto/refresh.dto";
 import { Throttle } from "@nestjs/throttler";
 import { csrfCookieName, freezeLimit, freezeTime } from "src/utils/constants";
 import { FreezedGuard } from "src/session/freezed.guard";
-import * as qrcode from 'qrcode'
 
 
 @Controller('auth')
@@ -38,7 +37,7 @@ export class AuthController {
     async firebaseLogin(@Body() logInDto: LogInDto, @Res() res: Response, @Req() req) {
 
        
-        const loginResponseDto: LogInResponseDto = await this.authService.firebaseLogin(logInDto, /*req.user*/); //Here
+        const loginResponseDto: LogInResponseDto = await this.authService.firebaseLogin(logInDto);
 
         const { statusCode, message, bearer_token, authCookieAge, refresh_token, refreshCookieAge } = loginResponseDto;
 

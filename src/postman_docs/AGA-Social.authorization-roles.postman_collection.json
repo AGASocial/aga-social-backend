@@ -1,0 +1,190 @@
+{
+	"info": {
+		"_postman_id": "5afab69c-f7f1-4224-a063-81ef8624bbca",
+		"name": "authorization/roles",
+		"description": "Coleccion Postman realizada para probar los endpoints para la coleccion de Firebase llamada 'roles' gestionada por el controlador y servidor de authorization.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Registrar Role Firebase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Subscriber\",\r\n  \"description\": \"Subscribers are users that can buy courses and e-books offered by Publishers\",\r\n  \"isDefault\": true,\r\n  \"isActive\": true\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/roles",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Role Firebase",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Publisher\",\r\n  \"isDefault\": false,\r\n  \"isActive\": true\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/roles/Publisher",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"roles",
+						"Publisher"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Roles Firebase",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/roles",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Agregar Role a User Firebase",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"test5@gmail.com\",\r\n  \"roleName\": \"Publisher\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/users/test5@gmail.com/roles/Publisher",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"users",
+						"test5@gmail.com",
+						"roles",
+						"Publisher"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Role a User Firebase",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"test5@gmail.com\",\r\n  \"roleName\": \"Publisher\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/users/test5@gmail.com/roles/Publisher",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"users",
+						"test5@gmail.com",
+						"roles",
+						"Publisher"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Role de Firebase",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/roles/Admin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"roles",
+						"Admin"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

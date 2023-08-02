@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmpty, IsNotEmpty, IsString, IsUUID } from "class-validator";
+import { IsEmail, IsEmpty, IsNotEmpty, IsString, IsUUID } from "class-validator";
 
 
 export class SetRoleToUserDto {
@@ -8,14 +8,15 @@ export class SetRoleToUserDto {
         type: String
     })
     @IsNotEmpty()
-    @IsUUID()
-    public user: string;
+    @IsEmail()
+    @IsString()
+    public email: string;
 
     @ApiProperty({
         description: "Role to be set for the user",
         type: String
     })
     @IsNotEmpty()
-    @IsUUID()
+    @IsString()
     public role: string;
 }

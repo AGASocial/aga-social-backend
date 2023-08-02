@@ -7,7 +7,6 @@ import { Request, Response } from 'express';
 import { CheckPolicies, CreateRole, ManageUser, ReadUser, UpdateUser } from './authorization/policies.decorator';
 import { PoliciesGuard } from './authorization/policies.guard';
 import { StageGuard } from './authorization/stage.guard';
-import { DataControlInterceptor } from './authorization/interceptor/dataControl.interceptor';
 import { AuthorizationService } from './authorization/authorization.service';
 import { GetUserByIdDto } from './users/dto/getUserById.dto';
 import { GetUserByIdResponseDto } from './users/dto/getUserByIdResponse.dto';
@@ -94,7 +93,6 @@ export class AppController {
 
 
 
-    @UseInterceptors(DataControlInterceptor)
     @UseGuards(JwtAuthGuard, PrivacyGuard)
     @ExceptedRoles("admin")
     @Get('users/:userId')

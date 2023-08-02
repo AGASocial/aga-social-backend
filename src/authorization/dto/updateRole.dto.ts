@@ -1,61 +1,44 @@
-import { ArrayMinSize, IsAlpha, IsArray, IsEnum, IsLowercase, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, IsUppercase, ValidateNested, arrayMinSize } from "class-validator";
-import { Policy } from "../../roles/entities/policy.entity";
-import { Rule } from "src/roles/entities/rule.entity";
+import { IsNotEmpty, IsOptional, IsString, IsBoolean } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { Type as ValidateType } from "class-transformer";
-import { Stage } from "src/roles/entities/stage.enum";
 
 
 export class UpdateRoleDto {
 
-    @IsOptional()
-    @IsUUID()
-    public role?: string;
-
-    @IsOptional()
+    @ApiProperty({
+        description: 'Role name',
+        example: 'Subscriber, Publisher or Admin',
+    })
+    @IsNotEmpty()
     @IsString()
-    @IsLowercase()
-    @IsAlpha()
-    public role_name?: string;
+    @IsOptional()
+    public name: string;
 
     @ApiProperty({
-        description: 'New role policies',
-        type: [Policy]
+        description: 'Describes the role and its nature',
+        example: 'Subscribers are user that can buy courses and e-books offered by Publishers',
     })
+    @IsNotEmpty()
+    @IsString()
     @IsOptional()
-    @IsArray()
-    @ArrayMinSize(1)
-    @ValidateNested()
-    @ValidateType(() => Policy)
-    public policies?: Policy[];
+    public description?: string;
 
     @ApiProperty({
-        description: 'New role rules',
-        type: [Rule]
+        description: 'Indicates if the role is the default for new users. Subscriber is, Publisher and Admin are not',
+        example: true,
     })
+    @IsNotEmpty()
+    @IsBoolean()
     @IsOptional()
-    @IsArray()
-    @ArrayMinSize(1)
-    @ValidateNested()
-    @ValidateType(() => Rule)
-    public rules?: Rule[];
-    
-    @IsOptional()
-    @IsArray()
-    @ArrayMinSize(1)
-    @IsAlpha("es-ES",{each: true})
-    @IsUppercase({each: true})
-    @IsEnum(Stage, {each: true})
-    public stages?: string[];
+    public isDefault?: boolean;
 
+    @ApiProperty({
+        description: 'Indicates if the role is enabled or disabled',
+        example: true,
+    })
+    @IsNotEmpty()
+    @IsBoolean()
     @IsOptional()
-    @IsNumber()
-    @IsPositive()
-    public session_time?: number;
+    public isActive?: boolean;
 
-    @IsOptional()
-    @IsNumber()
-    @IsPositive()
-    public refresh_time?: number;
 
 }

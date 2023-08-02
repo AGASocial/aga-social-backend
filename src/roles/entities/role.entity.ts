@@ -1,37 +1,43 @@
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsPositive, IsString, IsUUID } from "class-validator";
-import { Policy } from "./policy.entity";
-import { Stage } from "./stage.enum";
-import { Rule } from "./rule.entity";
-
+import { ApiProperty } from "@nestjs/swagger";
+import { IsBoolean, IsNotEmpty, IsString } from "class-validator";
 
 export class Role {
-
+    @ApiProperty({
+        description: 'Role name',
+        example: 'Subscriber, Publisher or Admin',
+    })
     @IsNotEmpty()
     @IsString()
-    public role_name: string;
+    public name: string;
 
-    @IsNotEmpty()
-    @IsArray()
-    public policies: Policy[];
-
-    @IsNotEmpty()
-    @IsArray()
-    public rules: Rule[];
-    
-    @IsNotEmpty()
-    @IsArray()
-    public stages: string[];
-
-    @IsNotEmpty()
-    @IsNumberString()
-    public session_time: string;
-
-    @IsNotEmpty()
-    @IsNumberString()
-    public refresh_time: string;
-
+    @ApiProperty({
+        description: 'Describes the role and its nature',
+        example: 'Subscribers are user that can buy courses and e-books offered by Publishers',
+    })
     @IsNotEmpty()
     @IsString()
-    public status: string;
-    
+    public description: string;
+
+    @ApiProperty({
+        description: 'Indicates if the role is the defaukt for new users. Subscriber is, Publisher and Admin are not',
+        example: true,
+    })
+    @IsNotEmpty()
+    @IsBoolean()
+    public isDefault: boolean;
+
+    @ApiProperty({
+        description: 'Indicates if the role is enabled or disabled',
+        example: true,
+    })
+    @IsNotEmpty()
+    @IsBoolean()
+    public isActive: boolean;
+
+    constructor(name: string, description: string, isDefault: boolean, isActive: boolean) {
+        this.name = name;
+        this.description = description;
+        this.isDefault = isDefault;
+        this.isActive = isActive;
+    }
 }

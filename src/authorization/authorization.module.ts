@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthorizationController } from './authorization.controller';
 import { AuthorizationService } from './authorization.service';
 import { RolesGuard } from './roles.guard';
@@ -16,8 +16,9 @@ import { StageGuard } from './stage.guard';
 import { UsersModule } from 'src/users/users.module';
 import { RolesModule } from 'src/roles/roles.module';
 import { SessionModule } from 'src/session/session.module';
-import { DataControlInterceptor } from './interceptor/dataControl.interceptor';
 import { DataFiltererService } from 'src/utils/dataFilterer.service';
+import { CsrfValidationMiddleware } from 'src/session/middleware/csrfValidation.middleware';
+import { CsrfProtectionMiddleware } from 'src/session/middleware/csrfProtection.middleware';
 
 @Module({
   controllers: [AuthorizationController],
@@ -25,7 +26,15 @@ import { DataFiltererService } from 'src/utils/dataFilterer.service';
     secret: jwtSecret,
     signOptions: {expiresIn: jwtTime}
   }), HttpModule, UsersModule],
-  providers: [AuthorizationService, DataControlInterceptor, DataFiltererService, RolesGuard, HashService,SessionSerializer, JwtStrategy, FirebaseService, AuthService, JwtService, StageGuard],
+  providers: [AuthorizationService, DataFiltererService, RolesGuard, HashService,SessionSerializer, JwtStrategy, FirebaseService, AuthService, JwtService, StageGuard],
   exports: [AuthorizationService]
 })
-export class AuthorizationModule {}
+export class AuthorizationModule implements NestModule {
+
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(CsrfProtectionMiddleware).forRoutes('*');
+
+        consumer.apply(CsrfValidationMiddleware).forRoutes('*');
+    }
+
+}

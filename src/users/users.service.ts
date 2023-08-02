@@ -60,7 +60,7 @@ export class UsersService {
 
    
     async getUserRole(user: any): Promise<string | null> {
-        const userRole = user?.role; // Aquí obtenemos directamente la propiedad "role" del objeto de usuario
+        const userRole = user?.role; 
 
         if (typeof userRole !== 'undefined') {
             try {
@@ -69,13 +69,13 @@ export class UsersService {
                     throw new BadRequestException('USERHASNONEXISTINGROLE');
                 }
                 console.log('Get User Role - User Role:', userRole);
-                return userRole; // Retorna el rol del usuario si existe y es válido
+                return userRole; 
             } catch (error: unknown) {
                 console.warn(`[ERROR]: ${error}`);
-                return null; // Retorna null en caso de error o rol inválido
+                return null; 
             }
         } else {
-            return null; // Retorna null si el usuario no tiene un rol asignado
+            return null; 
         }
     }
 

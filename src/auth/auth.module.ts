@@ -35,7 +35,7 @@ import { CsrfValidationMiddleware } from '../session/middleware/csrfValidation.m
         JwtStrategy,
         JwtRefreshStrategy,
         FirebaseService,
-        LocalAuthGuard, // Agregar LocalAuthGuard aquí
+        LocalAuthGuard, 
     ],
     exports: [AuthService],
 })
@@ -47,7 +47,6 @@ export class AuthModule implements NestModule {
             .apply(CsrfValidationMiddleware)
             .exclude(
                 { path: 'auth/firebase/login', method: RequestMethod.POST },
-              // { path: 'auth/firebase/signup', method: RequestMethod.POST },
                 { path: 'auth/firebase/credentials', method: RequestMethod.POST },
                 { path: 'auth/firebase/credentials/otp', method: RequestMethod.PUT }
             )

@@ -1,4 +1,4 @@
-import { ArrayMinSize, IsAlpha, IsArray, IsEnum, IsLowercase, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, IsUppercase, ValidateNested } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsBoolean } from "class-validator";
 import { Policy } from "../../roles/entities/policy.entity";
 import { Rule } from "src/roles/entities/rule.entity";
 import { ApiProperty } from "@nestjs/swagger";
@@ -9,56 +9,36 @@ import { Stage } from "src/roles/entities/stage.enum";
 export class CreateNewRoleDto {
 
     @ApiProperty({
-        description: 'Name for the new role',
-        example: 'admin',
-        required: true,
-        type: String
+        description: 'Role name',
+        example: 'Subscriber, Publisher or Admin',
     })
     @IsNotEmpty()
-    @IsLowercase()
-    @IsAlpha()
-    public role_name: string;
+    @IsString()
+    public name: string;
 
     @ApiProperty({
-        description: 'Is an array of policy, each policy defines privileges for the user in that role',
-        required: true,
-        type: [Policy]
+        description: 'Describes the role and its nature',
+        example: 'Subscribers are user that can buy courses and e-books offered by Publishers',
     })
     @IsNotEmpty()
-    @IsArray()
-    @ArrayMinSize(1)
-    @ValidateNested()
-    @ValidateType(() => Policy)
-    public policies: Policy[];
+    @IsString()
+    public description: string;
 
     @ApiProperty({
-        description: 'Is an array of rule, each rule defines what the user may send as input and what the user may recibe as output',
-        required: true,
-        type: [Rule]
+        description: 'Indicates if the role is the defaukt for new users. Subscriber is, Publisher and Admin are not',
+        example: true,
     })
     @IsNotEmpty()
-    @IsArray()
-    @ArrayMinSize(1)
-    @ValidateNested()
-    @ValidateType(()=> Rule)
-    public rules: Rule[];
-    
-    @IsNotEmpty()
-    @IsArray()
-    @ArrayMinSize(1)
-    @IsAlpha("es-ES",{each: true})
-    @IsUppercase({each: true})
-    @IsEnum(Stage,{each: true})
-    public stages: string[];
+    @IsBoolean()
+    public isDefault: boolean;
 
+    @ApiProperty({
+        description: 'Indicates if the role is enabled or disabled',
+        example: true,
+    })
     @IsNotEmpty()
-    @IsNumber()
-    @IsPositive()
-    public session_time: number;
-
-    @IsNotEmpty()
-    @IsNumber()
-    @IsPositive()
-    public refresh_time: number;
+    @IsBoolean()
+    public isActive: boolean;
+ 
 
 }

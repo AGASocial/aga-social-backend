@@ -20,9 +20,10 @@ import { UsersService } from 'src/users/users.service';
 import { SessionService } from 'src/session/session.service';
 import { User } from 'src/users/users.entity';
 import { ChangePasswordDtoResponse } from './dto/changePasswordResponse.dto';
-import * as speakeasy from 'speakeasy';
-import { Role } from 'src/authorization/entities/role.enum'
+import { Role } from 'src/roles/entities/role.entity'
 import { QueryDocumentSnapshot } from 'firebase/firestore';
+import * as dotenv from 'dotenv';
+dotenv.config();
 @Injectable()
 export class AuthService {
     constructor(private firebaseService: FirebaseService, private jwtService: JwtService, private hashService: HashService, private usersService: UsersService, private sessionService: SessionService) { }
@@ -115,6 +116,18 @@ export class AuthService {
     }
 
     async firebaseSignUp(signUpDto: SignUpDto): Promise<SignUpDtoResponse> {
+        const roleId = process.env.SUBSCRIBER_ID;
+        const roleRef = doc(this.firebaseService.fireStore, 'roles', roleId);
+        const roleSnapshot = await getDoc(roleRef);
+        const roleData = roleSnapshot.data();
+        const roleEntity: Role = {
+            
+            name: roleData.name,
+            description: roleData.description,
+            isDefault: roleData.isDefault,
+            isActive: roleData.isActive
+        };
+
         const { email, username, password, name, security_answer } = signUpDto;
         const hashedPassword = await this.hashService.hashString(password);
         signUpDto.password = hashedPassword;
@@ -154,7 +167,7 @@ export class AuthService {
                     password: hashedPassword,
                     name: name,
                     security_answer: signUpDto.security_answer,
-                    role: Role.SUBSCRIBER,
+                    role: [roleEntity]
                 };
                 let docReference: DocumentReference = doc(this.firebaseService.usersCollection, id);
                 await setDoc(docReference, newUser);

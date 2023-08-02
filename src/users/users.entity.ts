@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsAlpha, IsArray, IsAscii, IsEmail, IsEnum, IsLowercase, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, Length, Matches, MaxLength } from "class-validator";
-
+import { IsAlpha, IsArray, IsEmail, IsLowercase, IsNotEmpty, IsString, Length, Matches, MaxLength } from "class-validator";
+import { Role } from 'src/roles/entities/role.entity'
 
 export class User {
 
@@ -67,6 +67,6 @@ export class User {
     @IsLowercase({ each: true })
     @IsAlpha('es-ES', { each: true })
     @MaxLength(20, { each: true })
-    role: string;  //Role
+    role: Role[];  //Role
 
 }
