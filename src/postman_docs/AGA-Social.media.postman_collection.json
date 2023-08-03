@@ -1,0 +1,117 @@
+{
+	"info": {
+		"_postman_id": "4a0e35b7-ce01-4e5f-8cf2-ea8597a73ebe",
+		"name": "media (audios y videos)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Crear Media",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"type\": \"audio\",\r\n  \"title\": \"Example Audio\",\r\n  \"description\": \"This is an example audio\",\r\n  \"url\": \"https://www.example.com/example_audio.mp3\",\r\n  \"duration\": \"00:10:00\",\r\n  \"uploadDate\": \"2021-12-28\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/media",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"media"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Media",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"url\": \"https://www.example.com/example_video.mp4\",\r\n  \"title\": \"New Title\",\r\n  \"description\": \"Updated description\",\r\n  \"duration\": \"00:15:00\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/media",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"media"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Media",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/media",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"media"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Media",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"url\": \"https://www.example.com/example_audio2.mp3\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/media",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"media"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,4 +1,4 @@
-import { Body, Controller,Get,Post,Put,Req,Res,UseGuards } from "@nestjs/common";
+import { Body, Controller,Delete,Get,Post,Put,Req,Res,UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { SignUpDto } from "./dto/signup.dto";
 import { LogInDto } from "./dto/login.dto";
@@ -14,6 +14,8 @@ import { RefreshDto } from "./dto/refresh.dto";
 import { Throttle } from "@nestjs/throttler";
 import { csrfCookieName, freezeLimit, freezeTime } from "src/utils/constants";
 import { FreezedGuard } from "src/session/freezed.guard";
+import { DeleteUserDto } from "./dto/deleteUser.dto";
+import { DeleteUserResponseDto } from "./dto/deleteUserResponse.dto";
 
 
 @Controller('auth')
@@ -31,6 +33,12 @@ export class AuthController {
         })
 
     }
+
+    @Delete('firebase/delete')
+    async deleteUser(@Body() deleteUserDto: DeleteUserDto): Promise<DeleteUserResponseDto> {
+        return this.authService.firebaseDeleteUser(deleteUserDto);
+    }
+
 
     @UseGuards(FreezedGuard)
     @Post('firebase/login')

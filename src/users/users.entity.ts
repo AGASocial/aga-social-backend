@@ -69,4 +69,20 @@ export class User {
     @MaxLength(20, { each: true })
     role: Role[];  //Role
 
+    @ApiProperty({
+        description: "Books purchased by the user",
+        example: ["ebook_id_1", "ebook_id_3"],
+        type: [String],
+    })
+    purchasedBooks: string[]; // List of eBooks, has the books' ids
+
+    @ApiProperty({
+        description: "Courses purchased by the user",
+        example: ["course_id_1", "course_id_2"],
+        type: [String],
+    })
+    purchasedCourses: string[]; // List of Courses, has the courses' ids
+
+
+
 }

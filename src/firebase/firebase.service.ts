@@ -21,6 +21,8 @@ export class FirebaseService {
 
     public usersCollection: CollectionReference;
     public rolesCollection: CollectionReference;
+    public mediaCollection: CollectionReference;
+
    
     constructor(private configService: ConfigService<Config>) {
         const firebaseConfig = {
@@ -49,12 +51,18 @@ export class FirebaseService {
 
         this._createUsersCollection();
         this._createRolesCollection();
+        this._createMediaCollection()
        
 
 
        
     }
 
+
+    private _createMediaCollection() {
+        this.mediaCollection = collection(this.fireStore, 'media');
+
+    }
 
     private _createUsersCollection() {
         this.usersCollection = collection(this.fireStore, 'users');
@@ -73,6 +81,16 @@ export class FirebaseService {
         const emailQuerySnapshot = await getDocs(emailQuery);
         return emailQuerySnapshot.empty ? null : emailQuerySnapshot.docs[0].data();
     }
+
+
+    async getMediaByUrl(url: string): Promise<any> {
+        const mediaRef = collection(this.fireStore, 'media');
+        const mediaQuery = query(mediaRef, where('url', '==', url), limit(1));
+        const mediaQuerySnapshot = await getDocs(mediaQuery);
+        return mediaQuerySnapshot.empty ? null : mediaQuerySnapshot.docs[0].data();
+    }
+
+
 }
 
 

@@ -22,14 +22,17 @@ import { DataFiltererService } from './utils/dataFilterer.service';
 import { HashService } from './utils/hash.service';
 import { CsrfValidationMiddleware } from './session/middleware/csrfValidation.middleware';
 import { CsrfProtectionMiddleware } from './session/middleware/csrfProtection.middleware';
+import { MediaController } from './media/media.controller';
+import { MediaModule } from './media/media.module';
+import { MediaService } from './media/media.service';
 
 
 @Module({
-    imports: [UsersModule, AuthModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
     }), SessionModule, RolesModule],
-    controllers: [AppController, AuthController, AuthorizationController],
+    controllers: [AppController, AuthController, AuthorizationController, MediaController],
     providers: [
         AppService,
         DataFiltererService,
@@ -37,6 +40,7 @@ import { CsrfProtectionMiddleware } from './session/middleware/csrfProtection.mi
         PoliciesGuard,
         FirebaseService,
         HashService,
+        MediaService,
         
         {
             provide: APP_GUARD,

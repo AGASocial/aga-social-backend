@@ -1,28 +1,20 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { FirebaseService } from 'src/firebase/firebase.service';
-import { SetRoleToUserDto } from './dto/setRoleToUser.dto';
 import { DocumentReference, DocumentSnapshot, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, collection, where, deleteDoc } from 'firebase/firestore';
 import { SetRoleToUserResponseDto } from './dto/setRoleToUserResponse.dto';
-import { DeleteRoleOfUserDto } from './dto/deleteRoleOfUser.dto';
 import { CreateNewRoleDto } from './dto/createNewRole.dto';
 import {v4 as uuidv4} from 'uuid';
 import { Role } from '../roles/entities/role.entity';
 import { CreateNewRoleResponseDto } from './dto/createNewRoleResponse.dto';
-import { DeleteRoleOfUserResponseDto } from './dto/deleteRoleOfUserResponse.dto';
-import { SetRoleStatusDto } from './dto/setRoleStatus.dto';
-import { SetRoleStatusResponseDto } from './dto/setRoleStatusResponse.dto';
-import { Policy } from '../roles/entities/policy.entity';
 import { GetRolesDto } from '../roles/dto/getRoles.dto';
 import { UsersService } from 'src/users/users.service';
 import { RolesService } from 'src/roles/roles.service';
-import { Rule } from 'src/roles/entities/rule.entity';
 import { UpdateRoleDto } from './dto/updateRole.dto';
 import { UpdateRoleResponseDto } from './dto/updateRoleResponse.dto';
 import { GetUserByIdDto } from 'src/users/dto/getUserById.dto';
 import { GetRoleByIdDto } from 'src/roles/dto/getRoleById.dto';
 import * as admin from 'firebase-admin';
 import { GetRolesResponseDto } from '../roles/dto/getRolesResponse.dto';
-import { DocResult } from '../utils/docResult.entity';
 
 
 

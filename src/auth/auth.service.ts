@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/signup.dto';
 import { LogInDto } from './dto/login.dto';
@@ -7,8 +7,8 @@ import { SignUpDtoResponse } from './dto/signupResponse.dto';
 import { RecoverPasswordDto } from './dto/recoverPassword.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { FirebaseService } from 'src/firebase/firebase.service';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut, getAuth } from 'firebase/auth'
-import { setDoc, DocumentReference, doc, addDoc, updateDoc, getDoc, collection, where, QueryFieldFilterConstraint, query, getDocs, DocumentSnapshot } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut, getAuth, deleteUser } from 'firebase/auth'
+import { setDoc, DocumentReference, doc, addDoc, updateDoc, getDoc, collection, where, QueryFieldFilterConstraint, query, getDocs, DocumentSnapshot, limit, deleteDoc } from 'firebase/firestore';
 import { RecoverPasswordDtoResponse } from './dto/recoverPasswordResponse.dto';
 import { HashService } from 'src/utils/hash.service';
 import * as firebaseAdminAuth from 'firebase-admin/auth';
@@ -23,6 +23,8 @@ import { ChangePasswordDtoResponse } from './dto/changePasswordResponse.dto';
 import { Role } from 'src/roles/entities/role.entity'
 import { QueryDocumentSnapshot } from 'firebase/firestore';
 import * as dotenv from 'dotenv';
+import { DeleteUserDto } from './dto/deleteUser.dto';
+import { DeleteUserResponseDto } from './dto/deleteUserResponse.dto';
 dotenv.config();
 @Injectable()
 export class AuthService {
@@ -167,7 +169,9 @@ export class AuthService {
                     password: hashedPassword,
                     name: name,
                     security_answer: signUpDto.security_answer,
-                    role: [roleEntity]
+                    role: [roleEntity],
+                    purchasedBooks: [],
+                    purchasedCourses: []
                 };
                 let docReference: DocumentReference = doc(this.firebaseService.usersCollection, id);
                 await setDoc(docReference, newUser);
@@ -181,6 +185,45 @@ export class AuthService {
             console.warn(`[ERROR]: ${error}`);
         }
     }
+
+
+    async firebaseDeleteUser(deleteUserDto: DeleteUserDto): Promise<DeleteUserResponseDto> {
+        const { email, security_answer } = deleteUserDto;
+
+        try {
+            const userQuery = query(this.firebaseService.usersCollection, where('email', '==', email), limit(1));
+            const userQuerySnapshot = await getDocs(userQuery);
+
+            if (userQuerySnapshot.empty) {
+                throw new NotFoundException('User not found');
+            }
+
+            const userDoc = userQuerySnapshot.docs[0];
+
+            const userSecurityAnswer = userDoc.data().security_answer;
+            const isSecurityAnswerCorrect = await this.hashService.compareHashedStrings(security_answer, userSecurityAnswer);
+
+            if (!isSecurityAnswerCorrect) {
+                throw new UnauthorizedException('Incorrect security answer');
+            }
+
+            await deleteDoc(userDoc.ref);
+            console.log(`User with email ${email} has been successfully deleted.`);
+
+            const deleteUserResponseDto: DeleteUserResponseDto = {
+                statusCode: 200,
+                message: 'USERDELETED',
+            };
+            return deleteUserResponseDto;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('USERDELETEFAILED');
+        }
+    }
+
+
+
+
 
 
     async firebaseRecoverPassword(recoverPasswordDto: RecoverPasswordDto): Promise<RecoverPasswordDtoResponse> {
