@@ -9,6 +9,6 @@ export interface Config {
     MEASUREMENT_ID: string;
     FIREBASE_PRIVATE_KEY: string;
     FIREBASE_CLIENT_EMAIL: string;
-    //GOOGLE_APPLICATION_CREDENTIALS: string;
+    GOOGLE_APPLICATION_CREDENTIALS: string;
     FIREBASE_AUTH_UID: string;
 }

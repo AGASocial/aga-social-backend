@@ -8,7 +8,7 @@ import { RecoverPasswordDto } from './dto/recoverPassword.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut, getAuth, deleteUser } from 'firebase/auth'
-import { setDoc, DocumentReference, doc, addDoc, updateDoc, getDoc, collection, where, QueryFieldFilterConstraint, query, getDocs, DocumentSnapshot, limit, deleteDoc } from 'firebase/firestore';
+import { setDoc, DocumentReference, doc, addDoc, updateDoc, getDoc, collection, where, QueryFieldFilterConstraint, query, getDocs, DocumentSnapshot, limit, deleteDoc, orderBy } from 'firebase/firestore';
 import { RecoverPasswordDtoResponse } from './dto/recoverPasswordResponse.dto';
 import { HashService } from 'src/utils/hash.service';
 import * as firebaseAdminAuth from 'firebase-admin/auth';
@@ -25,6 +25,7 @@ import { QueryDocumentSnapshot } from 'firebase/firestore';
 import * as dotenv from 'dotenv';
 import { DeleteUserDto } from './dto/deleteUser.dto';
 import { DeleteUserResponseDto } from './dto/deleteUserResponse.dto';
+import { GetUsersResponseDto } from './dto/getUsersResponse.dto';
 dotenv.config();
 @Injectable()
 export class AuthService {
@@ -175,6 +176,23 @@ export class AuthService {
                 };
                 let docReference: DocumentReference = doc(this.firebaseService.usersCollection, id);
                 await setDoc(docReference, newUser);
+
+
+                const cachedCourses = await this.firebaseService.getCollectionData('users');
+                cachedCourses.push({
+                    email,
+                    username,
+                    password,
+                    name,
+                    security_answer,
+                    role: [roleEntity],
+                    purchasedBooks: [],
+                    purchasedCourses: [],
+                });
+                this.firebaseService.setCollectionData('users', cachedCourses);
+                console.log('User added to the cache successfully.');
+
+
                 const signUpDtoResponse: SignUpDtoResponse = {
                     statusCode: 201,
                     message: 'SIGNUPSUCCESSFUL',
@@ -209,6 +227,15 @@ export class AuthService {
 
             await deleteDoc(userDoc.ref);
             console.log(`User with email ${email} has been successfully deleted.`);
+
+
+            const cachedCourses = await this.firebaseService.getCollectionData('users');
+            const indexToDelete = cachedCourses.findIndex((user) => user.email === email);
+
+            if (indexToDelete !== -1) {
+                cachedCourses.splice(indexToDelete, 1);
+                this.firebaseService.setCollectionData('users', cachedCourses);
+            }
 
             const deleteUserResponseDto: DeleteUserResponseDto = {
                 statusCode: 200,
@@ -342,6 +369,61 @@ export class AuthService {
         console.log('User logged out successfully!')
         return logoutResponseDto;
     }
+
+
+    async getUsers(): Promise<GetUsersResponseDto> {
+        try {
+            console.log('Initializing getUsers...');
+
+            // Tries to use data in cache if it exists
+            const cachedUsers = await this.firebaseService.getCollectionData('users');
+            if (cachedUsers.length > 0) {
+                console.log('Using cached users data.');
+                const getUsersDtoResponse: GetUsersResponseDto = {
+                    statusCode: 200,
+                    message: "USERSGOT",
+                    usersFound: cachedUsers,
+                };
+                return getUsersDtoResponse;
+            }
+
+            // If there is no data, it uses firestore instead
+            const usersRef = this.firebaseService.usersCollection;
+            const usersQuery = query(usersRef, orderBy("name"));
+            console.log('User query created.');
+
+            const usersQuerySnapshot = await getDocs(usersQuery);
+            console.log('Users query snapshot obtained.');
+
+            let queryResult = [];
+            usersQuerySnapshot.forEach((doc) => {
+                const data = doc.data();
+                queryResult.push({
+                    name: data.name,
+                    username: data.username,
+                    role: data.role,
+                });
+            });
+            console.log('Users data collected.');
+
+            // the data is saved in cache for future queries
+            this.firebaseService.setCollectionData('users', queryResult);
+
+            const getUsersDtoResponse: GetUsersResponseDto = {
+                statusCode: 200,
+                message: "USERSGOT",
+                usersFound: queryResult,
+            };
+            console.log('Response created.');
+
+            return getUsersDtoResponse;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the users.');
+        }
+    }
+
+
 
 
 }

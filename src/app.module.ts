@@ -25,14 +25,22 @@ import { CsrfProtectionMiddleware } from './session/middleware/csrfProtection.mi
 import { MediaController } from './media/media.controller';
 import { MediaModule } from './media/media.module';
 import { MediaService } from './media/media.service';
+import { EbookService } from './ebooks/ebooks.service';
+import { EbookModule } from './ebooks/ebooks.module';
+import { EbookController } from './ebooks/ebooks.controller';
+import { SectionService } from './sections/sections.service';
+import { SectionController } from './sections/sections.controller';
+import { CourseService } from './courses/course.service';
+import { CourseController } from './courses/course.controller';
+import { CourseModule } from './courses/course.module';
 
 
 @Module({
-    imports: [UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
     }), SessionModule, RolesModule],
-    controllers: [AppController, AuthController, AuthorizationController, MediaController],
+    controllers: [AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController],
     providers: [
         AppService,
         DataFiltererService,
@@ -41,6 +49,9 @@ import { MediaService } from './media/media.service';
         FirebaseService,
         HashService,
         MediaService,
+        EbookService,
+        SectionService,
+        CourseService,
         
         {
             provide: APP_GUARD,

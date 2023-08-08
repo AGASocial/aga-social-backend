@@ -1,12 +1,10 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { DocumentReference, DocumentSnapshot, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, collection, where, deleteDoc, QueryFieldFilterConstraint, addDoc } from 'firebase/firestore';
 import { FirebaseService } from 'src/firebase/firebase.service';
-import { DocResult } from 'src/utils/docResult.entity';
 import * as admin from 'firebase-admin';
 import { CreateMediaDto } from './dto/createMedia.dto';
 import { CreateMediaResponseDto } from './dto/createMediaResponse.dto';
 import { Media } from './entities/media.entity';
-import { MediaType } from 'src/media/entities/media.entity'
 import { UpdateMediaDto } from './dto/updateMedia.dto';
 import { UpdateMediaResponseDto } from './dto/updateMediaResponse.dto';
 import { GetMediaResponseDto } from './dto/getMediaResponse.dto';
@@ -53,6 +51,21 @@ export class MediaService {
         const newMediaDocRef = await addDoc(mediaRef, newMedia);
         const newMediaId = newMediaDocRef.id;
 
+
+        const cachedCourses = await this.firebaseService.getCollectionData('media');
+        cachedCourses.push({
+            type,
+            title,
+            description,
+            url,
+            duration,
+            uploadDate,
+        });
+        this.firebaseService.setCollectionData('media', cachedCourses);
+        console.log('Media added to the cache successfully.');
+
+
+
         const responseDto = new CreateMediaResponseDto(201, 'MEDIACREATEDSUCCESSFULLY');
         return responseDto;
     }
@@ -77,7 +90,15 @@ export class MediaService {
             await batch.commit();
             console.log(`Updated info for media with url "${url}"`);
 
-            // Retornar la respuesta con el código de estado y el mensaje
+
+            const cachedCourses = await this.firebaseService.getCollectionData('media');
+            const updatedCourseIndex = cachedCourses.findIndex((media) => media.url === url);
+            if (updatedCourseIndex !== -1) {
+                cachedCourses[updatedCourseIndex] = { ...cachedCourses[updatedCourseIndex], ...newData };
+                this.firebaseService.setCollectionData('media', cachedCourses);
+            }
+
+
             const response: UpdateMediaResponseDto = {
                 statusCode: 200,
                 message: 'MEDIAUPDATEDSUCCESSFULLY',
@@ -95,6 +116,20 @@ export class MediaService {
     async getMedia(): Promise<GetMediaResponseDto> {
         try {
             console.log('Initializing getMedia...');
+
+            // Tries to use data in cache if it exists
+            const cachedMedia = await this.firebaseService.getCollectionData('media');
+            if (cachedMedia.length > 0) {
+                console.log('Using cached media data.');
+                const getMediaDtoResponse: GetMediaResponseDto = {
+                    statusCode: 200,
+                    message: "MEDIAGOT",
+                    mediaFound: cachedMedia,
+                };
+                return getMediaDtoResponse;
+            }
+
+            // If there is no data, it uses firestore instead
             const mediaRef = this.firebaseService.mediaCollection;
             const mediaQuery = query(mediaRef, orderBy("title"));
             console.log('Media query created.');
@@ -116,19 +151,23 @@ export class MediaService {
             });
             console.log('Media data collected.');
 
-            const getRolesDtoResponse: GetMediaResponseDto = {
+            // the data is saved in cache for future queries
+            this.firebaseService.setCollectionData('media', queryResult);
+
+            const getMediaDtoResponse: GetMediaResponseDto = {
                 statusCode: 200,
                 message: "MEDIAGOT",
                 mediaFound: queryResult,
             };
             console.log('Response created.');
 
-            return getRolesDtoResponse;
+            return getMediaDtoResponse;
         } catch (error) {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving the media.');
         }
     }
+
 
 
 
@@ -154,7 +193,16 @@ export class MediaService {
                 console.log(`Media with description "${description}" not found in the media collection.`);
                 throw new NotFoundException('MEDIANOTFOUND');
             }
-        
+
+
+            const cachedCourses = await this.firebaseService.getCollectionData('media');
+            const indexToDelete = cachedCourses.findIndex((media) => media.title === title);
+
+            if (indexToDelete !== -1) {
+                cachedCourses.splice(indexToDelete, 1);
+                this.firebaseService.setCollectionData('media', cachedCourses);
+            }
+
 
             const response: DeleteMediaResponseDto = {
                 statusCode: 200,

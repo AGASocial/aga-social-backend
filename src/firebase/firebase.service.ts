@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { Auth, getAuth } from 'firebase/auth'
@@ -22,6 +21,20 @@ export class FirebaseService {
     public usersCollection: CollectionReference;
     public rolesCollection: CollectionReference;
     public mediaCollection: CollectionReference;
+    public ebooksCollection: CollectionReference;
+    public sectionsCollection: CollectionReference;
+    public coursesCollection: CollectionReference;
+
+
+    public collectionCaches: { [collectionName: string]: any[] } = {};
+    private cache = {
+        users: [],
+        roles: [],
+        media: [],
+        ebooks: [],
+        sections: [],
+        courses: [],
+    };
 
    
     constructor(private configService: ConfigService<Config>) {
@@ -38,7 +51,7 @@ export class FirebaseService {
             apiKey: configService.get<string>('FIREBASE_API_KEY') || 'mock_key',
             authDomain: configService.get<string>('FIREBASE_AUTH_DOMAIN'),
             projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
-            messagingSenderId: configService.get<string>('FIREBASE_MESSAGING_SENDER_ID'),
+           messagingSenderId: configService.get<string>('FIREBASE_MESSAGING_SENDER_ID'),
             appId: configService.get<string>('FIREBASE_APP_ID'),
             measurementId: configService.get<string>('MEASUREMENT_ID')
         }
@@ -51,13 +64,33 @@ export class FirebaseService {
 
         this._createUsersCollection();
         this._createRolesCollection();
-        this._createMediaCollection()
-       
+        this._createMediaCollection();
+        this._createEbooksCollection();
+        this._createSectionsCollection();
+        this._createCoursesCollection();
 
+        this.initializeCollectionCaches();
 
+      
        
     }
 
+    private _createCoursesCollection() {
+        this.coursesCollection = collection(this.fireStore, 'courses');
+
+    }
+
+
+    private _createSectionsCollection() {
+        this.sectionsCollection = collection(this.fireStore, 'sections');
+
+    }
+
+
+    private _createEbooksCollection() {
+        this.ebooksCollection = collection(this.fireStore, 'ebooks');
+
+    }
 
     private _createMediaCollection() {
         this.mediaCollection = collection(this.fireStore, 'media');
@@ -73,6 +106,52 @@ export class FirebaseService {
         this.rolesCollection = collection(this.fireStore, 'roles');
        
     }
+
+
+    //Methods for Firebase Cache
+
+    private async initializeCollectionCaches() {
+        const collections = [
+            this.usersCollection,
+            this.rolesCollection,
+            this.mediaCollection,
+            this.ebooksCollection,
+            this.sectionsCollection,
+            this.coursesCollection,
+        ];
+
+        for (const collectionRef of collections) {
+            const collectionName = collectionRef.id;
+            const collectionSnapshot = await getDocs(collectionRef);
+            const collectionData = collectionSnapshot.docs.map((doc) => doc.data());
+            this.cache[collectionName] = collectionData;
+        }
+    }
+
+
+
+
+    async loadCollectionCache(collectionName: string): Promise<any[]> {
+        const collectionRef = collection(this.fireStore, collectionName);
+        const querySnapshot = await getDocs(collectionRef);
+        const cacheData = [];
+        querySnapshot.forEach((doc) => {
+            cacheData.push(doc.data());
+        });
+        this.collectionCaches[collectionName] = cacheData;
+        return cacheData; 
+    }
+
+
+    async getCollectionData(collectionName: string): Promise<any[]> {
+        return this.cache[collectionName];
+    }
+
+
+     setCollectionData(collectionName: string, data: any[]): void {
+        this.collectionCaches[collectionName] = data;
+    }
+
 
 
     async getUserByEmail(email: string): Promise<any> {

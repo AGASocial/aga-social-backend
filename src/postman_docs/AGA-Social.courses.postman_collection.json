@@ -1,0 +1,111 @@
+{
+	"info": {
+		"_postman_id": "3c6e9af2-b6ed-41ff-af35-9cf0b92022ee",
+		"name": "courses",
+		"description": "Coleccion Postman creada para la realizacion de pruebas en el controller de courses usado para la gestion de courses (cursos)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Crear Curso",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"title\": \"Introduction to Programming 2\",\r\n  \"description\": \"A comprehensive course on programming basics\",\r\n  \"publisher\": \"Tech Learning\",\r\n  \"releaseDate\": \"2023-08-08\",\r\n  \"price\": 49.99,\r\n  \"language\": \"English\",\r\n  \"sections\": [\r\n    {\r\n      \"name\": \"Getting Started\",\r\n      \"description\": \"An introduction to the course and programming concepts\",\r\n      \"content\": [\r\n        {\r\n          \"type\": \"video\",\r\n          \"title\": \"Course Introduction\",\r\n          \"description\": \"Welcome to the course!\",\r\n          \"url\": \"https://example.com/course_intro.mp4\",\r\n          \"duration\": \"00:10:00\",\r\n          \"uploadDate\": \"2014-03-18\"\r\n        }\r\n      ],\r\n      \"tags\": [\"beginner\", \"programming\"]\r\n    }\r\n  ],\r\n  \"tags\": [\"programming\", \"beginner\", \"tutorial\"],\r\n  \"instructorList\": [\"John Doe\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/courses",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"courses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Curso",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"description\": \"Updated course description\",\r\n  \"language\": \"Spanish\",\r\n  \"tags\": [\"programming\", \"intermediate\"],\r\n  \"instructorList\": [\"Jane Smith\"],\r\n  \"offersCertificate\": false\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/courses/Introduction to Programming",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"courses",
+						"Introduction to Programming"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Curso",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/courses/Introduction to Programming",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"courses",
+						"Introduction to Programming"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Cursos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/courses",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"courses"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

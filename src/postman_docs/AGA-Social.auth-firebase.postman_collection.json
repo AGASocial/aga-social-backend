@@ -17,7 +17,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"test2@gmail.com\",\r\n  \"username\": \"Test.2\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Ana Garcia\",\r\n  \"security_answer\": \"perfect green\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"alejandra1@gmail.com\",\r\n  \"username\": \"Test.1\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Alejandra Doe\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -71,7 +71,7 @@
 			"response": []
 		},
 		{
-			"name": "Firebase Session",
+			"name": "Actualizar Firebase Session",
 			"request": {
 				"method": "PUT",
 				"header": [],
@@ -167,6 +167,57 @@
 						"auth",
 						"firebase",
 						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Usuario Firebase",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"alejandra@gmail.com\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/delete",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"delete"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Usuarios Firebase",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users"
 					]
 				}
 			},

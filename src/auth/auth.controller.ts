@@ -16,6 +16,7 @@ import { csrfCookieName, freezeLimit, freezeTime } from "src/utils/constants";
 import { FreezedGuard } from "src/session/freezed.guard";
 import { DeleteUserDto } from "./dto/deleteUser.dto";
 import { DeleteUserResponseDto } from "./dto/deleteUserResponse.dto";
+import { GetUsersResponseDto } from "./dto/getUsersResponse.dto";
 
 
 @Controller('auth')
@@ -96,4 +97,13 @@ export class AuthController {
         
         res.send(logoutResponseDto);
     }
+
+
+    @Get('firebase/users')
+    async getMedia(@Req() req: Request): Promise<GetUsersResponseDto> {
+
+        return this.authService.getUsers();
+    }
+
+
 }   

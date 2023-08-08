@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Subscriber\",\r\n  \"description\": \"Subscribers are users that can buy courses and e-books offered by Publishers\",\r\n  \"isDefault\": true,\r\n  \"isActive\": true\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Admin\",\r\n  \"description\": \"The admin should be a worker from AGA Social, they must manage information responsibly as they have full access to all information on the platform\",\r\n  \"isDefault\": false,\r\n  \"isActive\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -96,7 +96,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"test5@gmail.com\",\r\n  \"roleName\": \"Publisher\"\r\n}\r\n",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -104,7 +104,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/authorization/firebase/users/test5@gmail.com/roles/Publisher",
+					"raw": "http://localhost:3000/authorization/firebase/users/alejandra1@gmail.com/roles/Publisher",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -114,7 +114,7 @@
 						"authorization",
 						"firebase",
 						"users",
-						"test5@gmail.com",
+						"alejandra1@gmail.com",
 						"roles",
 						"Publisher"
 					]
@@ -129,7 +129,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"test5@gmail.com\",\r\n  \"roleName\": \"Publisher\"\r\n}\r\n",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -137,7 +137,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/authorization/firebase/users/test5@gmail.com/roles/Publisher",
+					"raw": "http://localhost:3000/authorization/firebase/users/alejandra1@gmail.com/roles/Publisher",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -147,7 +147,7 @@
 						"authorization",
 						"firebase",
 						"users",
-						"test5@gmail.com",
+						"alejandra1@gmail.com",
 						"roles",
 						"Publisher"
 					]
@@ -162,7 +162,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "\r\n",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
