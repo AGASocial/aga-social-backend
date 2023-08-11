@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { ConfigModule } from '@nestjs/config';
+import { FirebaseService } from '../firebase/firebase.service';
 import { MediaService } from './media.service';
 
 @Module({

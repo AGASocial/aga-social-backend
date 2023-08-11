@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentSnapshot } from 'firebase/firestore';
-import { RolesService } from 'src/roles/roles.service';
-import { UsersService } from 'src/users/users.service';
-import { timeMultiplier, jwtTime, refreshTime } from 'src/utils/constants';
+import { RolesService } from '../roles/roles.service';
+import { UsersService } from '../users/users.service';
+import { jwtTime, refreshTime, timeMultiplier } from '../utils/constants';
 
 @Injectable()
 export class SessionService {

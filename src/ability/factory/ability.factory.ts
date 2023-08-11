@@ -1,10 +1,10 @@
 import { Ability, AbilityBuilder, InferSubjects, MongoAbility, createMongoAbility } from "@casl/ability";
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { Action } from "src/authorization/entities/action.enum";
-import { Policy } from "src/roles/entities/policy.entity";
-import { Allowance } from "src/authorization/entities/allowance.enum";
-import { UsersService } from "src/users/users.service";
-import { RolesService } from "src/roles/roles.service";
+import { Action } from "../../authorization/entities/action.enum";
+import { Allowance } from "../../authorization/entities/allowance.enum";
+import { Policy } from "../../roles/entities/policy.entity";
+import { RolesService } from "../../roles/roles.service";
+import { UsersService } from "../../users/users.service";
 
 export type Subjects = InferSubjects<'User' | 'Role'> | 'all';  //Agregar otras entidades luego
 

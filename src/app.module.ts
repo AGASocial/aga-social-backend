@@ -33,14 +33,17 @@ import { SectionController } from './sections/sections.controller';
 import { CourseService } from './courses/course.service';
 import { CourseController } from './courses/course.controller';
 import { CourseModule } from './courses/course.module';
+import { MessageModule } from './messages/message.module';
+import { MessageService } from './messages/message.service';
+import { MessageController } from './messages/message.controller';
 
 
 @Module({
-    imports: [CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
     }), SessionModule, RolesModule],
-    controllers: [AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController],
+    controllers: [AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController],
     providers: [
         AppService,
         DataFiltererService,
@@ -52,6 +55,7 @@ import { CourseModule } from './courses/course.module';
         EbookService,
         SectionService,
         CourseService,
+        MessageService,
         
         {
             provide: APP_GUARD,
@@ -82,7 +86,9 @@ export class AppModule implements NestModule {
 
         consumer
             .apply(UnauthenticatedMiddleware)
-            .exclude({ path: 'auth/firebase/logout', method: RequestMethod.GET })
+            .exclude({ path: 'auth/firebase/logout', method: RequestMethod.GET },
+                     { path: 'auth/firebase/signup', method: RequestMethod.POST },
+        )
             .forRoutes({ path: '*', method: RequestMethod.ALL });
 
     }

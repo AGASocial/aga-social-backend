@@ -1,7 +1,7 @@
 import { NestMiddleware, Logger } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
-import { csrfCookieName } from "src/utils/constants";
-import { generateToken } from 'src/utils/csrfUtils';
+import { csrfCookieName } from "../../utils/constants";
+import { generateToken } from "../../utils/csrfUtils";
 
 export class CsrfProtectionMiddleware implements NestMiddleware {
 

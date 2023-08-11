@@ -2,9 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { collection, QueryFieldFilterConstraint, where, limit, getDocs, DocumentData, query, doc, getDoc, DocumentSnapshot } from 'firebase/firestore';
 import { GeneratedSecret } from 'speakeasy'; 
-import { FirebaseService } from 'src/firebase/firebase.service'; //Listo
-import { RolesService } from 'src/roles/roles.service'; //Listo
-import { HashService } from 'src/utils/hash.service'; //Listo
+import { FirebaseService } from '../firebase/firebase.service';
+import { RolesService } from '../roles/roles.service';
+import { HashService } from '../utils/hash.service';
 
 @Injectable()
 export class UsersService {

@@ -5,17 +5,17 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { SessionModule } from 'src/session/session.module';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import { HashService } from 'src/utils/hash.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwtRefresh.strategy';
 import { SessionSerializer } from './session.serializer';
-import { CsrfProtectionMiddleware } from 'src/session/middleware/csrfProtection.middleware';
-import { RolesModule } from 'src/roles/roles.module';
-import { UsersModule } from 'src/users/users.module';
 import { LocalAuthGuard } from './strategies/local-auth.guard'; 
 import { CsrfValidationMiddleware } from '../session/middleware/csrfValidation.middleware';
+import { UsersModule } from '../users/users.module';
+import { SessionModule } from '../session/session.module';
+import { RolesModule } from '../roles/roles.module';
+import { HashService } from '../utils/hash.service';
+import { FirebaseService } from '../firebase/firebase.service';
+import { CsrfProtectionMiddleware } from '../session/middleware/csrfProtection.middleware';
 
 @Module({
     controllers: [AuthController],
@@ -47,6 +47,8 @@ export class AuthModule implements NestModule {
             .apply(CsrfValidationMiddleware)
             .exclude(
                 { path: 'auth/firebase/login', method: RequestMethod.POST },
+                { path: 'auth/firebase/signup', method: RequestMethod.POST },
+
                 { path: 'auth/firebase/credentials', method: RequestMethod.POST },
                 { path: 'auth/firebase/credentials/otp', method: RequestMethod.PUT }
             )

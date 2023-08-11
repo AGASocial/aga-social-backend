@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Request } from "express";
-import { stage } from "src/utils/constants";
-import { UsersService } from "src/users/users.service";
-import { RolesService } from "src/roles/roles.service";
+import { RolesService } from "../roles/roles.service";
+import { UsersService } from "../users/users.service";
+import { stage } from "../utils/constants";
 
 @Injectable()
 export class StageGuard implements CanActivate {

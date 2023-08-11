@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
+import { RolesModule } from '../roles/roles.module';
+import { UsersModule } from '../users/users.module';
 import { SessionService } from './session.service';
-import { UsersModule } from 'src/users/users.module';
-import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [UsersModule, RolesModule],

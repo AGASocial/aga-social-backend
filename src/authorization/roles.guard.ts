@@ -3,11 +3,7 @@ import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { doc, getDoc } from "firebase/firestore";
 import { Observable } from "rxjs";
-import { AuthService } from "src/auth/auth.service";
-import { FirebaseService } from "src/firebase/firebase.service";
-import { User } from "src/users/users.entity";
-import { AuthorizationService } from "./authorization.service";
-import { UsersService } from "src/users/users.service";
+import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class RolesGuard implements CanActivate {

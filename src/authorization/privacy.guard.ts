@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import e, { Request } from "express";
 import { Observable } from "rxjs";
-import { UsersService } from "src/users/users.service";
+import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class PrivacyGuard implements CanActivate {

@@ -12,11 +12,19 @@ import { Request, Response } from "express";
 import { LogOutResponseDto } from "./dto/logoutResponse.dto";
 import { RefreshDto } from "./dto/refresh.dto";
 import { Throttle } from "@nestjs/throttler";
-import { csrfCookieName, freezeLimit, freezeTime } from "src/utils/constants";
-import { FreezedGuard } from "src/session/freezed.guard";
 import { DeleteUserDto } from "./dto/deleteUser.dto";
 import { DeleteUserResponseDto } from "./dto/deleteUserResponse.dto";
 import { GetUsersResponseDto } from "./dto/getUsersResponse.dto";
+import { FreezedGuard } from "../session/freezed.guard";
+import { csrfCookieName } from "../utils/constants";
+import { ChangeUsernameDto } from "./dto/changeUsername.dto";
+import { ChangeUsernameDtoResponse } from "./dto/changeUsernameResponse.dto";
+import { ChangeEmailDto } from "./dto/changeEmail.dto";
+import { ChangeEmailDtoResponse } from "./dto/changeEmailResponse.dto";
+import { ChangeNameDto } from "./dto/changeName.dto";
+import { ChangeNameDtoResponse } from "./dto/changeNameResponse.dto";
+import { ChangeSecurityAnswerDto } from "./dto/changeSecurityAnswer.dto";
+import { ChangeSecurityAnswerDtoResponse } from "./dto/changeSecurityAnswerResponse.dto";
 
 
 @Controller('auth')
@@ -100,10 +108,44 @@ export class AuthController {
 
 
     @Get('firebase/users')
-    async getMedia(@Req() req: Request): Promise<GetUsersResponseDto> {
+    async getUsers(@Req() req: Request): Promise<GetUsersResponseDto> {
 
         return this.authService.getUsers();
     }
+
+
+
+    @Put('firebase/users/username') 
+    async changeUsername(@Body() changeUsernameDto: ChangeUsernameDto, @Req() req: Request): Promise<ChangeUsernameDtoResponse> {
+        const jwtToken = req.signedCookies.refresh_token;
+        return this.authService.changeUsername(changeUsernameDto, jwtToken);
+    }
+
+
+    @Put('firebase/users/email')
+    async changeEmail(
+        @Body() changeEmailDto: ChangeEmailDto,
+        @Req() req: Request,
+    ): Promise<ChangeEmailDtoResponse> {
+        const jwtToken = req.signedCookies.refresh_token;
+        return this.authService.changeEmail(changeEmailDto, jwtToken);
+    }
+
+
+
+    @Put('firebase/users/name')
+    async changeName(@Body() changeNameDto: ChangeNameDto, @Req() req: Request): Promise<ChangeNameDtoResponse> {
+        const jwtToken = req.signedCookies.refresh_token;
+        return this.authService.changeName(changeNameDto, jwtToken);
+    }
+
+
+    @Put('firebase/users/security-answer') 
+    async changeSecurityAnswer(@Body() changeSecurityAnswerDto: ChangeSecurityAnswerDto, @Req() req: Request): Promise<ChangeSecurityAnswerDtoResponse> {
+        const jwtToken = req.signedCookies.refresh_token;
+        return this.authService.changeSecurityAnswer(changeSecurityAnswerDto, jwtToken);
+    }
+
 
 
 }   

@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { DocumentReference, DocumentSnapshot, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, collection, where, deleteDoc } from 'firebase/firestore';
 import { SetRoleToUserResponseDto } from './dto/setRoleToUserResponse.dto';
 import { CreateNewRoleDto } from './dto/createNewRole.dto';
@@ -7,14 +6,15 @@ import {v4 as uuidv4} from 'uuid';
 import { Role } from '../roles/entities/role.entity';
 import { CreateNewRoleResponseDto } from './dto/createNewRoleResponse.dto';
 import { GetRolesDto } from '../roles/dto/getRoles.dto';
-import { UsersService } from 'src/users/users.service';
-import { RolesService } from 'src/roles/roles.service';
 import { UpdateRoleDto } from './dto/updateRole.dto';
 import { UpdateRoleResponseDto } from './dto/updateRoleResponse.dto';
-import { GetUserByIdDto } from 'src/users/dto/getUserById.dto';
-import { GetRoleByIdDto } from 'src/roles/dto/getRoleById.dto';
 import * as admin from 'firebase-admin';
 import { GetRolesResponseDto } from '../roles/dto/getRolesResponse.dto';
+import { FirebaseService } from '../firebase/firebase.service';
+import { UsersService } from '../users/users.service';
+import { RolesService } from '../roles/roles.service';
+import { GetUserByIdDto } from '../users/dto/getUserById.dto';
+import { GetRoleByIdDto } from '../roles/dto/getRoleById.dto';
 
 
 
@@ -117,7 +117,6 @@ export class AuthorizationService {
             return response;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            // Manejar cualquier error o excepción aquí
             throw new InternalServerErrorException('INTERNALERROR');
         }
     }
@@ -148,7 +147,6 @@ export class AuthorizationService {
             return response;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            // Manejar cualquier error o excepción aquí
             throw new InternalServerErrorException('INTERNALERROR');
         }
     }
@@ -213,7 +211,6 @@ export class AuthorizationService {
             await batch.commit();
             console.log(`Updated info for role "${roleName}"`);
 
-            // Retornar la respuesta con el código de estado y el mensaje
             const response: UpdateRoleResponseDto = {
                 statusCode: 200,
                 message: 'ROLEUPDATED',
@@ -248,7 +245,7 @@ export class AuthorizationService {
   
   
 
-    async getAllRoles(getRolesDto: GetRolesDto): Promise<GetRolesResponseDto> {
+    async getAllRoles(): Promise<GetRolesResponseDto> {
         try {
             console.log('Initializing getAllRoles...');
             const rolesRef = this.firebaseService.rolesCollection;

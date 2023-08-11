@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AbilityFactory } from './factory/ability.factory';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UsersModule } from 'src/users/users.module';
-import { RolesModule } from 'src/roles/roles.module';
+import { RolesModule } from '../roles/roles.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
     imports: [UsersModule, RolesModule, ConfigModule],

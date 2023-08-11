@@ -6,26 +6,34 @@ import { LogInResponseDto } from './dto/loginResponse.dto';
 import { SignUpDtoResponse } from './dto/signupResponse.dto';
 import { RecoverPasswordDto } from './dto/recoverPassword.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut, getAuth, deleteUser } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut, getAuth, deleteUser, updateEmail } from 'firebase/auth'
 import { setDoc, DocumentReference, doc, addDoc, updateDoc, getDoc, collection, where, QueryFieldFilterConstraint, query, getDocs, DocumentSnapshot, limit, deleteDoc, orderBy } from 'firebase/firestore';
 import { RecoverPasswordDtoResponse } from './dto/recoverPasswordResponse.dto';
-import { HashService } from 'src/utils/hash.service';
 import * as firebaseAdminAuth from 'firebase-admin/auth';
 import { LogOutResponseDto } from './dto/logoutResponse.dto';
-import { cookieTimeMultiplier, freezeTime, jwtSecret, otpAppName, refreshSecret, refreshTime } from 'src/utils/constants';
 import { RefreshDto } from './dto/refresh.dto';
 import { RefreshResponseDto } from './dto/refreshResponse.dto';
-import { UsersService } from 'src/users/users.service';
-import { SessionService } from 'src/session/session.service';
-import { User } from 'src/users/users.entity';
 import { ChangePasswordDtoResponse } from './dto/changePasswordResponse.dto';
-import { Role } from 'src/roles/entities/role.entity'
 import { QueryDocumentSnapshot } from 'firebase/firestore';
 import * as dotenv from 'dotenv';
 import { DeleteUserDto } from './dto/deleteUser.dto';
 import { DeleteUserResponseDto } from './dto/deleteUserResponse.dto';
 import { GetUsersResponseDto } from './dto/getUsersResponse.dto';
+import { FirebaseService } from '../firebase/firebase.service';
+import { HashService } from '../utils/hash.service';
+import { Role } from '../roles/entities/role.entity';
+import { UsersService } from '../users/users.service';
+import { User } from '../users/users.entity';
+import { SessionService } from '../session/session.service';
+import { cookieTimeMultiplier, jwtSecret, refreshSecret } from '../utils/constants';
+import { ChangeUsernameDto } from './dto/changeUsername.dto';
+import { ChangeUsernameDtoResponse } from './dto/changeUsernameResponse.dto';
+import { ChangeEmailDto } from './dto/changeEmail.dto';
+import { ChangeEmailDtoResponse } from './dto/changeEmailResponse.dto';
+import { ChangeNameDto } from './dto/changeName.dto';
+import { ChangeNameDtoResponse } from './dto/changeNameResponse.dto';
+import { ChangeSecurityAnswerDto } from './dto/changeSecurityAnswer.dto';
+import { ChangeSecurityAnswerDtoResponse } from './dto/changeSecurityAnswerResponse.dto';
 dotenv.config();
 @Injectable()
 export class AuthService {
@@ -422,6 +430,223 @@ export class AuthService {
             throw new Error('There was an error retrieving the users.');
         }
     }
+
+
+
+
+    async changeUsername(changeUsernameDto: ChangeUsernameDto, jwtToken: string): Promise<ChangeUsernameDtoResponse> {
+        try {
+            const { password, username, email } = changeUsernameDto;
+
+            console.log('Initiating changeUsername...');
+
+            const user = await this.firebaseService.getUserByEmail(email);
+            const userID = this.usersService.extractID(jwtToken);
+            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
+            const singleUserSnap = await getDoc(singleUserReference);
+
+            if (!user) {
+                console.log('User not found.');
+                throw new BadRequestException('User not found.');
+            }
+
+            console.log('User found:', user);
+
+            const doPasswordsMatch = await this.hashService.compareHashedStrings(password, user.password);
+
+            if (!doPasswordsMatch) {
+                console.log('Incorrect credentials.');
+                throw new BadRequestException('Incorrect credentials.');
+            }
+
+            console.log('Passwords match.');
+
+
+            try {
+                await updateDoc(singleUserReference, {
+                    username: username
+                });
+            } catch (error: unknown) {
+                console.warn(`[ERROR]: ${error}`);
+            }
+
+            
+
+            console.log('Username updated successfully.');
+
+            const response: ChangeUsernameDtoResponse = {
+                statusCode: 200,
+                message: 'NEWUSERNAMEASSIGNED',
+            };
+
+            console.log('changeUsername completed successfully.');
+
+            return response;
+        } catch (error) {
+            console.error('Error: ', error);
+            throw new BadRequestException('An error occurred while trying to change the username.');
+        }
+    }
+
+
+
+    async changeEmail(changeEmailDto: ChangeEmailDto, jwtToken: string): Promise<ChangeEmailDtoResponse> {
+        try {
+            const { old_email, security_answer, new_email } = changeEmailDto;
+
+            console.log('Initiating changeEmail...');
+
+            const user = await this.firebaseService.getUserByEmail(old_email);
+            const userID = this.usersService.extractID(jwtToken);
+            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
+            const singleUserSnap = await getDoc(singleUserReference);
+
+            if (!user) {
+                console.log('User not found.');
+                throw new BadRequestException('User not found.');
+            }
+
+            console.log('User found:', user);
+
+            const isSecurityAnswerCorrect = await this.hashService.compareHashedStrings(security_answer, user.security_answer);
+
+            if (!isSecurityAnswerCorrect) {
+                console.log('Incorrect security answer.');
+                throw new BadRequestException('Incorrect security answer.');
+            }
+
+            console.log('Security answer is correct.');
+
+            try {
+                const auth = getAuth();
+                const userCredential = await updateEmail(auth.currentUser, new_email);
+                console.log('Email Updated in Firebase Auth.');
+
+            } catch (error: unknown) {
+                console.warn(`[ERROR]: ${error}`);
+                throw new BadRequestException('An error occurred while updating the email.');
+            }
+
+            try {
+                await updateDoc(singleUserReference, {
+                    email: new_email
+                });
+                console.log('Email updated in Firestore:', new_email);
+            } catch (error: unknown) {
+                console.warn(`[ERROR]: ${error}`);
+                throw new BadRequestException('An error occurred while updating the email in Firestore.');
+            }
+
+            console.log('Email updated successfully.');
+
+            const response: ChangeEmailDtoResponse = {
+                statusCode: 200,
+                message: 'NEWEMAILASSIGNED',
+            };
+
+            console.log('changeEmail completed successfully.');
+
+            return response;
+        } catch (error) {
+            console.error('Error: ', error);
+            throw new BadRequestException('An error occurred while trying to change the email.');
+        }
+    }
+
+
+
+
+    async changeName(changeNameDto: ChangeNameDto, jwtToken: string): Promise<ChangeNameDtoResponse> {
+        try {
+            const { password, name, email } = changeNameDto;
+
+            console.log('Initiating changeName...');
+
+            const user = await this.firebaseService.getUserByEmail(email);
+            const userID = this.usersService.extractID(jwtToken); 
+            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
+            const singleUserSnap = await getDoc(singleUserReference);
+
+            if (!user) {
+                console.log('User not found.');
+                throw new BadRequestException('User not found.');
+            }
+
+            console.log('User found:', user);
+
+            const doPasswordsMatch = await this.hashService.compareHashedStrings(password, user.password);
+
+            if (!doPasswordsMatch) {
+                console.log('Incorrect credentials.');
+                throw new BadRequestException('Incorrect credentials.');
+            }
+
+            console.log('Passwords match.');
+
+            try {
+                await updateDoc(singleUserReference, {
+                    name: name
+                });
+            } catch (error: unknown) {
+                console.warn(`[ERROR]: ${error}`);
+            }
+
+            console.log('Name updated successfully.');
+
+            const response: ChangeNameDtoResponse = {
+                statusCode: 200,
+                message: 'NEWNAMEASSIGNED',
+            };
+
+            console.log('changeName completed successfully.');
+
+            return response;
+        } catch (error) {
+            console.error('Error: ', error);
+            throw new BadRequestException('An error occurred while trying to change the name.');
+        }
+    }
+
+
+
+    async changeSecurityAnswer(changeSecurityAnswerDto: ChangeSecurityAnswerDto, jwtToken: string): Promise<ChangeSecurityAnswerDtoResponse> {
+        const { email, password, new_security_answer } = changeSecurityAnswerDto;
+
+        const userID = this.usersService.extractID(jwtToken);
+        const singleUserReference = doc(this.firebaseService.usersCollection, userID);
+        const singleUserSnap = await getDoc(singleUserReference);
+
+        const doPasswordsMatch = await this.hashService.compareHashedStrings(password, singleUserSnap.data().password);
+
+        if (!doPasswordsMatch) {
+            console.log('Incorrect credentials.');
+            throw new BadRequestException('Incorrect credentials.');
+        }
+
+        const newHashedSecurityAnswer = await this.hashService.hashString(new_security_answer);
+
+        try {
+            await updateDoc(singleUserReference, {
+                security_answer: newHashedSecurityAnswer
+            });
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+        }
+
+        console.log('Security Answer Changed Successfully!');
+
+        const changeSecurityAnswerDtoResponse: ChangeSecurityAnswerDtoResponse = {
+            statusCode: 200,
+            message: 'NEWSECURITYANSWERASSIGNED'
+        };
+
+        return changeSecurityAnswerDtoResponse;
+    }
+
+
+
+
+
 
 
 

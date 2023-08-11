@@ -1,4 +1,3 @@
-import { DocResult } from 'src/utils/docResult.entity';
 import * as admin from 'firebase-admin';
 import { Ebook, EbookFormat } from './entities/ebooks.entity';
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
@@ -8,7 +7,6 @@ import { CreateEbookResponseDto } from './dto/createEbookResponse.dto';
 import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, where } from 'firebase/firestore';
 import { UpdateMediaDto } from '../media/dto/updateMedia.dto';
 import { UpdateMediaResponseDto } from '../media/dto/updateMediaResponse.dto';
-import { DeleteEbookDto } from './dto/deleteEbook.dto';
 import { DeleteEbookResponseDto } from './dto/deleteEbookResponse.dto';
 import { GetEbooksResponseDto } from './dto/getEbooksResponse.dto';
 

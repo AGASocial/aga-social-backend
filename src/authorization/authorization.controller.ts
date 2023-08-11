@@ -70,9 +70,8 @@ export class AuthorizationController {
     
     @Get('firebase/roles')
     async getRoles(@Req() req: Request): Promise<GetRolesResponseDto> {
-        let getRolesDto: GetRolesDto;
 
-        return this.authorizationService.getAllRoles(getRolesDto);
+        return this.authorizationService.getAllRoles();
     }
 
 

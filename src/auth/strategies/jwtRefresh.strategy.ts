@@ -2,7 +2,7 @@ import { Injectable, Req } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { refreshSecret } from "src/utils/constants";
+import { refreshSecret } from "../../utils/constants";
 
 // Refreshes/Renovates the JWT Token used for users' access
 @Injectable()

@@ -222,6 +222,130 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Cambiar Username",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/username",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"username"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Email",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"old_email\": \"joel115@gmail.com\",\r\n  \"security_answer\": \"perfect blue\",\r\n  \"new_email\": \"new_email@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/email",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"email"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Name",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"NewName\",\r\n  \"email\": \"new_email@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/name",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"name"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Security Answer",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"new_security_answer\": \"Perfect Green\",\r\n  \"email\": \"new_email@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/security-answer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"security-answer"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

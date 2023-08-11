@@ -2,23 +2,23 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthorizationController } from './authorization.controller';
 import { AuthorizationService } from './authorization.service';
 import { RolesGuard } from './roles.guard';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import { AuthService } from 'src/auth/auth.service';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule } from '@nestjs/config';
-import { HashService } from 'src/utils/hash.service';
-import { SessionSerializer } from 'src/auth/session.serializer';
-import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import { HttpModule } from '@nestjs/axios';
-import { jwtSecret, jwtTime } from 'src/utils/constants';
 import { StageGuard } from './stage.guard';
-import { UsersModule } from 'src/users/users.module';
-import { RolesModule } from 'src/roles/roles.module';
-import { SessionModule } from 'src/session/session.module';
-import { DataFiltererService } from 'src/utils/dataFilterer.service';
-import { CsrfValidationMiddleware } from 'src/session/middleware/csrfValidation.middleware';
-import { CsrfProtectionMiddleware } from 'src/session/middleware/csrfProtection.middleware';
+import { FirebaseService } from '../firebase/firebase.service';
+import { AuthService } from '../auth/auth.service';
+import { UsersModule } from '../users/users.module';
+import { RolesModule } from '../roles/roles.module';
+import { SessionModule } from '../session/session.module';
+import { jwtSecret, jwtTime } from '../utils/constants';
+import { DataFiltererService } from '../utils/dataFilterer.service';
+import { HashService } from '../utils/hash.service';
+import { SessionSerializer } from '../auth/session.serializer';
+import { JwtStrategy } from '../auth/strategies/jwt.strategy';
+import { CsrfProtectionMiddleware } from '../session/middleware/csrfProtection.middleware';
+import { CsrfValidationMiddleware } from '../session/middleware/csrfValidation.middleware';
 
 @Module({
   controllers: [AuthorizationController],

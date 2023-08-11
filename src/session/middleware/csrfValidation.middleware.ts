@@ -1,6 +1,6 @@
 import { NestMiddleware, UnauthorizedException } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
-import { csrfCookieName, csrfParamName } from "src/utils/constants";
+import { csrfCookieName, csrfParamName } from "../../utils/constants";
 
 //Validates the CSRF Token from the cookies, checks if csrfParamName == csrfCookieName
 export class CsrfValidationMiddleware implements NestMiddleware {

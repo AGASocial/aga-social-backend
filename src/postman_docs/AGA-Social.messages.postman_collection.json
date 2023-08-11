@@ -1,0 +1,308 @@
+{
+	"info": {
+		"_postman_id": "cbe4103e-9990-4030-b6a3-efaf3da24253",
+		"name": "messages",
+		"description": "Coleccion Postman creada para la realizacion de pruebas en el controller de messages usado para la gestion de messages (mensajeria entre publishers y subscribers)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Crear Mensaje",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"senderEmail\": \"new_email@example.com\",\r\n  \"recipientEmail\": \"joel114@gmail.com\",\r\n  \"content\": \"Hello, I have a question regarding...\",\r\n  \"isRead\": false,\r\n  \"attachmentUrls\": [\r\n    \"https://example.com/attachment1.pdf\",\r\n    \"https://example.com/attachment2.jpg\"\r\n  ],\r\n  \"subject\": \"Regarding Your Recent Purchase\",\r\n  \"type\": \"Inquiry\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Mensaje",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"senderEmail\": \"new_email@example.com\",\r\n\"recipientEmail\": \"joel114@gmail.com\",\r\n\"subject\": \"Regarding Your Recent Purchase\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Usuario",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Recibidos Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/received/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"received",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Enviados Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/sent/annadoe@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"sent",
+						"annadoe@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Marcar Mensaje Como Leido",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"senderEmail\": \"annadoe@gmail.com\",\r\n  \"recipientEmail\": \"joel114@gmail.com\",\r\n  \"subject\": \"Test\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/mark-as-read",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"mark-as-read"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Tipo Inquiry (Consulta)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"userEmail\": \"joel114@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/inquiries/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"inquiries",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Tipo Complaint (Quejas)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"userEmail\": \"joel114@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/complaints/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"complaints",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Por Palabras Clave",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userEmail\": \"joel114@gmail.com\",\r\n  \"keywords\": [\"test\"]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/keywords/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"keywords",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Marcar Mensaje Como Archivado",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"senderEmail\": \"annadoe@gmail.com\",\r\n  \"recipientEmail\": \"joel114@gmail.com\",\r\n  \"subject\": \"Test\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/mark-as-archived",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"mark-as-archived"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

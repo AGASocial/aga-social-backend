@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RolesService } from './roles.service';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { ConfigModule } from '@nestjs/config';
+import { FirebaseService } from '../firebase/firebase.service';
 
 @Module({
   imports: [ConfigModule],

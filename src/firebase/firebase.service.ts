@@ -24,6 +24,8 @@ export class FirebaseService {
     public ebooksCollection: CollectionReference;
     public sectionsCollection: CollectionReference;
     public coursesCollection: CollectionReference;
+    public messagesCollection: CollectionReference;
+
 
 
     public collectionCaches: { [collectionName: string]: any[] } = {};
@@ -34,6 +36,7 @@ export class FirebaseService {
         ebooks: [],
         sections: [],
         courses: [],
+        messages: [],
     };
 
    
@@ -68,11 +71,19 @@ export class FirebaseService {
         this._createEbooksCollection();
         this._createSectionsCollection();
         this._createCoursesCollection();
+        this._createMessagesCollection();
+
 
         this.initializeCollectionCaches();
 
       
        
+    }
+
+
+    private _createMessagesCollection() {
+        this.messagesCollection = collection(this.fireStore, 'messages');
+
     }
 
     private _createCoursesCollection() {
@@ -118,6 +129,8 @@ export class FirebaseService {
             this.ebooksCollection,
             this.sectionsCollection,
             this.coursesCollection,
+            this.messagesCollection,
+
         ];
 
         for (const collectionRef of collections) {
@@ -151,6 +164,14 @@ export class FirebaseService {
      setCollectionData(collectionName: string, data: any[]): void {
         this.collectionCaches[collectionName] = data;
     }
+
+
+
+
+
+
+
+
 
 
 

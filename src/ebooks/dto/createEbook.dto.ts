@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum } from "class-validator";
-import { EbookFormat, EbookGenre } from 'src/ebooks/entities/ebooks.entity';
+import { EbookFormat, EbookGenre } from "../entities/ebooks.entity";
 
 export class CreateEbookDto {
     @ApiProperty({

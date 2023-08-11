@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { getDoc, doc, QueryFieldFilterConstraint, getDocs, limit, query, where, orderBy } from 'firebase/firestore';
 import { GetRolesDto } from './dto/getRoles.dto';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { DocResult } from 'src/utils/docResult.entity';
 import { GetRolesResponseDto } from './dto/getRolesResponse.dto';
 import { Role } from './entities/role.entity';
 import * as admin from 'firebase-admin';
+import { FirebaseService } from '../firebase/firebase.service';
 @Injectable()
 export class RolesService {
 
