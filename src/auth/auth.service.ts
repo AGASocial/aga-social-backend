@@ -433,6 +433,73 @@ export class AuthService {
 
 
 
+    async getSingleUser(email: string): Promise<GetUsersResponseDto> {
+        try {
+            console.log('Initializing getSingleUser...');
+
+            // Tries to use data in cache if it exists
+            const cachedUsers = await this.firebaseService.getCollectionData('users');
+            if (cachedUsers.length > 0) {
+                console.log('Using cached users data.');
+                const user = cachedUsers.find(user => user.email === email);
+                if (user) {
+                    const filteredUser = {
+                        name: user.name,
+                        username: user.username,
+                        role: user.role,
+                        email: user.email,
+                        purchasedBooks: user.purchasedBooks,
+                        purchasedCourses: user.purchasedCourses,
+                    };
+                    const getSingleUserDtoResponse: GetUsersResponseDto = {
+                        statusCode: 200,
+                        message: "USERSGOT",
+                        usersFound: [filteredUser],
+                    };
+                    return getSingleUserDtoResponse;
+                }
+            }
+
+            // If there is no data in cache, query Firestore
+            const usersRef = this.firebaseService.usersCollection;
+            const usersQuery = query(usersRef, where("email", "==", email));
+            console.log('User query created.');
+
+            const usersQuerySnapshot = await getDocs(usersQuery);
+            console.log('Users query snapshot obtained.');
+
+            const queryResult = usersQuerySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    name: data.name,
+                    username: data.username,
+                    role: data.role,
+                    email: data.email,
+                    purchasedBooks: data.purchasedBooks,
+                    purchasedCourses: data.purchasedCourses,
+                };
+            });
+            console.log('User data collected.');
+
+            const getSingleUserDtoResponse: GetUsersResponseDto = {
+                statusCode: queryResult.length > 0 ? 200 : 404,
+                message: queryResult.length > 0 ? "USERSGOT" : "USERNOTFOUND",
+                usersFound: queryResult,
+            };
+            console.log('Response created.');
+
+            return getSingleUserDtoResponse;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the user.');
+        }
+    }
+
+
+
+
+
+
 
     async changeUsername(changeUsernameDto: ChangeUsernameDto, jwtToken: string): Promise<ChangeUsernameDtoResponse> {
         try {

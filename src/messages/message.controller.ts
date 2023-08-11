@@ -124,7 +124,22 @@ export class MessageController {
     }
 
 
+    @Get('firebase/messages/archived/:userEmail')
+    async getArchivedMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
+        return this.messageService.getArchivedMessages(userEmail);
+    }
 
+
+    @Get('firebase/messages/read/:userEmail')
+    async getReadMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
+        return this.messageService.getReadMessages(userEmail);
+    }
+
+
+    @Get('firebase/messages/unread/:userEmail')
+    async getUnreadMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
+        return this.messageService.getUnreadMessages(userEmail);
+    }
 
 
 }

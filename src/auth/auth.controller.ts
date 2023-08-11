@@ -1,4 +1,4 @@
-import { Body, Controller,Delete,Get,Post,Put,Req,Res,UseGuards } from "@nestjs/common";
+import { Body, Controller,Delete,Get,Param,Post,Put,Req,Res,UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { SignUpDto } from "./dto/signup.dto";
 import { LogInDto } from "./dto/login.dto";
@@ -112,6 +112,16 @@ export class AuthController {
 
         return this.authService.getUsers();
     }
+
+
+
+    @Get('firebase/users/:email')
+    async getSingleUser(@Param('email') email: string): Promise<GetUsersResponseDto> {
+        return this.authService.getSingleUser(email);
+    }
+
+
+
 
 
 

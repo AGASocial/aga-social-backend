@@ -707,12 +707,154 @@ export class MessageService {
 
 
 
+    async getArchivedMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
+        try {
+            const messageRef = collection(this.firebaseService.fireStore, 'messages');
+            const archivedMessagesQuery = query(
+                messageRef,
+                where('isArchived', '==', true),
+                where('recipientEmail', '==', userEmail)
+            );
+
+            const archivedMessagesSnapshot = await getDocs(archivedMessagesQuery);
+            const archivedMessages = [];
+
+            archivedMessagesSnapshot.forEach((doc) => {
+                const message = doc.data();
+                archivedMessages.push({
+                    senderEmail: message.senderEmail,
+                    recipientEmail: message.recipientEmail,
+                    content: message.content,
+                    isRead: message.isRead,
+                    attachmentUrls: message.attachmentUrls,
+                    subject: message.subject,
+                    type: message.type,
+                    receivedDate: this.transformTimestamp(message.receivedDate),
+                    sentDate: this.transformTimestamp(message.sentDate),
+                    readDate: this.transformTimestamp(message.readDate),
+                });
+            });
+
+            if (archivedMessages.length === 0) {
+                const responseDto = new GetMessagesByUserResponseDto(
+                    404,
+                    'ARCHIVEDMESSAGESNOTFOUND',
+                    archivedMessages
+                );
+                return responseDto;
+            }
+
+            const responseDto = new GetMessagesByUserResponseDto(
+                200,
+                'ARCHIVEDMESSAGESRETRIEVEDSUCCESSFULLY',
+                archivedMessages
+            );
+            return responseDto;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
 
 
 
+    async getReadMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
+        try {
+            const messageRef = collection(this.firebaseService.fireStore, 'messages');
+            const readMessagesQuery = query(
+                messageRef,
+                where('isRead', '==', true),
+                where('recipientEmail', '==', userEmail)
+            );
+
+            const readMessagesSnapshot = await getDocs(readMessagesQuery);
+            const readMessages = [];
+
+            readMessagesSnapshot.forEach((doc) => {
+                const message = doc.data();
+                readMessages.push({
+                    senderEmail: message.senderEmail,
+                    recipientEmail: message.recipientEmail,
+                    content: message.content,
+                    isArchived: message.isArchived,
+                    attachmentUrls: message.attachmentUrls,
+                    subject: message.subject,
+                    type: message.type,
+                    receivedDate: this.transformTimestamp(message.receivedDate),
+                    sentDate: this.transformTimestamp(message.sentDate),
+                    readDate: this.transformTimestamp(message.readDate),
+                });
+            });
+
+            if (readMessages.length === 0) {
+                const responseDto = new GetMessagesByUserResponseDto(
+                    404,
+                    'READMESSAGESNOTFOUND',
+                    readMessages
+                );
+                return responseDto;
+            }
+
+            const responseDto = new GetMessagesByUserResponseDto(
+                200,
+                'READMESSAGESRETRIEVEDSUCCESSFULLY',
+                readMessages
+            );
+            return responseDto;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
 
 
+    async getUnreadMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
+        try {
+            const messageRef = collection(this.firebaseService.fireStore, 'messages');
+            const readMessagesQuery = query(
+                messageRef,
+                where('isRead', '==', false),
+                where('recipientEmail', '==', userEmail)
+            );
 
+            const readMessagesSnapshot = await getDocs(readMessagesQuery);
+            const readMessages = [];
 
+            readMessagesSnapshot.forEach((doc) => {
+                const message = doc.data();
+                readMessages.push({
+                    senderEmail: message.senderEmail,
+                    recipientEmail: message.recipientEmail,
+                    content: message.content,
+                    isArchived: message.isArchived,
+                    attachmentUrls: message.attachmentUrls,
+                    subject: message.subject,
+                    type: message.type,
+                    receivedDate: this.transformTimestamp(message.receivedDate),
+                    sentDate: this.transformTimestamp(message.sentDate),
+                    readDate: this.transformTimestamp(message.readDate),
+                });
+            });
+
+            if (readMessages.length === 0) {
+                const responseDto = new GetMessagesByUserResponseDto(
+                    404,
+                    'UNREADMESSAGESNOTFOUND',
+                    readMessages
+                );
+                return responseDto;
+            }
+
+            const responseDto = new GetMessagesByUserResponseDto(
+                200,
+                'UNREADMESSAGESRETRIEVEDSUCCESSFULLY',
+                readMessages
+            );
+            return responseDto;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
 
 }

@@ -303,6 +303,108 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Archivados",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"userEmail\": \"joel114@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/archived/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"archived",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Leidos",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"userEmail\": \"joel114@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/read/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"read",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes No Leidos",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"userEmail\": \"joel114@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/unread/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"unread",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

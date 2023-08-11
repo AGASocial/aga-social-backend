@@ -71,7 +71,7 @@
 			"response": []
 		},
 		{
-			"name": "Actualizar Firebase Session",
+			"name": "Refrescar Firebase Session",
 			"request": {
 				"method": "PUT",
 				"header": [],
@@ -342,6 +342,40 @@
 						"firebase",
 						"users",
 						"security-answer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Informacion Usuario",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"email\": \"joel114@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"joel114@gmail.com"
 					]
 				}
 			},

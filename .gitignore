@@ -40,3 +40,4 @@ lerna-debug.log*
 
 practica-pasantia-6ef34-firebase-adminsdk-hy4mv-914dfc3c22.json
 aga-social-apps-db-firebase-adminsdk-fhi42-9ef28d3e07.json
+/src/firebase/datastore/datastore.config.ts
