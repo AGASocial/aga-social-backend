@@ -46,4 +46,12 @@ export class EbookController {
         return this.ebookService.getEbooks();
     }
 
+
+    @Get('firebase/ebooks/search-by-keywords')
+    async getEbooksByKeywords(@Body('keywords') keywords: string[]): Promise<GetEbooksResponseDto> {
+        const response = await this.ebookService.getEbooksByKeywords(keywords);
+        return response;
+    }
+
+
 }

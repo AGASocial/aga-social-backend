@@ -101,6 +101,39 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Consultar Ebooks Por Palabras Clave",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"keywords\": [\"ebook\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/ebooks/search-by-keywords",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"ebooks",
+						"search-by-keywords"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

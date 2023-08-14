@@ -92,7 +92,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n\"title\": \"Video a Eliminar\",\r\n\"description\": \"This is an example audio 2\"\r\n    \r\n}",
+					"raw": "{\r\n\r\n\"title\": \"Introduction to Science\",\r\n\"description\": \"An introductory video about the world of science\"\r\n    \r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -100,7 +100,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/media/Video a Eliminar/This is an example audio 2",
+					"raw": "http://localhost:3000/firebase/media/AAA/Welcome to the course!",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -109,8 +109,41 @@
 					"path": [
 						"firebase",
 						"media",
-						"Video a Eliminar",
-						"This is an example audio 2"
+						"AAA",
+						"Welcome to the course!"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Media Por Palabras Clave",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"keywords\": [\"test\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/media/search-by-keywords",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"media",
+						"search-by-keywords"
 					]
 				}
 			},

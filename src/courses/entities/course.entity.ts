@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsBoolean } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsBoolean, IsInt } from "class-validator";
 import { Section } from "../../sections/entities/sections.entity";
 
 export class Course {
@@ -92,4 +92,17 @@ export class Course {
     @IsNotEmpty()
     @IsBoolean()
     public offersCertificate: boolean;
+
+
+
+    @ApiProperty({
+        description: 'Number of sales for the course, default is 0',
+        example: 100,
+        type: Number,
+    })
+    @IsInt()
+    @IsNotEmpty()
+    @IsNumber()
+    salesCount: number = 0;
+
 }

@@ -16,7 +16,7 @@ export class Media {
     })
     @IsNotEmpty()
     @IsEnum(MediaType)
-    type: MediaType;
+    public type: MediaType;
 
     @ApiProperty({
         description: "Title of the audio or video",
@@ -25,7 +25,7 @@ export class Media {
     })
     @IsNotEmpty()
     @IsString()
-    title: string;
+    public title: string;
 
     @ApiProperty({
         description: "Description of the audio or video",
@@ -34,7 +34,7 @@ export class Media {
     })
     @IsNotEmpty()
     @IsString()
-    description: string;
+    public description: string;
 
     @ApiProperty({
         description: "URL of the multimedia file",
@@ -43,7 +43,7 @@ export class Media {
     })
     @IsNotEmpty()
     @IsUrl()
-    url: string;
+    public url: string;
 
     @ApiProperty({
         description: "Duration of the multimedia content",
@@ -52,7 +52,7 @@ export class Media {
     })
     @IsNotEmpty()
     @IsString()
-    duration: string;
+    public duration: string;
 
     @ApiProperty({
         description: "Upload date of the multimedia content",
@@ -61,5 +61,5 @@ export class Media {
     })
     @IsNotEmpty()
     @IsString()
-    uploadDate: Date;
+    public uploadDate: Date;
 }

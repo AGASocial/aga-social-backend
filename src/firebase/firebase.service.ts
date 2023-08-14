@@ -25,6 +25,8 @@ export class FirebaseService {
     public sectionsCollection: CollectionReference;
     public coursesCollection: CollectionReference;
     public messagesCollection: CollectionReference;
+    public couponsCollection: CollectionReference;
+
 
 
 
@@ -37,6 +39,7 @@ export class FirebaseService {
         sections: [],
         courses: [],
         messages: [],
+        coupons: []
     };
 
    
@@ -46,7 +49,7 @@ export class FirebaseService {
                 projectId: process.env.FIREBASE_PROJECT_ID,
                 clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
                 privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-            }), databaseURL: configService.get<string>('FIREBASE_DATA_URL'),
+            }), //databaseURL: configService.get<string>('FIREBASE_DATA_URL'),
             storageBucket: configService.get<string>('FIREBASE_STORAGE_BUCKET'),
             databaseAuthVariableOverride: {
                 uid: configService.get<string>('FIREBASE_AUTH_UID')
@@ -72,6 +75,8 @@ export class FirebaseService {
         this._createSectionsCollection();
         this._createCoursesCollection();
         this._createMessagesCollection();
+        this._createCouponsCollection();
+
 
 
         this.initializeCollectionCaches();
@@ -79,6 +84,14 @@ export class FirebaseService {
       
        
     }
+
+
+
+    private _createCouponsCollection() {
+        this.couponsCollection = collection(this.fireStore, 'coupons');
+
+    }
+
 
 
     private _createMessagesCollection() {
@@ -130,6 +143,8 @@ export class FirebaseService {
             this.sectionsCollection,
             this.coursesCollection,
             this.messagesCollection,
+            this.couponsCollection,
+
 
         ];
 

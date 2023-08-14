@@ -139,7 +139,7 @@ export class MessageService {
 
 
 
-    private transformTimestamp(timestamp: any): string | null {
+    async transformTimestamp(timestamp: any): Promise<string> {
         if (timestamp && timestamp.seconds && timestamp.nanoseconds) {
             const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
             const formattedDate = date.toLocaleString('en-US', {

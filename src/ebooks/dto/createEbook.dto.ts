@@ -12,6 +12,18 @@ export class CreateEbookDto {
     @IsString()
     title: string;
 
+
+    @ApiProperty({
+        description: 'Publisher of the ebook',
+        example: 'Pepito Perez',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public publisher: string;
+
+
+
     @ApiProperty({
         description: 'Author/s of the ebook',
         example: ['John Smith', 'John Doe'],
@@ -95,4 +107,17 @@ export class CreateEbookDto {
     @IsNotEmpty()
     @IsEnum(EbookFormat)
     format: EbookFormat;
+
+
+    @ApiProperty({
+        description: 'Number of sales for the ebook, default is 0',
+        example: 100,
+        type: Number,
+    })
+    @IsInt()
+    @IsNotEmpty()
+    @IsNumber()
+    salesCount: number = 0;
+  
+
 }

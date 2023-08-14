@@ -1,4 +1,6 @@
-import { Controller, Post, Body, Param, Get, Put, Req, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Put, Req, Delete, InternalServerErrorException } from '@nestjs/common';
+import { AddMediaOrEbookDto } from './dto/addMediaorEbook.dto';
+import { AddMediaOrEbookResponseDto } from './dto/addMediaorEbookResponse.dto';
 import { CreateSectionDto } from './dto/createSection.dto';
 import { CreateSectionResponseDto } from './dto/createSectionResponse.dto';
 import { DeleteSectionResponseDto } from './dto/deleteSectionResponse.dto';
@@ -40,6 +42,43 @@ export class SectionController {
 
         return this.sectionService.getSections();
     }
+
+
+    @Get('firebase/sections/search-by-keywords')
+    async getSectionsByKeywords(@Body('keywords') keywords: string[]): Promise<GetSectionsResponseDto> {
+        const response = await this.sectionService.getSectionsByKeywords(keywords);
+        return response;
+    }
+
+
+    @Get('firebase/sections/search-by-tags')
+    async getSectionsByTags(@Body('tags') tags: string[]): Promise<GetSectionsResponseDto> {
+        const response = await this.sectionService.getSectionsByTags(tags);
+        return response;
+    }
+
+
+    @Get('firebase/sections/content/:name')
+    async getSectionContent(@Param('name') sectionName: string): Promise<GetSectionsResponseDto> {
+        return this.sectionService.getSectionContentByName(sectionName);
+    }
+
+
+
+    @Put('firebase/sections/add-media-or-ebook')
+    async addMediaOrEbookToSection(
+        @Body() addMediaOrEbookDto: AddMediaOrEbookDto,
+    ): Promise<AddMediaOrEbookResponseDto> {
+        try {
+            const response = await this.sectionService.addMediaOrEbookToSection(addMediaOrEbookDto);
+            return response;
+        } catch (error) {
+            throw new InternalServerErrorException('An error occurred while processing your request.');
+        }
+    }
+
+
+
 
 
 }

@@ -218,4 +218,70 @@ export class MediaService {
     }
 
 
+    async getMediaByKeywords(keywords: string[]): Promise<GetMediaResponseDto> {
+        try {
+            console.log('Initializing getMediaByKeywords...');
+
+            // Tries to use data in cache if it exists
+            const cachedMedia = await this.firebaseService.getCollectionData('media');
+            if (cachedMedia.length > 0) {
+                console.log('Using cached media data.');
+                const matchedMedia = cachedMedia.filter(media =>
+                    keywords.some(keyword => media.title.toLowerCase().includes(keyword.toLowerCase()))
+                );
+
+                const responseDto: GetMediaResponseDto = {
+                    statusCode: 200,
+                    message: 'MEDIAGOT',
+                    mediaFound: matchedMedia,
+                };
+                return responseDto;
+            }
+
+            // If there is no data in cache, query Firestore
+            const mediaRef = this.firebaseService.mediaCollection;
+            const mediaQuery = query(mediaRef, orderBy('title'));
+            console.log('Media query created.');
+
+            const mediaQuerySnapshot = await getDocs(mediaQuery);
+            console.log('Media query snapshot obtained.');
+
+            const queryResult = [];
+            mediaQuerySnapshot.forEach((doc) => {
+                const data = doc.data();
+                queryResult.push({
+                    description: data.description,
+                    duration: data.duration,
+                    title: data.title,
+                    type: data.type,
+                    uploadDate: data.uploadDate,
+                    url: data.url,
+                });
+            });
+            console.log('Media data collected.');
+
+            // Filter the media by keywords
+            const matchedMedia = queryResult.filter(media =>
+                keywords.some(keyword => media.title.toLowerCase().includes(keyword.toLowerCase()))
+            );
+
+            // Save the data in cache for future queries
+            await this.firebaseService.setCollectionData('media', queryResult);
+
+            const responseDto: GetMediaResponseDto = {
+                statusCode: 200,
+                message: 'MEDIAGOT',
+                mediaFound: matchedMedia,
+            };
+            console.log('Response created.');
+
+            return responseDto;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the media.');
+        }
+    }
+
+
+
 }

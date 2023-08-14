@@ -46,4 +46,15 @@ export class MediaController {
     }
 
 
+
+    @Get('firebase/media/search-by-keywords')
+    async getMediaByKeywords(@Body('keywords') keywords: string[]): Promise<GetMediaResponseDto> {
+        const response = await this.mediaService.getMediaByKeywords(keywords);
+        return response;
+    }
+
+
+
+
+
 }

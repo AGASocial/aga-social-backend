@@ -129,6 +129,124 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Consultar Sections Por Palabras Clave",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"keywords\": [\"test-1\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/sections/search-by-keywords",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"sections",
+						"search-by-keywords"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Agregar Media o Ebook a Section",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"sectionName\": \"Test-1\",\r\n  \"mediaOrEbookData\": {\r\n    \"url\": \"https://2example2.com/media/video.mp3\",\r\n    \"type\": \"audio\",\r\n    \"title\": \"Introduction to Science\",\r\n    \"description\": \"An Audio\",\r\n    \"duration\": \"00:10:30\",\r\n    \"uploadDate\": \"2013-10-10\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/sections/add-media-or-ebook",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"sections",
+						"add-media-or-ebook"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Section por Tags",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"tags\": [\"programming\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/sections/search-by-tags",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"sections",
+						"search-by-tags"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Contenido de Section Por Name",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/sections/content/Test-1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"sections",
+						"content",
+						"Test-1"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

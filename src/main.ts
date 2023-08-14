@@ -30,7 +30,7 @@ async function bootstrap() {
     try {
         await admin.initializeApp({
             credential: admin.credential.cert(configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS')),
-            databaseURL: configService.get<string>('FIREBASE_DATA_URL'),
+           // databaseURL: configService.get<string>('FIREBASE_DATA_URL'),
             storageBucket: configService.get<string>('FIREBASE_STORAGE_BUCKET'),
             databaseAuthVariableOverride: {
                 uid: configService.get<string>('FIREBASE_AUTH_UID')

@@ -12,7 +12,7 @@ export class Section {
     })
     @IsNotEmpty()
     @IsString()
-    name: string;
+   public name: string;
 
     @ApiProperty({
         description: 'Description of the section.',
@@ -21,7 +21,7 @@ export class Section {
     })
     @IsNotEmpty()
     @IsString()
-    description: string;
+   public description: string;
 
 
     @ApiProperty({
@@ -30,7 +30,7 @@ export class Section {
     })
     @IsNotEmpty()
     @IsArray()
-    content: (Media | Ebook)[]; 
+  public  content: (Media | Ebook)[]; 
 
     @ApiProperty({
         description: 'Tags or keywords describing the section content.',
@@ -40,5 +40,5 @@ export class Section {
     @IsNotEmpty()
     @IsArray()
     @IsString({ each: true })
-    tags: string[];
+   public tags: string[];
 }

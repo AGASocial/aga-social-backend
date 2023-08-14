@@ -36,14 +36,17 @@ import { CourseModule } from './courses/course.module';
 import { MessageModule } from './messages/message.module';
 import { MessageService } from './messages/message.service';
 import { MessageController } from './messages/message.controller';
+import { CouponModule } from './coupons/coupon.module';
+import { CouponService } from './coupons/coupon.service';
+import { CouponController } from './coupons/coupon.controller';
 
 
 @Module({
-    imports: [MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
     }), SessionModule, RolesModule],
-    controllers: [AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController],
+    controllers: [AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController],
     providers: [
         AppService,
         DataFiltererService,
@@ -56,6 +59,7 @@ import { MessageController } from './messages/message.controller';
         SectionService,
         CourseService,
         MessageService,
+        CouponService,
         
         {
             provide: APP_GUARD,

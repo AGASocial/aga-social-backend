@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
 import { CreateSectionDto } from "./dto/createSection.dto";
 import { CreateSectionResponseDto } from "./dto/createSectionResponse.dto";
@@ -9,6 +9,11 @@ import { Section } from "./entities/sections.entity";
 import * as admin from 'firebase-admin';
 import { DeleteSectionResponseDto } from "./dto/deleteSectionResponse.dto";
 import { GetSectionsResponseDto } from "./dto/getSectionResponse.dto";
+import { CreateEbookDto } from "../ebooks/dto/createEbook.dto";
+import { CreateMediaDto } from "../media/dto/createMedia.dto";
+import { AddMediaOrEbookDto } from "./dto/addMediaorEbook.dto";
+import { AddMediaOrEbookResponseDto } from "./dto/addMediaorEbookResponse.dto";
+import { DocResult } from "../utils/docResult.entity";
 
 
 
@@ -247,6 +252,276 @@ export class SectionService {
         }
     }
 
+
+
+
+    async getSectionsByKeywords(keywords: string[]): Promise<GetSectionsResponseDto> {
+        try {
+            console.log('Initializing getSectionsByKeywords...');
+
+            // Tries to use data in cache if it exists
+            const cachedSections = await this.firebaseService.getCollectionData('sections');
+            if (cachedSections.length > 0) {
+                console.log('Using cached sections data.');
+                const matchedSections = cachedSections.filter(section =>
+                    keywords.some(keyword => section.name.toLowerCase().includes(keyword.toLowerCase()))
+                );
+
+                const responseDto: GetSectionsResponseDto = {
+                    statusCode: 200,
+                    message: 'SECTIONSGOT',
+                    sectionsFound: matchedSections,
+                };
+                return responseDto;
+            }
+
+            // If there is no data in cache, query Firestore
+            const sectionsRef = this.firebaseService.sectionsCollection;
+            const sectionsQuery = query(sectionsRef, orderBy('name'));
+            console.log('Sections query created.');
+
+            const sectionsQuerySnapshot = await getDocs(sectionsQuery);
+            console.log('Sections query snapshot obtained.');
+
+            const queryResult = [];
+            sectionsQuerySnapshot.forEach((doc) => {
+                const data = doc.data();
+                queryResult.push({
+                    name: data.name,
+                    description: data.description,
+                    tags: data.tags,
+                    content: data.content,
+                });
+            });
+            console.log('Section data collected.');
+
+            // Filter the sections by keywords
+            const matchedSections = queryResult.filter(section =>
+                keywords.some(keyword => section.name.toLowerCase().includes(keyword.toLowerCase()))
+            );
+
+            // Save the data in cache for future queries
+            await this.firebaseService.setCollectionData('sections', queryResult);
+
+            const responseDto: GetSectionsResponseDto = {
+                statusCode: 200,
+                message: 'SECTIONSGOT',
+                sectionsFound: matchedSections,
+            };
+            console.log('Response created.');
+
+            return responseDto;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the sections.');
+        }
+    }
+
+
+
+
+
+
+    async addMediaOrEbookToSection(
+        addMediaOrEbookDto: AddMediaOrEbookDto,
+    ): Promise<AddMediaOrEbookResponseDto> {
+        try {
+            const { sectionName, mediaOrEbookData } = addMediaOrEbookDto;
+
+            const sectionRef = collection(this.firebaseService.fireStore, 'sections');
+            const sectionQuery = query(sectionRef, where('name', '==', sectionName));
+            const sectionQuerySnapshot = await getDocs(sectionQuery);
+
+            if (sectionQuerySnapshot.empty) {
+                throw new BadRequestException('SECTION NOT FOUND');
+            }
+
+            const sectionDoc = sectionQuerySnapshot.docs[0];
+            const sectionData = sectionDoc.data();
+            const { content } = sectionData;
+
+            const updatedContent = [...content]; // Create a copy of existing content
+
+            if ('duration' in mediaOrEbookData) { // This is a Media
+                const mediaQuery = query(
+                    collection(this.firebaseService.fireStore, 'media'),
+                    where('url', '==', mediaOrEbookData.url)
+                );
+                const mediaQuerySnapshot = await getDocs(mediaQuery);
+
+                if (!mediaQuerySnapshot.empty) {
+                    const mediaDoc = mediaQuerySnapshot.docs[0];
+                    const media = mediaDoc.data();
+
+                    const mediaDto: CreateMediaDto = {
+                        type: media.type,
+                        title: media.title,
+                        description: media.description,
+                        url: media.url,
+                        duration: media.duration,
+                        uploadDate: media.uploadDate,
+                    };
+
+                    updatedContent.push(mediaDto);
+                }
+            } else if ('pageCount' in mediaOrEbookData) { // This is an Ebook
+                const ebookQuery = query(
+                    collection(this.firebaseService.fireStore, 'ebooks'),
+                    where('url', '==', mediaOrEbookData.url)
+                );
+                const ebookQuerySnapshot = await getDocs(ebookQuery);
+
+                if (!ebookQuerySnapshot.empty) {
+                    const ebookDoc = ebookQuerySnapshot.docs[0];
+                    const ebook = ebookDoc.data();
+
+                    const ebookDto: CreateEbookDto = {
+                        title: ebook.title,
+                        publisher: ebook.publisher,
+                        author: ebook.author,
+                        description: ebook.description,
+                        url: ebook.url,
+                        price: ebook.price,
+                        releaseDate: ebook.releaseDate,
+                        language: ebook.language,
+                        pageCount: ebook.pageCount,
+                        genres: ebook.genres,
+                        format: ebook.format,
+                        salesCount: ebook.salesCount,
+                    };
+
+                    updatedContent.push(ebookDto);
+                }
+            } else {
+                throw new BadRequestException('INVALID CONTENT TYPE');
+            }
+
+            await updateDoc(sectionDoc.ref, { content: updatedContent });
+
+            console.log('Media or Ebook added to section content successfully.');
+
+
+
+            // Update cached sections data
+            const cachedSections = await this.firebaseService.getCollectionData('sections');
+            const updatedCachedSections = cachedSections.map(section => {
+                if (section.name === sectionName) {
+                    return {
+                        ...section,
+                        content: updatedContent,
+                    };
+                }
+                return section;
+            });
+            await this.firebaseService.setCollectionData('sections', updatedCachedSections);
+
+
+            return new AddMediaOrEbookResponseDto(201, 'MEDIAOREBOOKADDEDSUCCESSFULLY');
+        } catch (error) {
+            console.error('Error adding Media or Ebook to section:', error);
+            throw error;
+        }
+    }
+
+
+    async getSectionsByTags(tags: string[]): Promise<GetSectionsResponseDto> {
+        try {
+            console.log('Initializing getSectionsByTags...');
+
+            // Tries to use data in cache if it exists
+            const cachedSections = await this.firebaseService.getCollectionData('sections');
+            if (cachedSections.length > 0) {
+                console.log('Using cached sections data.');
+                const matchedSections = cachedSections.filter(section =>
+                    tags.some(tag => section.tags.includes(tag))
+                );
+
+                const responseDto: GetSectionsResponseDto = {
+                    statusCode: 200,
+                    message: 'SECTIONSGOT',
+                    sectionsFound: matchedSections,
+                };
+                return responseDto;
+            }
+
+            // If there is no data in cache, query Firestore
+            const sectionsRef = this.firebaseService.sectionsCollection;
+            const sectionsQuery = query(sectionsRef, orderBy('name'));
+            console.log('Sections query created.');
+
+            const sectionsQuerySnapshot = await getDocs(sectionsQuery);
+            console.log('Sections query snapshot obtained.');
+
+            const queryResult = [];
+            sectionsQuerySnapshot.forEach((doc) => {
+                const data = doc.data();
+                queryResult.push({
+                    name: data.name,
+                    description: data.description,
+                    tags: data.tags,
+                    content: data.content,
+                });
+            });
+            console.log('Section data collected.');
+
+            // Filter the sections by tags
+            const matchedSections = queryResult.filter(section =>
+                tags.some(tag => section.tags.includes(tag))
+            );
+
+            // Save the data in cache for future queries
+            await this.firebaseService.setCollectionData('sections', queryResult);
+
+            const responseDto: GetSectionsResponseDto = {
+                statusCode: 200,
+                message: 'SECTIONSGOT',
+                sectionsFound: matchedSections,
+            };
+            console.log('Response created.');
+
+            return responseDto;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the sections.');
+        }
+    }
+
+
+  
+    async getSectionContentByName(sectionName: string): Promise<GetSectionsResponseDto> {
+        try {
+            console.log(`Initializing getSectionContentByName for section: ${sectionName}...`);
+
+            // Query the Firestore to get the section by name
+            const sectionsRef = this.firebaseService.sectionsCollection;
+            const sectionQuery = query(sectionsRef, where('name', '==', sectionName));
+            console.log('Section query created.');
+
+            const sectionQuerySnapshot = await getDocs(sectionQuery);
+            console.log('Section query snapshot obtained.');
+
+            if (sectionQuerySnapshot.empty) {
+                throw new Error('Section not found.');
+            }
+
+            const sectionDoc = sectionQuerySnapshot.docs[0];
+            const sectionData = sectionDoc.data();
+            const sectionContent = sectionData.content;
+
+            console.log('Section content retrieved successfully.');
+
+            const getSectionsDtoResponse: GetSectionsResponseDto = {
+                statusCode: 200,
+                message: 'SECTIONSRETRIEVEDSUCCESSFULLY',
+                sectionsFound: sectionContent,
+            };
+
+            return getSectionsDtoResponse;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the section content.');
+        }
+    }
 
 
 }

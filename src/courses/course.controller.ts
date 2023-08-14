@@ -39,4 +39,21 @@ export class CourseController {
     }
 
 
+
+    @Get('firebase/courses/search-by-keywords')
+    async getCoursesByKeywords(@Body('keywords') keywords: string[]): Promise<GetCoursesResponseDto> {
+        const response = await this.courseService.getCoursesByKeywords(keywords);
+        return response;
+    }
+
+
+
+
+    @Get('firebase/courses/search-by-tags')
+    async getCoursesByTags(@Body('tags') tags: string[]): Promise<GetCoursesResponseDto> {
+        return this.courseService.getCoursesByTags(tags);
+    }
+
+
+
 }

@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsAlpha, IsArray, IsEmail, IsLowercase, IsNotEmpty, IsString, Length, Matches, MaxLength } from "class-validator";
+import { IsAlpha, IsArray, IsEmail, IsLowercase, IsNotEmpty, IsNumber, IsString, Length, Matches, MaxLength } from "class-validator";
 import { Role } from 'src/roles/entities/role.entity'
+import { Coupon } from "../coupons/entities/coupon.entity";
 
 export class User {
 
@@ -71,18 +72,70 @@ export class User {
 
     @ApiProperty({
         description: "Books purchased by the user",
-        example: ["ebook_id_1", "ebook_id_3"],
+        example: ["Introduction to Programming", "Web Development Basics"],
         type: [String],
     })
-    purchasedBooks: string[]; // List of eBooks, has the books' ids
+    purchasedBooks: string[] = [];
 
     @ApiProperty({
         description: "Courses purchased by the user",
-        example: ["course_id_1", "course_id_2"],
+        example: ["Introduction to Web Development", "Advanced JavaScript"],
         type: [String],
     })
-    purchasedCourses: string[]; // List of Courses, has the courses' ids
+    purchasedCourses: string[] = [];
+
+    @ApiProperty({
+        description: "Money earned from course sales",
+        example: 100.00,
+        type: Number,
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    courseEarnings: number = 0;
+
+    @ApiProperty({
+        description: "Money earned from ebook sales",
+        example: 50.00,
+        type: Number,
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    ebookEarnings: number = 0;
+
+
+    @ApiProperty({
+        description: "User's coupons",
+        type: [Coupon],
+    })
+    @IsArray()
+    coupons: Coupon[] = [];
 
 
 
+    @ApiProperty({
+        description: 'Description of the user',
+        example: 'Hello, I am...',
+        type: String
+    })
+    @IsString()
+    description?: string; 
+
+
+    @ApiProperty({
+        description: 'Country of the user',
+        example: 'Venezuela',
+        type: String
+    })
+    @IsString()
+    country?: string; 
+
+    @ApiProperty({
+        description: 'Phone number of the user',
+        example: '+58 252 6673',
+        type: String
+    })
+    @IsString()
+    phoneNumber?: string;
 }
+
+

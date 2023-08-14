@@ -29,7 +29,31 @@ export enum EbookGenre {
     Cooking = 'Cooking',
     Travel = 'Travel',
     Education = 'Education',
+    Mathematics = 'Mathematics',
+    Philosophy = 'Philosophy',
+    Psychology = 'Psychology',
+    Literature = 'Literature',
+    Linguistics = 'Linguistics',
+    Sociology = 'Sociology',
+    PoliticalScience = 'Political Science',
+    Economics = 'Economics',
+    Law = 'Law',
+    Medicine = 'Medicine',
+    ComputerScience = 'Computer Science',
+    Design = 'Design',
+    Engineering = 'Engineering',
+    EnvironmentalScience = 'Environmental Science',
+    FineArts = 'Fine Arts',
+    Music = 'Music',
+    PerformingArts = 'Performing Arts',
+    ReligiousStudies = 'Religious Studies',
+    Sports = 'Sports',
+    Nutrition = 'Nutrition',
+    Languages = 'Languages',
+    CareerDevelopment = 'Career Development',
+    PersonalFinance = 'Personal Finance',
 }
+
 
 
 export class Ebook {
@@ -40,7 +64,19 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsString()
-    title: string;
+    public title: string;
+
+
+
+    @ApiProperty({
+        description: 'Publisher of the ebook',
+        example: 'Pepito Perez',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public publisher: string;
+
 
     @ApiProperty({
         description: 'Author/s of the ebook',
@@ -49,7 +85,7 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsString({ each: true })
-    author: string[];
+   public author: string[];
 
     @ApiProperty({
         description: 'URL to the ebook file',
@@ -58,7 +94,7 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsString()
-    url: string;
+   public url: string;
 
     @ApiProperty({
         description: 'Price of the ebook',
@@ -67,7 +103,7 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsNumber()
-    price: number;
+   public price: number;
 
     @ApiProperty({
         description: 'Description of the ebook',
@@ -76,7 +112,7 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsString()
-    description: string;
+    public description: string;
 
     @ApiProperty({
         description: 'Release date of the ebook',
@@ -84,7 +120,7 @@ export class Ebook {
         type: Date,
     })
     @IsNotEmpty()
-    releaseDate: Date;
+   public releaseDate: Date;
 
     @ApiProperty({
         description: 'Languages in which the ebook is available',
@@ -94,7 +130,7 @@ export class Ebook {
     @IsNotEmpty()
     @IsArray()
     @IsString({ each: true })
-    language: string[];
+    public language: string[];
 
     @ApiProperty({
         description: 'Number of pages in the ebook (integer value)',
@@ -103,7 +139,7 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsInt()
-    pageCount: number;
+   public  pageCount: number;
 
     @ApiProperty({
         description: 'Genres of the ebook',
@@ -114,7 +150,7 @@ export class Ebook {
     @IsNotEmpty()
     @IsArray()
     @IsEnum(EbookGenre, { each: true })
-    genres: EbookGenre[];
+   public genres: EbookGenre[];
 
     @ApiProperty({
         description: 'Format of the ebook',
@@ -123,5 +159,19 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsEnum(EbookFormat)
-    format: EbookFormat;
+   public format: EbookFormat;
+
+
+
+
+    @ApiProperty({
+        description: 'Number of sales for the ebook, default is 0',
+        example: 100,
+        type: Number,
+    })
+    @IsInt()
+    @IsNotEmpty()
+    @IsNumber()
+   public salesCount: number = 0;
+
 }

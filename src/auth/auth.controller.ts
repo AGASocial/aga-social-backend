@@ -25,6 +25,10 @@ import { ChangeNameDto } from "./dto/changeName.dto";
 import { ChangeNameDtoResponse } from "./dto/changeNameResponse.dto";
 import { ChangeSecurityAnswerDto } from "./dto/changeSecurityAnswer.dto";
 import { ChangeSecurityAnswerDtoResponse } from "./dto/changeSecurityAnswerResponse.dto";
+import { GetUsersEarningsResponseDto } from "./dto/userEarningsResponse.dto";
+import { ChangeDescriptionDto } from "./dto/changeDescription.dto";
+import { ChangeCountryDto } from "./dto/changeCountry.dto";
+import { ChangePhoneNumberDto } from "./dto/changePhoneNumber.dto";
 
 
 @Controller('auth')
@@ -157,5 +161,53 @@ export class AuthController {
     }
 
 
+    @Get('firebase/users/:email/ebook-earnings')
+    async getUserEbookEarnings(@Param('email') email: string): Promise<GetUsersEarningsResponseDto> {
+        try {
+            return await this.authService.getUserEbookEarnings(email);
+        } catch (error) {
+            throw new Error('There was an error retrieving ebook earnings.');
+        }
+    }
+
+
+
+    @Get('firebase/users/:email/courses-earnings')
+    async getUserCoursesEarnings(@Param('email') email: string): Promise<GetUsersEarningsResponseDto> {
+        try {
+            return await this.authService.getUserCoursesEarnings(email);
+        } catch (error) {
+            throw new Error('There was an error retrieving ebook earnings.');
+        }
+    }
+
+
+    @Get('firebase/users/:email/total-earnings')
+    async getUserTotalEarnings(@Param('email') email: string): Promise<GetUsersEarningsResponseDto> {
+        return this.authService.getUserTotalEarnings(email);
+    }
+
+
+
+
+    @Put('firebase/users/description')
+    async changeDescription(@Body() changeDescriptionDto: ChangeDescriptionDto, @Req() req: Request): Promise<ChangeNameDtoResponse> {
+        const jwtToken = req.signedCookies.refresh_token;
+        return this.authService.changeDescription(changeDescriptionDto, jwtToken);
+    }
+
+
+    @Put('firebase/users/country')
+    async changeCountry(@Body() changeCountryDto: ChangeCountryDto, @Req() req: Request): Promise<ChangeNameDtoResponse> {
+        const jwtToken = req.signedCookies.refresh_token;
+        return this.authService.changeCountry(changeCountryDto, jwtToken);
+    }
+
+
+    @Put('firebase/users/phoneNumber')
+    async changePhoneNumber(@Body() changePhoneNumberDto: ChangePhoneNumberDto, @Req() req: Request): Promise<ChangeNameDtoResponse> {
+        const jwtToken = req.signedCookies.refresh_token;
+        return this.authService.changePhoneNumber(changePhoneNumberDto, jwtToken);
+    }
 
 }   

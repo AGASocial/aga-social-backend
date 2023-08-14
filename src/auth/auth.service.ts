@@ -34,6 +34,10 @@ import { ChangeNameDto } from './dto/changeName.dto';
 import { ChangeNameDtoResponse } from './dto/changeNameResponse.dto';
 import { ChangeSecurityAnswerDto } from './dto/changeSecurityAnswer.dto';
 import { ChangeSecurityAnswerDtoResponse } from './dto/changeSecurityAnswerResponse.dto';
+import { GetUsersEarningsResponseDto } from './dto/userEarningsResponse.dto';
+import { ChangeDescriptionDto } from './dto/changeDescription.dto';
+import { ChangeCountryDto } from './dto/changeCountry.dto';
+import { ChangePhoneNumberDto } from './dto/changePhoneNumber.dto';
 dotenv.config();
 @Injectable()
 export class AuthService {
@@ -180,7 +184,13 @@ export class AuthService {
                     security_answer: signUpDto.security_answer,
                     role: [roleEntity],
                     purchasedBooks: [],
-                    purchasedCourses: []
+                    purchasedCourses: [],
+                    courseEarnings: 0,
+                    ebookEarnings: 0,
+                    coupons: [],
+                    description: '',
+                    country: '',
+                    phoneNumber: ''
                 };
                 let docReference: DocumentReference = doc(this.firebaseService.usersCollection, id);
                 await setDoc(docReference, newUser);
@@ -196,6 +206,12 @@ export class AuthService {
                     role: [roleEntity],
                     purchasedBooks: [],
                     purchasedCourses: [],
+                    courseEarnings: 0,
+                    ebookEarnings: 0,
+                    coupons: [],
+                    description: '',
+                    country: '',
+                    phoneNumber: ''
                 });
                 this.firebaseService.setCollectionData('users', cachedCourses);
                 console.log('User added to the cache successfully.');
@@ -387,13 +403,28 @@ export class AuthService {
             const cachedUsers = await this.firebaseService.getCollectionData('users');
             if (cachedUsers.length > 0) {
                 console.log('Using cached users data.');
+                const sanitizedCachedUsers = cachedUsers.map((user) => ({
+                    name: user.name,
+                    username: user.username,
+                    role: user.role,
+                    purchasedBooks: user.purchasedBooks,
+                    purchasedCourses: user.purchasedCourses,
+                    courseEarnings: user.courseEarnings,
+                    ebookEarnings: user.ebookEarnings,
+                    coupons: user.coupons,
+                    description: user.description,
+                    country: user.country,
+                    phoneNumber: user.phoneNumber
+                }));
+
                 const getUsersDtoResponse: GetUsersResponseDto = {
                     statusCode: 200,
                     message: "USERSGOT",
-                    usersFound: cachedUsers,
+                    usersFound: sanitizedCachedUsers,
                 };
                 return getUsersDtoResponse;
             }
+
 
             // If there is no data, it uses firestore instead
             const usersRef = this.firebaseService.usersCollection;
@@ -410,6 +441,15 @@ export class AuthService {
                     name: data.name,
                     username: data.username,
                     role: data.role,
+                    purchasedBooks: data.purchasedBooks,
+                    purchasedCourses: data.purchasedCourses,
+                    courseEarnings: data.courseEarnings,
+                    ebookEarnings: data.ebookEarnings,
+                    coupons: data.coupons,
+                    description: data.description,
+                    country: data.country,
+                    phoneNumber: data.phoneNumber
+
                 });
             });
             console.log('Users data collected.');
@@ -450,6 +490,13 @@ export class AuthService {
                         email: user.email,
                         purchasedBooks: user.purchasedBooks,
                         purchasedCourses: user.purchasedCourses,
+                        courseEarnings: user.courseEarnings,
+                        ebookEarnings: user.ebookEarnings,
+                        coupons: user.coupons,
+                        description: user.description,
+                        country: user.country,
+                        phoneNumber: user.phoneNumber
+
                     };
                     const getSingleUserDtoResponse: GetUsersResponseDto = {
                         statusCode: 200,
@@ -477,6 +524,14 @@ export class AuthService {
                     email: data.email,
                     purchasedBooks: data.purchasedBooks,
                     purchasedCourses: data.purchasedCourses,
+                    courseEarnings: data.courseEarnings,
+                    ebookEarnings: data.ebookEarnings,
+                    coupons: data.coupons,
+                    description: data.description,
+                    country: data.country,
+                    phoneNumber: data.phoneNumber
+
+
                 };
             });
             console.log('User data collected.');
@@ -676,6 +731,146 @@ export class AuthService {
 
 
 
+
+    async changeDescription(changeDescriptionDto: ChangeDescriptionDto, jwtToken: string): Promise<ChangeNameDtoResponse> {
+        try {
+            const { description, email } = changeDescriptionDto;
+
+            console.log('Initiating changeDescription...');
+
+            const user = await this.firebaseService.getUserByEmail(email);
+            const userID = this.usersService.extractID(jwtToken);
+            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
+            const singleUserSnap = await getDoc(singleUserReference);
+
+            if (!user) {
+                console.log('User not found.');
+                throw new BadRequestException('User not found.');
+            }
+
+            console.log('User found:', user);
+
+
+            try {
+                await updateDoc(singleUserReference, {
+                    description: description
+                });
+            } catch (error: unknown) {
+                console.warn(`[ERROR]: ${error}`);
+            }
+
+            console.log('Description updated successfully.');
+
+            const response: ChangeNameDtoResponse = {
+                statusCode: 200,
+                message: 'NEWDESCRIPTIONASSIGNED', 
+            };
+
+            console.log('changeDescription completed successfully.');
+
+            return response;
+        } catch (error) {
+            console.error('Error: ', error);
+            throw new BadRequestException('An error occurred while trying to change the description.');
+        }
+    }
+
+
+
+
+    async changeCountry(changeCountryDto: ChangeCountryDto, jwtToken: string): Promise<ChangeNameDtoResponse> {
+        try {
+            const { country, email } = changeCountryDto;
+
+            console.log('Initiating changeCountry...');
+
+            const user = await this.firebaseService.getUserByEmail(email);
+            const userID = this.usersService.extractID(jwtToken);
+            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
+            const singleUserSnap = await getDoc(singleUserReference);
+
+            if (!user) {
+                console.log('User not found.');
+                throw new BadRequestException('User not found.');
+            }
+
+            console.log('User found:', user);
+
+            try {
+                await updateDoc(singleUserReference, {
+                    country: country
+                });
+            } catch (error: unknown) {
+                console.warn(`[ERROR]: ${error}`);
+            }
+
+            console.log('Country updated successfully.');
+
+            const response: ChangeNameDtoResponse = {
+                statusCode: 200,
+                message: 'NEWCOUNTRYASSIGNED', // Puedes ajustar el mensaje si lo deseas
+            };
+
+            console.log('changeCountry completed successfully.');
+
+            return response;
+        } catch (error) {
+            console.error('Error: ', error);
+            throw new BadRequestException('An error occurred while trying to change the country.');
+        }
+    }
+
+
+
+    async changePhoneNumber(changePhoneNumberDto: ChangePhoneNumberDto, jwtToken: string): Promise<ChangeNameDtoResponse> {
+        try {
+            const { phoneNumber, email } = changePhoneNumberDto;
+
+            console.log('Initiating changePhoneNumber...');
+
+            const user = await this.firebaseService.getUserByEmail(email);
+            const userID = this.usersService.extractID(jwtToken);
+            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
+            const singleUserSnap = await getDoc(singleUserReference);
+
+            if (!user) {
+                console.log('User not found.');
+                throw new BadRequestException('User not found.');
+            }
+
+            console.log('User found:', user);
+
+            try {
+                await updateDoc(singleUserReference, {
+                    phoneNumber: phoneNumber
+                });
+            } catch (error: unknown) {
+                console.warn(`[ERROR]: ${error}`);
+            }
+
+            console.log('Phone number updated successfully.');
+
+            const response: ChangeNameDtoResponse = {
+                statusCode: 200,
+                message: 'NEWPHONENUMBERASSIGNED', // Puedes ajustar el mensaje si lo deseas
+            };
+
+            console.log('changePhoneNumber completed successfully.');
+
+            return response;
+        } catch (error) {
+            console.error('Error: ', error);
+            throw new BadRequestException('An error occurred while trying to change the phone number.');
+        }
+    }
+
+
+
+
+
+
+
+
     async changeSecurityAnswer(changeSecurityAnswerDto: ChangeSecurityAnswerDto, jwtToken: string): Promise<ChangeSecurityAnswerDtoResponse> {
         const { email, password, new_security_answer } = changeSecurityAnswerDto;
 
@@ -711,6 +906,104 @@ export class AuthService {
     }
 
 
+    async getUserEbookEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
+        try {
+            const userResponse = await this.getSingleUser(email);
+
+            if (userResponse.statusCode === 200 && userResponse.usersFound.length > 0) {
+                const ebookEarnings = userResponse.usersFound[0].ebookEarnings;
+
+                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
+                    200,
+                    'USERSEARNINGSRETRIEVEDSUCCESSFULLY',
+                    [{ ebookEarnings }],
+                );
+
+                return usersEarningsResponse;
+            } else {
+                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
+                    404,
+                    'USERNOTFOUNDOREBOOKEARNINGSMISSING',
+                    [],
+                );
+
+                return usersEarningsResponse;
+            }
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving ebook earnings.');
+        }
+    }
+
+
+    async getUserCoursesEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
+        try {
+            const userResponse = await this.getSingleUser(email);
+
+            if (userResponse.statusCode === 200 && userResponse.usersFound.length > 0) {
+                const courseEarnings = userResponse.usersFound[0].courseEarnings;
+
+                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
+                    200,
+                    'USERSEARNINGSRETRIEVEDSUCCESSFULLY',
+                    [{ courseEarnings }],
+                );
+
+                return usersEarningsResponse;
+            } else {
+                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
+                    404,
+                    'USERNOTFOUNDCOURSESEARNINGSMISSING',
+                    [],
+                );
+
+                return usersEarningsResponse;
+            }
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving courses earnings.');
+        }
+    }
+
+
+
+    async getUserTotalEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
+        try {
+            const userResponse = await this.getSingleUser(email);
+
+            if (userResponse.statusCode === 200 && userResponse.usersFound.length > 0) {
+                const ebookEarnings = userResponse.usersFound[0].ebookEarnings;
+                const courseEarnings = userResponse.usersFound[0].courseEarnings;
+
+                const totalEarnings = ebookEarnings + courseEarnings;
+
+                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
+                    200,
+                    'USERSEARNINGSRETRIEVEDSUCCESSFULLY',
+                    [
+                        {
+                            ebookEarnings: userResponse.usersFound[0].ebookEarnings,
+                            courseEarnings: userResponse.usersFound[0].courseEarnings,
+                            totalEarnings: totalEarnings
+                        }
+                    ],
+                );
+
+                return usersEarningsResponse;
+            } else {
+                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
+                    404,
+                    'USERNOTFOUNDORCOURSESEARNINGSMISSING',
+                    [],
+                );
+
+                return usersEarningsResponse;
+            }
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving total earnings.');
+        }
+    }
 
 
 

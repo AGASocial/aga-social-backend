@@ -380,6 +380,180 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Consultar Ganancias Ebooks de Usuario",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/ebook-earnings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"c@gmail.com",
+						"ebook-earnings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Ganancias Cursos de Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/courses-earnings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"c@gmail.com",
+						"courses-earnings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Ganancias Totales Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/total-earnings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"c@gmail.com",
+						"total-earnings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Description",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \r\n  \"description\": \"Updated Description\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/description",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"description"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Country",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \r\n  \"country\": \"Venezuela\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/country",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"country"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar PhoneNumber",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \r\n  \"phoneNumber\": \"+58 123 7088\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/phoneNumber",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"phoneNumber"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

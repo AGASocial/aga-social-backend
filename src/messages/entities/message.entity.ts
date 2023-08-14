@@ -76,4 +76,39 @@ export class Message {
     @IsNotEmpty()
     public type: MessageType;
 
+
+    @ApiProperty({
+        description: 'Indicates whether the message has been archived',
+        example: true,
+        type: Boolean,
+        default: false,
+    })
+    @IsNotEmpty()
+    @IsBoolean()
+    public isArchived: boolean = false;
+
+
+
+
+    @ApiProperty({
+        description: 'Timestamp of when the message was sent',
+        example: '2023-08-10T12:00:00Z',
+        type: Date,
+    })
+    public sentDate?: Date;
+
+    @ApiProperty({
+        description: 'Timestamp of when the message was received',
+        example: '2023-08-10T13:00:00Z',
+        type: Date,
+    })
+    public receivedDate?: Date;
+
+    @ApiProperty({
+        description: 'Timestamp of when the message was received',
+        example: '2023-08-10T13:00:00Z',
+        type: Date,
+    })
+    public readDate?: Date;
+
 }

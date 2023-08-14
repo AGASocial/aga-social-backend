@@ -20,7 +20,7 @@ export class EbookService {
     async createNewEbook(createNewEbookDto: CreateEbookDto): Promise<CreateEbookResponseDto> {
     
 
-        const { title, description, url, author, releaseDate, price, language, pageCount, genres, format } = createNewEbookDto;
+        const { title, description, url, author, releaseDate, price, language, pageCount, genres, format, publisher } = createNewEbookDto;
         const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
 
         const customEbookWhere: QueryFieldFilterConstraint = where('url', '==', url);
@@ -33,6 +33,7 @@ export class EbookService {
 
         const newEbook: Ebook = {
             title: title,
+            publisher: publisher,
             description: description,
             url: url,
             author: author,
@@ -42,6 +43,7 @@ export class EbookService {
             pageCount: pageCount,
             genres: genres,
             format: format,
+            salesCount: 0,
 
         };
 
@@ -52,6 +54,7 @@ export class EbookService {
         const cachedCourses = await this.firebaseService.getCollectionData('ebooks');
         cachedCourses.push({
             title,
+            publisher,
             description,
             url,
             author,
@@ -60,7 +63,8 @@ export class EbookService {
             language,
             pageCount,
             genres,
-            format
+            format,
+            salesCount: 0
         });
         this.firebaseService.setCollectionData('ebooks', cachedCourses);
         console.log('Ebook added to the cache successfully.');
@@ -192,6 +196,7 @@ export class EbookService {
                 const data = doc.data();
                 queryResult.push({
                     title: data.title,
+                    publisher: data.publisher,
                     author: data.author,
                     description: data.description,
                     url: data.url,
@@ -201,6 +206,7 @@ export class EbookService {
                     pageCount: data.pageCount,
                     genres: data.genres,
                     format: data.format,
+                    salesCount: data.salesCount,
                 });
             });
             console.log('Ebook data collected.');
@@ -221,6 +227,82 @@ export class EbookService {
             throw new Error('There was an error retrieving the ebooks.');
         }
     }
+
+
+
+    async getEbooksByKeywords(keywords: string[]): Promise<GetEbooksResponseDto> {
+        try {
+            console.log('Initializing getEbooksByKeywords...');
+
+            // Tries to use data in cache if it exists
+            const cachedEbooks = await this.firebaseService.getCollectionData('ebooks');
+            if (cachedEbooks.length > 0) {
+                console.log('Using cached ebooks data.');
+                const matchedEbooks = cachedEbooks.filter(ebook =>
+                    keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
+                );
+
+                const responseDto: GetEbooksResponseDto = {
+                    statusCode: 200,
+                    message: 'EBOOKSGOT',
+                    ebooksFound: matchedEbooks,
+                };
+                return responseDto;
+            }
+
+            // If there is no data in cache, query Firestore
+            const ebooksRef = this.firebaseService.ebooksCollection;
+            const ebooksQuery = query(ebooksRef, orderBy('title'));
+            console.log('Ebooks query created.');
+
+            const ebooksQuerySnapshot = await getDocs(ebooksQuery);
+            console.log('Ebooks query snapshot obtained.');
+
+            const queryResult = [];
+            ebooksQuerySnapshot.forEach((doc) => {
+                const data = doc.data();
+                queryResult.push({
+                    title: data.title,
+                    publisher: data.publisher,
+                    author: data.author,
+                    description: data.description,
+                    url: data.url,
+                    releaseDate: data.releaseDate,
+                    price: data.price,
+                    language: data.language,
+                    pageCount: data.pageCount,
+                    genres: data.genres,
+                    format: data.format,
+                    salesCount: data.salesCount,
+                });
+            });
+            console.log('Ebook data collected.');
+
+            // Filter the eBooks by keywords
+            const matchedEbooks = queryResult.filter(ebook =>
+                keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
+            );
+
+            // Save the data in cache for future queries
+            await this.firebaseService.setCollectionData('ebooks', queryResult);
+
+            const responseDto: GetEbooksResponseDto = {
+                statusCode: 200,
+                message: 'EBOOKSGOT',
+                ebooksFound: matchedEbooks,
+            };
+            console.log('Response created.');
+
+            return responseDto;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the ebooks.');
+        }
+    }
+
+  
+
+
 
 
 
