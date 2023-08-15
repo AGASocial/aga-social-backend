@@ -43,7 +43,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"url\": \"https://example.com/ebook.pdf\", \r\n  \"author\": [\"Jane Smith\", \"John Doe\"],\r\n  \"price\": 24.99,\r\n  \"description\": \"An updated guide to programming basics.\",\r\n  \"format\": \"EPUB\"\r\n}\r\n",
+					"raw": "{\r\n  \"url\": \"https://ebooook/ebook.pdf\", \r\n  \"author\": [\"Jane Smith\", \"John Doe\"],\r\n  \"price\": 99.99,\r\n  \"description\": \"An updated guide to programming basics.\",\r\n  \"format\": \"EPUB\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -51,14 +51,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/ebooks",
-					"protocol": "http",
+					"raw": "{{server}}firebase/ebooks",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"ebooks"
 					]
 				}
@@ -78,6 +75,17 @@
 							"language": "json"
 						}
 					}
+				},
+				"url": {
+					"raw": "{{server}}firebase/ebooks/Ebook 1/EPUB",
+					"host": [
+						"{{server}}firebase"
+					],
+					"path": [
+						"ebooks",
+						"Ebook 1",
+						"EPUB"
+					]
 				}
 			},
 			"response": []
@@ -88,14 +96,11 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/ebooks",
-					"protocol": "http",
+					"raw": "{{server}}firebase/ebooks",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"ebooks"
 					]
 				}
@@ -112,7 +117,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"keywords\": [\"ebook\"]\r\n}",
+					"raw": "{\r\n  \"keywords\": [\"5\"]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -120,14 +125,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/ebooks/search-by-keywords",
-					"protocol": "http",
+					"raw": "{{server}}firebase/ebooks/search-by-keywords",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"ebooks",
 						"search-by-keywords"
 					]
@@ -141,17 +143,14 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/ebooks/deactivate/Ebook 4/DOCX",
-					"protocol": "http",
+					"raw": "{{server}}firebase/ebooks/deactivate/Ebook 5/DOCX",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"ebooks",
 						"deactivate",
-						"Ebook 4",
+						"Ebook 5",
 						"DOCX"
 					]
 				}

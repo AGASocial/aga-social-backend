@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"type\": \"audio\",\r\n  \"title\": \"Audio a Eliminar\",\r\n  \"description\": \"This is an example audio 4\",\r\n  \"url\": \"https://www.example.com/example_audio_delete.mp3\",\r\n  \"duration\": \"00:10:00\",\r\n  \"uploadDate\": \"2021-12-28\"\r\n}\r\n",
+					"raw": "{\r\n    \r\n    \"url\": \"https://TESTVIDEO2.com/media/audio.mp4\",\r\n    \"type\": \"video\",\r\n    \"title\": \"TEST-VIDEO2\",\r\n    \"description\": \"TEST-VIDEO2\",\r\n    \"duration\": \"00:10:30\",\r\n    \"uploadDate\": \"2013-10-10\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -22,14 +22,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/media",
-					"protocol": "http",
+					"raw": "{{server}}firebase/media",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"media"
 					]
 				}
@@ -43,7 +40,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"url\": \"https://www.example.com/example_video.mp4\",\r\n  \"title\": \"Old Title\",\r\n  \"description\": \"Old description\"\r\n}",
+					"raw": "{\r\n  \"url\": \"https://www.example.com\",\r\n  \"title\": \"AAA\"\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -51,14 +48,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/media",
-					"protocol": "http",
+					"raw": "{{server}}firebase/media",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"media"
 					]
 				}
@@ -71,14 +65,11 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/media",
-					"protocol": "http",
+					"raw": "{{server}}firebase/media",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"media"
 					]
 				}
@@ -100,17 +91,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/media/AAA/Welcome to the course!",
-					"protocol": "http",
+					"raw": "{{server}}firebase/media/Introduction to Science/An introductory video about the world of science",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"media",
-						"AAA",
-						"Welcome to the course!"
+						"Introduction to Science",
+						"An introductory video about the world of science"
 					]
 				}
 			},
@@ -134,14 +122,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/media/search-by-keywords",
-					"protocol": "http",
+					"raw": "{{server}}firebase/media/search-by-keywords",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"media",
 						"search-by-keywords"
 					]
@@ -164,14 +149,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/media/deactivate/TEST-1",
-					"protocol": "http",
+					"raw": "{{server}}firebase/media/deactivate/TEST-1",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"media",
 						"deactivate",
 						"TEST-1"
