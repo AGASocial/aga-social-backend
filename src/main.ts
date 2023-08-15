@@ -27,28 +27,30 @@ async function bootstrap() {
         "clientEmail": configService.get<string>('FIREBASE_CLIENT_EMAIL'),
     };*/
 
-
-    const adminConfig = {
-        "projectId": configService.get<string>('FIREBASE_PROJECT_ID'),
-        "privateKey": configService.get<string>('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
-        "clientEmail": configService.get<string>('FIREBASE_CLIENT_EMAIL'),
+    const firebaseConfig = {
+        credential: admin.credential.cert({
+            projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
+            clientEmail: configService.get<string>('FIREBASE_CLIENT_EMAIL'),
+            privateKey: configService.get<string>('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
+        }),
+        storageBucket: configService.get<string>('FIREBASE_STORAGE_BUCKET'),
+        databaseAuthVariableOverride: {
+            uid: configService.get<string>('FIREBASE_AUTH_UID')
+        },
+        apiKey: configService.get<string>('FIREBASE_API_KEY') || 'mock_key',
+        authDomain: configService.get<string>('FIREBASE_AUTH_DOMAIN'),
+        projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
+        messagingSenderId: configService.get<string>('FIREBASE_MESSAGING_SENDER_ID'),
+        appId: configService.get<string>('FIREBASE_APP_ID'),
+        measurementId: configService.get<string>('MEASUREMENT_ID')
     };
 
-    console.log('Before Firebase Auth');
     try {
-        await admin.initializeApp({
-            credential: admin.credential.cert(adminConfig),
-            // databaseURL: configService.get<string>('FIREBASE_DATA_URL'),
-            storageBucket: configService.get<string>('FIREBASE_STORAGE_BUCKET'),
-            databaseAuthVariableOverride: {
-                uid: configService.get<string>('FIREBASE_AUTH_UID')
-            },
-        });
+        await admin.initializeApp(firebaseConfig);
         console.log('Firebase Auth initialized successfully.');
     } catch (error) {
         console.error('Error initializing Firebase Auth:', error);
     }
-
 
     const { initializeApp } = require('firebase-admin/app');
 
