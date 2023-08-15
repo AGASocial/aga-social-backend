@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Admin\",\r\n  \"description\": \"The admin should be a worker from AGA Social, they must manage information responsibly as they have full access to all information on the platform\",\r\n  \"isDefault\": false,\r\n  \"isActive\": true\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Test\",\r\n  \"description\": \"Test\",\r\n  \"isDefault\": false,\r\n  \"isActive\": false\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -22,14 +22,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/authorization/firebase/roles",
-					"protocol": "http",
+					"raw": "{{server}}authorization/firebase/roles",
 					"host": [
-						"localhost"
+						"{{server}}authorization"
 					],
-					"port": "3000",
 					"path": [
-						"authorization",
 						"firebase",
 						"roles"
 					]
@@ -44,7 +41,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Publisher\",\r\n  \"isDefault\": false,\r\n  \"isActive\": true\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Subscriber\",\r\n  \"isDefault\": true,\r\n  \"isActive\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -52,17 +49,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/authorization/firebase/roles/Publisher",
-					"protocol": "http",
+					"raw": "{{server}}authorization/firebase/roles/Subscriber",
 					"host": [
-						"localhost"
+						"{{server}}authorization"
 					],
-					"port": "3000",
 					"path": [
-						"authorization",
 						"firebase",
 						"roles",
-						"Publisher"
+						"Subscriber"
 					]
 				}
 			},
@@ -70,18 +64,22 @@
 		},
 		{
 			"name": "Consultar Roles Firebase",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"method": "GET",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
-					"raw": "http://localhost:3000/authorization/firebase/roles",
-					"protocol": "http",
+					"raw": "{{server}}authorization/firebase/roles",
 					"host": [
-						"localhost"
+						"{{server}}authorization"
 					],
-					"port": "3000",
 					"path": [
-						"authorization",
 						"firebase",
 						"roles"
 					]
@@ -104,17 +102,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/authorization/firebase/users/alejandra1@gmail.com/roles/Publisher",
-					"protocol": "http",
+					"raw": "{{server}}authorization/firebase/users/armando222@gmail.com/roles/Publisher",
 					"host": [
-						"localhost"
+						"{{server}}authorization"
 					],
-					"port": "3000",
 					"path": [
-						"authorization",
 						"firebase",
 						"users",
-						"alejandra1@gmail.com",
+						"armando222@gmail.com",
 						"roles",
 						"Publisher"
 					]
@@ -137,19 +132,16 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/authorization/firebase/users/alejandra1@gmail.com/roles/Publisher",
-					"protocol": "http",
+					"raw": "{{server}}authorization/firebase/users/vincent@gmail.com/roles/TestRole",
 					"host": [
-						"localhost"
+						"{{server}}authorization"
 					],
-					"port": "3000",
 					"path": [
-						"authorization",
 						"firebase",
 						"users",
-						"alejandra1@gmail.com",
+						"vincent@gmail.com",
 						"roles",
-						"Publisher"
+						"TestRole"
 					]
 				}
 			},
@@ -170,17 +162,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/authorization/firebase/roles/Admin",
-					"protocol": "http",
+					"raw": "{{server}}authorization/firebase/roles/Test",
 					"host": [
-						"localhost"
+						"{{server}}authorization"
 					],
-					"port": "3000",
 					"path": [
-						"authorization",
 						"firebase",
 						"roles",
-						"Admin"
+						"Test"
 					]
 				}
 			},

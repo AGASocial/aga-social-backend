@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"code\": \"SUMMER25\",\r\n  \"description\": \"Summer Sale Coupon\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 25,\r\n  \"expiryDate\": \"2023-08-31\",\r\n  \"maxUses\": 1000,\r\n  \"maxUsesPerUser\": 1\r\n}",
+					"raw": "{\r\n  \"code\": \"TEST\",\r\n  \"status\": \"available\",\r\n  \"description\": \"Sale 10$ Off\",\r\n  \"discountType\": \"nominal\",\r\n  \"discountAmount\": 10,\r\n  \"expiryDate\": \"2023-10-10\",\r\n  \"maxUses\": 60,\r\n  \"maxUsesPerUser\": 1\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -22,14 +22,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons"
 					]
 				}
@@ -43,7 +40,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"description\": \"New Description\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-12-31\",\r\n  \"maxUses\": 200,\r\n  \"maxUsesPerUser\": 2\r\n}\r\n",
+					"raw": "{\r\n  \"code\": \"SUMMER10\", \r\n  \"description\": \"New Description\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-08-15\",\r\n  \"maxUses\": 200,\r\n  \"maxUsesPerUser\": 2\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -51,16 +48,13 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/SUMMER25",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/SUMMER10",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
-						"SUMMER25"
+						"SUMMER10"
 					]
 				}
 			},
@@ -81,14 +75,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/SUMMER25",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/SUMMER25",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"SUMMER25"
 					]
@@ -114,14 +105,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons"
 					]
 				}
@@ -135,7 +123,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"useremail\": \"c@gmail.com\",\r\n  \"couponCode\": \"SALE30\",\r\n  \"resourceType\": \"Course\",\r\n  \"resourceTitle\": \"a\"\r\n}\r\n",
+					"raw": "{\r\n  \"useremail\": \"amanda111@gmail.com\",\r\n  \"couponCode\": \"SUMMER50\",\r\n  \"resourceType\": \"Course\",\r\n  \"resourceTitle\": \"a\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -143,14 +131,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/redeem",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/redeem",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"redeem"
 					]
@@ -165,7 +150,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"fernanda222@gmail.com\",\r\n  \"couponCode\": \"SUMMER50\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"fernanda333@gmail.com\",\r\n  \"couponCode\": \"WINTER25\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -173,14 +158,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/assign",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/assign",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"assign"
 					]
@@ -194,16 +176,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/SUMMER50",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/TEST",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
-						"SUMMER50"
+						"TEST"
 					]
 				}
 			},
@@ -222,16 +201,14 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/fernanda222@gmail.com/available",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/users/fernanda333@gmail.com/available",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
-						"fernanda222@gmail.com",
+						"users",
+						"fernanda333@gmail.com",
 						"available"
 					]
 				}
@@ -248,14 +225,11 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/update-expired",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/update-expired",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"update-expired"
 					]
@@ -281,17 +255,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/users/amanda111@gmail.com",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/users/fernanda333@gmail.com",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"users",
-						"amanda111@gmail.com"
+						"fernanda333@gmail.com"
 					]
 				}
 			},
@@ -303,14 +274,11 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/users/amanda111@gmail.com/expired-used",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/users/amanda111@gmail.com/expired-used",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"users",
 						"amanda111@gmail.com",
@@ -326,14 +294,11 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/update-expired/amanda111@gmail.com",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/update-expired/amanda111@gmail.com",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"update-expired",
 						"amanda111@gmail.com"
@@ -345,8 +310,19 @@
 		{
 			"name": "Eliminar Coupons Expirados de Firebase",
 			"request": {
-				"method": "GET",
-				"header": []
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{server}}firebase/coupons/expired/cleanup",
+					"host": [
+						"{{server}}firebase"
+					],
+					"path": [
+						"coupons",
+						"expired",
+						"cleanup"
+					]
+				}
 			},
 			"response": []
 		},
@@ -356,17 +332,14 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/deactivate/SUMMER50",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/deactivate/TEST",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"deactivate",
-						"SUMMER50"
+						"TEST"
 					]
 				}
 			},
@@ -378,14 +351,11 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/coupons/users/deactivate/fernanda333@gmail.com/SUMMER50",
-					"protocol": "http",
+					"raw": "{{server}}firebase/coupons/users/deactivate/fernanda333@gmail.com/SUMMER50",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"coupons",
 						"users",
 						"deactivate",

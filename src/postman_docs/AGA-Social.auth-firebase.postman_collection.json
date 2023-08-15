@@ -17,7 +17,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"yhormang444@gmail.com\",\r\n  \"username\": \"Yhormang.444\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Yhormang\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"yhormang555@gmail.com\",\r\n  \"username\": \"Yhormang.555\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Yhormang\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -25,12 +25,11 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}/auth/firebase/signup",
+					"raw": "{{server}}auth/firebase/signup",
 					"host": [
-						"{{server}}"
+						"{{server}}auth"
 					],
 					"path": [
-						"auth",
 						"firebase",
 						"signup"
 					]
@@ -45,7 +44,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"test2@gmail.com\",\r\n  \"password\": \"Vitra/?13\"\r\n\r\n}",
+					"raw": "{\r\n  \"email\": \"armando222@gmail.com\",\r\n  \"password\": \"Vitra/?13\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -53,14 +52,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/login",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/login",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"login"
 					]
@@ -74,14 +70,11 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/session",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/session",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"session"
 					]
@@ -96,7 +89,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"user\": \"Test.1\",\r\n  \"security_answer\": \"perfect blue\",\r\n  \"new_password\": \"Viztrak/?1344\"\r\n}",
+					"raw": "{\r\n  \"user\": \"Joel.15\",\r\n  \"security_answer\": \"perfect blue\",\r\n  \"new_password\": \"Viztrak/?1344\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -104,14 +97,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/credentials",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/credentials",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"credentials"
 					]
@@ -126,7 +116,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"password\": \"Viztrak/?1344\",\r\n  \"new_password\": \"NewPass123/?\"\r\n}",
+					"raw": "{\r\n  \"password\": \"Viztrak/?1344\",\r\n  \"new_password\": \"NewPass123/.\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -134,14 +124,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/credentials",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/credentials",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"credentials"
 					]
@@ -151,18 +138,22 @@
 		},
 		{
 			"name": "Cerrar Sesion Usuario Firebase",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"method": "GET",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/logout",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/logout",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"logout"
 					]
@@ -177,7 +168,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"alejandra@gmail.com\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"joel115@gmail.com\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -185,14 +176,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/delete",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/delete",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"delete"
 					]
@@ -206,14 +194,11 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users"
 					]
@@ -228,7 +213,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "",
+					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"username\": \"Updated.1\",\r\n  \"email\": \"joel115@gmail.com\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -236,14 +221,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/username",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/username",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
 						"username"
@@ -267,14 +249,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/email",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/email",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
 						"email"
@@ -298,14 +277,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/name",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/name",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
 						"name"
@@ -329,14 +305,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/security-answer",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/security-answer",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
 						"security-answer"
@@ -355,7 +328,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n    \"email\": \"joel114@gmail.com\"\r\n}",
+					"raw": "{\r\n\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -363,17 +336,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/joel114@gmail.com",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/armando222@gmail.com",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
-						"joel114@gmail.com"
+						"armando222@gmail.com"
 					]
 				}
 			},
@@ -397,17 +367,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/ebook-earnings",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/armando222@gmail.com/ebook-earnings",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
-						"c@gmail.com",
+						"armando222@gmail.com",
 						"ebook-earnings"
 					]
 				}
@@ -420,17 +387,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/courses-earnings",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/armando222@gmail.com/courses-earnings",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
-						"c@gmail.com",
+						"armando222@gmail.com",
 						"courses-earnings"
 					]
 				}
@@ -443,17 +407,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/total-earnings",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/armando222@gmail.com/total-earnings",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
-						"c@gmail.com",
+						"armando222@gmail.com",
 						"total-earnings"
 					]
 				}
@@ -467,7 +428,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n \r\n  \"description\": \"Updated Description\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"raw": "{\r\n \r\n  \"description\": \"Updated Description\",\r\n  \"email\": \"armando222@gmail.com\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -475,14 +436,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/description",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/description",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
 						"description"
@@ -498,7 +456,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n \r\n  \"country\": \"Venezuela\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"raw": "{\r\n \r\n  \"country\": \"Venezuela\",\r\n  \"email\": \"armando222@gmail.com\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -506,14 +464,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/country",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/country",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
 						"country"
@@ -529,7 +484,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n \r\n  \"phoneNumber\": \"+58 123 7088\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"raw": "{\r\n \r\n  \"phoneNumber\": \"+58 123 7088\",\r\n  \"email\": \"armando222@gmail.com\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -537,14 +492,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/users/phoneNumber",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/users/phoneNumber",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"users",
 						"phoneNumber"
@@ -568,14 +520,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/deactivate",
-					"protocol": "http",
+					"raw": "{{server}}auth/firebase/deactivate",
 					"host": [
-						"localhost"
+						"{{server}}auth"
 					],
-					"port": "3000",
 					"path": [
-						"auth",
 						"firebase",
 						"deactivate"
 					]

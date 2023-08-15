@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Test 7\",\r\n  \"description\": \"An introductory section about spanish concepts\",\r\n  \"content\": [\r\n    {\r\n            \"description\": \"This is an example audio 2\",\r\n            \"duration\": \"00:10:00\",\r\n            \"title\": \"Example Audio 2\",\r\n            \"type\": \"audio\",\r\n            \"uploadDate\": \"2021-12-28\",\r\n            \"url\": \"https://www.example.com/example_audio2.mp3\"\r\n        },\r\n       \r\n    {\r\n            \"title\": \"Introduction to Programming\",\r\n            \"author\": [\r\n                \"Jane Smith\",\r\n                \"John Doe\"\r\n            ],\r\n            \"description\": \"An updated guide to programming basics.\",\r\n            \"url\": \"https://example.com/ebook.pdf\",\r\n            \"releaseDate\": \"2023-02-01\",\r\n            \"price\": 24.99,\r\n            \"language\": [\r\n                \"English\",\r\n                \"Spanish\"\r\n            ],\r\n            \"pageCount\": 300,\r\n            \"genres\": [\r\n                \"Science Fiction\",\r\n                \"Technology\"\r\n            ],\r\n            \"format\": \"EPUB\"\r\n    }\r\n  ],\r\n  \"tags\": [\"programming\", \"basics\", \"tutorial\"]\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Seccion-Principal 222\",\r\n  \"description\": \"Seccion-Principal 222\",\r\n  \"content\": [\r\n    {\r\n         \"description\": \"TEST-1\",\r\n            \"type\": \"audio\",\r\n            \"title\": \"TEST-1\",\r\n            \"uploadDate\": \"2013-10-10\",\r\n            \"duration\": \"00:10:30\",\r\n            \"isActive\": true,\r\n            \"url\": \"https://TEST1.com/media/video.mp3\"\r\n    }\r\n    \r\n  ],\r\n  \"tags\": [\"Principal\"]\r\n  \r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -22,14 +22,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections"
 					]
 				}
@@ -51,17 +48,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/Test 3/An introductory section about spanish concepts",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/AAA/An introduction to the course and programming concepts",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
-						"Test 3",
-						"An introductory section about spanish concepts"
+						"AAA",
+						"An introduction to the course and programming concepts"
 					]
 				}
 			},
@@ -82,14 +76,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/LMAO/DFGDGDFG",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/LMAO/DFGDGDFG",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
 						"LMAO",
 						"DFGDGDFG"
@@ -116,14 +107,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections"
 					]
 				}
@@ -140,7 +128,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"keywords\": [\"test-1\"]\r\n}",
+					"raw": "{\r\n  \"keywords\": [\"seccion\"]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -148,14 +136,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/search-by-keywords",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/search-by-keywords",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
 						"search-by-keywords"
 					]
@@ -178,14 +163,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/add-media-or-ebook",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/add-media-or-ebook",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
 						"add-media-or-ebook"
 					]
@@ -203,7 +185,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n    \"tags\": [\"programming\"]\r\n}",
+					"raw": "{\r\n\r\n    \"tags\": [\"principal\"]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -211,14 +193,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/search-by-tags",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/search-by-tags",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
 						"search-by-tags"
 					]
@@ -232,17 +211,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/content/Seccion-Principal",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/content/Seccion-Principal 222",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
 						"content",
-						"Seccion-Principal"
+						"Seccion-Principal 222"
 					]
 				}
 			},
@@ -254,14 +230,11 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/deactivate/Test-3/hola",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/deactivate/Test-3/hola",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
 						"deactivate",
 						"Test-3",
@@ -278,7 +251,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n\r\n    \r\n}",
+					"raw": "{\r\n\r\n\"uploadDate\": \"2013-10-10\",\r\n\"type\": \"video\",\r\n\"title\": \"TEST-VIDEO\",\r\n\"duration\": \"00:10:30\",\r\n\"isActive\": true,\r\n\"description\": \"TEST-VIDEO\",\r\n\"url\": \"https://TESTVIDEO.com/media/video.mp4\"\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -286,13 +259,15 @@
 					}
 				},
 				"url": {
-					"raw": "firebase/sections/add-media-or-ebook",
+					"raw": "{{server}}firebase/sections/add-media-or-ebook/Seccion-Principal/Subsection",
 					"host": [
-						"firebase"
+						"{{server}}firebase"
 					],
 					"path": [
 						"sections",
-						"add-media-or-ebook"
+						"add-media-or-ebook",
+						"Seccion-Principal",
+						"Subsection"
 					]
 				}
 			},
@@ -305,7 +280,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"name\": \"Subsection\",\r\n    \"description\": \"This is a Subsection\",\r\n    \"content\": [\r\n      {\r\n         \"description\": \"TEST-1\",\r\n            \"type\": \"audio\",\r\n            \"title\": \"TEST-1\",\r\n            \"uploadDate\": \"2013-10-10\",\r\n            \"duration\": \"00:10:30\",\r\n            \"isActive\": true,\r\n            \"url\": \"https://TEST1.com/media/video.mp3\"\r\n      }\r\n    ],\r\n    \"tags\": [\"Subsection\"]\r\n  }\r\n\r\n",
+					"raw": "{\r\n    \"name\": \"PRUEBA\",\r\n    \"description\": \"PRUEBA\",\r\n    \"content\": [\r\n     \r\n\r\n      {\r\n           \"isActive\": true,\r\n            \"type\": \"video\",\r\n            \"title\": \"TEST-VIDEO2\",\r\n            \"url\": \"https://TESTVIDEO2.com/media/audio.mp4\",\r\n            \"uploadDate\": \"2013-10-10\",\r\n            \"duration\": \"00:10:30\",\r\n            \"description\": \"TEST-VIDEO2\"\r\n      }\r\n    ],\r\n    \"tags\": [\"PRUEBA\"]\r\n  }\r\n\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -313,16 +288,13 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/Seccion-Principal/add-subsection",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/Seccion-Principal 222/add-subsection",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
-						"Seccion-Principal",
+						"Seccion-Principal 222",
 						"add-subsection"
 					]
 				}
@@ -335,14 +307,11 @@
 				"method": "PUT",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/deactivate-subsection/Seccion-Principal 222/Subsection 222",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/deactivate-subsection/Seccion-Principal 222/Subsection 222",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
 						"deactivate-subsection",
 						"Seccion-Principal 222",
@@ -358,14 +327,11 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/subsections/Seccion-Principal 222",
-					"protocol": "http",
+					"raw": "{{server}}firebase/sections/subsections/Seccion-Principal 222",
 					"host": [
-						"localhost"
+						"{{server}}firebase"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"sections",
 						"subsections",
 						"Seccion-Principal 222"
