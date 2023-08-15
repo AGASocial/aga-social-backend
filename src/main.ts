@@ -83,6 +83,10 @@ async function bootstrap() {
         whitelist: true,
     }));
 
+
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     const port = process.env.PORT || 3000;
     await app.listen(port);
     console.log(`App listening on port ${port}`);
