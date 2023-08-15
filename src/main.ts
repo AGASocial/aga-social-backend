@@ -12,6 +12,7 @@ import * as dotenv from 'dotenv';
 import { ServiceAccount } from "firebase-admin";
 import { ConfigService } from '@nestjs/config';
 
+dotenv.config();
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
