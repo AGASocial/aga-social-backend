@@ -1,0 +1,190 @@
+{
+	"info": {
+		"_postman_id": "5afab69c-f7f1-4224-a063-81ef8624bbca",
+		"name": "authorization/roles",
+		"description": "Coleccion Postman realizada para probar los endpoints para la coleccion de Firebase llamada 'roles' gestionada por el controlador y servidor de authorization.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Registrar Role Firebase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Admin\",\r\n  \"description\": \"The admin should be a worker from AGA Social, they must manage information responsibly as they have full access to all information on the platform\",\r\n  \"isDefault\": false,\r\n  \"isActive\": true\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/roles",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Role Firebase",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Publisher\",\r\n  \"isDefault\": false,\r\n  \"isActive\": true\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/roles/Publisher",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"roles",
+						"Publisher"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Roles Firebase",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/roles",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Agregar Role a User Firebase",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/users/alejandra1@gmail.com/roles/Publisher",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"users",
+						"alejandra1@gmail.com",
+						"roles",
+						"Publisher"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Role a User Firebase",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/users/alejandra1@gmail.com/roles/Publisher",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"users",
+						"alejandra1@gmail.com",
+						"roles",
+						"Publisher"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Role de Firebase",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/authorization/firebase/roles/Admin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"authorization",
+						"firebase",
+						"roles",
+						"Admin"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

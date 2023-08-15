@@ -1,0 +1,400 @@
+{
+	"info": {
+		"_postman_id": "57b39e76-9749-43fb-87e0-e412a1982a66",
+		"name": "coupons",
+		"description": "Coleccion Postman creada para la realizacion de pruebas en el controller de coupons usado para la gestion de coupons (cupones de descuento a ser usados en cursos o ebooks)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Crear Coupon",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"code\": \"SUMMER25\",\r\n  \"description\": \"Summer Sale Coupon\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 25,\r\n  \"expiryDate\": \"2023-08-31\",\r\n  \"maxUses\": 1000,\r\n  \"maxUsesPerUser\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Coupon",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"description\": \"New Description\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-12-31\",\r\n  \"maxUses\": 200,\r\n  \"maxUsesPerUser\": 2\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/SUMMER25",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"SUMMER25"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Coupon",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \"code\": \"SUMMER25\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/SUMMER25",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"SUMMER25"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Coupons",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Redimir Coupon",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"useremail\": \"c@gmail.com\",\r\n  \"couponCode\": \"SALE30\",\r\n  \"resourceType\": \"Course\",\r\n  \"resourceTitle\": \"a\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/redeem",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"redeem"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Asignar Coupon a User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"fernanda222@gmail.com\",\r\n  \"couponCode\": \"SUMMER50\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/assign",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"assign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Coupon Por Su Codigo",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/SUMMER50",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"SUMMER50"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Coupons de Usuario Segun Su Status",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/fernanda222@gmail.com/available",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"fernanda222@gmail.com",
+						"available"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Colocar Coupon Como Expirado Firebase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/update-expired",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"update-expired"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Todos los Coupons de un Usuario",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/users/amanda111@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"users",
+						"amanda111@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Coupons Usados y Expirados de Usuario",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/users/amanda111@gmail.com/expired-used",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"users",
+						"amanda111@gmail.com",
+						"expired-used"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Colocar Coupon Como Expirado para un User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/update-expired/amanda111@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"update-expired",
+						"amanda111@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Coupons Expirados de Firebase",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar Coupon en Firebase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/deactivate/SUMMER50",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"deactivate",
+						"SUMMER50"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar Coupon a User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/users/deactivate/fernanda333@gmail.com/SUMMER50",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"users",
+						"deactivate",
+						"fernanda333@gmail.com",
+						"SUMMER50"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

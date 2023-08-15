@@ -1,0 +1,587 @@
+{
+	"info": {
+		"_postman_id": "1507d6c1-b11a-4b08-9527-9ab92532ae6f",
+		"name": "auth/firebase",
+		"description": "Coleccion Postman creada para la realizacion de pruebas en el controller de auth usado en la gestion de usuarios Firebase",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Registro de Usuario Firebase",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"yhormang444@gmail.com\",\r\n  \"username\": \"Yhormang.444\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Yhormang\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}/auth/firebase/signup",
+					"host": [
+						"{{server}}"
+					],
+					"path": [
+						"auth",
+						"firebase",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login de Usuario Firebase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"test2@gmail.com\",\r\n  \"password\": \"Vitra/?13\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refrescar Firebase Session",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/session",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"session"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recuperar Contrasena de Usuario Firebase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"user\": \"Test.1\",\r\n  \"security_answer\": \"perfect blue\",\r\n  \"new_password\": \"Viztrak/?1344\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/credentials",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"credentials"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Contrasena de Usuario Firebase",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"password\": \"Viztrak/?1344\",\r\n  \"new_password\": \"NewPass123/?\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/credentials",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"credentials"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cerrar Sesion Usuario Firebase",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Usuario Firebase",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"alejandra@gmail.com\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/delete",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"delete"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Usuarios Firebase",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Username",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/username",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"username"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Email",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"old_email\": \"joel115@gmail.com\",\r\n  \"security_answer\": \"perfect blue\",\r\n  \"new_email\": \"new_email@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/email",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"email"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Name",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"NewName\",\r\n  \"email\": \"new_email@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/name",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"name"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Security Answer",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"new_security_answer\": \"Perfect Green\",\r\n  \"email\": \"new_email@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/security-answer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"security-answer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Informacion Usuario",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"email\": \"joel114@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/joel114@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"joel114@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Ganancias Ebooks de Usuario",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/ebook-earnings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"c@gmail.com",
+						"ebook-earnings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Ganancias Cursos de Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/courses-earnings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"c@gmail.com",
+						"courses-earnings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Ganancias Totales Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/c@gmail.com/total-earnings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"c@gmail.com",
+						"total-earnings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Description",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \r\n  \"description\": \"Updated Description\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/description",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"description"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Country",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \r\n  \"country\": \"Venezuela\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/country",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"country"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar PhoneNumber",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \r\n  \"phoneNumber\": \"+58 123 7088\",\r\n  \"email\": \"diego222@gmail.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/users/phoneNumber",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"users",
+						"phoneNumber"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar un Usuario",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n \"email\": \"armando222@gmail.com\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/deactivate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"deactivate"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
