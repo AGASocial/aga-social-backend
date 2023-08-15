@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString, IsArray } from "class-validator";
+import { Section } from "../entities/sections.entity";
 
 export class UpdateSectionDto {
     @ApiProperty({
@@ -31,4 +32,11 @@ export class UpdateSectionDto {
     @IsArray()
     @IsString({ each: true })
     tags?: string[];
+
+    @ApiProperty({
+        description: 'Subsections within the section.',
+        type: [Section], // Each subsection is also a Section entity
+    })
+    @IsArray()
+    public subsections?: Section[];
 }

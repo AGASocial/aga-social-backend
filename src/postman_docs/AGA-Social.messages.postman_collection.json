@@ -405,6 +405,36 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Desactivar Mensaje",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"senderEmail\": \"annadoe@gmail.com\",\r\n\"recipientEmail\": \"joel114@gmail.com\",\r\n\"subject\": \"Test\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/messages/deactivate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"messages",
+						"deactivate"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

@@ -232,7 +232,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/sections/content/Test-1",
+					"raw": "http://localhost:3000/firebase/sections/content/Seccion-Principal",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -242,7 +242,133 @@
 						"firebase",
 						"sections",
 						"content",
-						"Test-1"
+						"Seccion-Principal"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar Section",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/sections/deactivate/Test-3/hola",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"sections",
+						"deactivate",
+						"Test-3",
+						"hola"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Agregar Media o Ebook a subSection",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\r\n    \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "firebase/sections/add-media-or-ebook",
+					"host": [
+						"firebase"
+					],
+					"path": [
+						"sections",
+						"add-media-or-ebook"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear/Agregar Subsection",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Subsection\",\r\n    \"description\": \"This is a Subsection\",\r\n    \"content\": [\r\n      {\r\n         \"description\": \"TEST-1\",\r\n            \"type\": \"audio\",\r\n            \"title\": \"TEST-1\",\r\n            \"uploadDate\": \"2013-10-10\",\r\n            \"duration\": \"00:10:30\",\r\n            \"isActive\": true,\r\n            \"url\": \"https://TEST1.com/media/video.mp3\"\r\n      }\r\n    ],\r\n    \"tags\": [\"Subsection\"]\r\n  }\r\n\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/sections/Seccion-Principal/add-subsection",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"sections",
+						"Seccion-Principal",
+						"add-subsection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar Subsection",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/sections/deactivate-subsection/Seccion-Principal 222/Subsection 222",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"sections",
+						"deactivate-subsection",
+						"Seccion-Principal 222",
+						"Subsection 222"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Subsections de Section Por Name",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/sections/subsections/Seccion-Principal 222",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"sections",
+						"subsections",
+						"Seccion-Principal 222"
 					]
 				}
 			},

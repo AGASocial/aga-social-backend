@@ -4,6 +4,7 @@ import { CreateEbookDto } from "../../ebooks/dto/createEbook.dto";
 import { Ebook } from "../../ebooks/entities/ebooks.entity";
 import { CreateMediaDto } from "../../media/dto/createMedia.dto";
 import { Media } from "../../media/entities/media.entity";
+import { Section } from "../entities/sections.entity";
 
 export class CreateSectionDto {
     @ApiProperty({
@@ -43,4 +44,10 @@ export class CreateSectionDto {
     @IsArray()
     @IsString({ each: true })
     tags: string[];
+
+    @ApiProperty({
+        description: 'Subsections within the section.',
+        type: [Section], // Each subsection is also a Section entity
+    })
+    public subsections?: Section[];
 }

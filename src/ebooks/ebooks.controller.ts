@@ -32,12 +32,22 @@ export class EbookController {
         }
     }
 
-
+    //NOT IN USE
     @Delete('firebase/ebooks/:title/:format')
     async deleteMedia(@Param('title') title: string, @Param('format') format: EbookFormat, @Req() req: Request): Promise<DeleteEbookResponseDto> {
 
         return await this.ebookService.deleteEbook(title, format);
     }
+
+
+    @Put('firebase/ebooks/deactivate/:title/:format')
+    async deactivateEbook(
+        @Param('title') title: string,
+        @Param('format') format: EbookFormat,
+    ): Promise<DeleteEbookResponseDto> {
+        return this.ebookService.deactivateEbook(title, format);
+    }
+
 
 
     @Get('firebase/ebooks')

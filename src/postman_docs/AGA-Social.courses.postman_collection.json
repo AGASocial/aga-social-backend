@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"Introduction to Programming 2\",\r\n  \"description\": \"A comprehensive course on programming basics\",\r\n  \"publisher\": \"Tech Learning\",\r\n  \"releaseDate\": \"2023-08-08\",\r\n  \"price\": 49.99,\r\n  \"language\": \"English\",\r\n  \"sections\": [\r\n    {\r\n      \"name\": \"Getting Started\",\r\n      \"description\": \"An introduction to the course and programming concepts\",\r\n      \"content\": [\r\n        {\r\n          \"type\": \"video\",\r\n          \"title\": \"Course Introduction\",\r\n          \"description\": \"Welcome to the course!\",\r\n          \"url\": \"https://example.com/course_intro.mp4\",\r\n          \"duration\": \"00:10:00\",\r\n          \"uploadDate\": \"2014-03-18\"\r\n        }\r\n      ],\r\n      \"tags\": [\"beginner\", \"programming\"]\r\n    }\r\n  ],\r\n  \"tags\": [\"programming\", \"beginner\", \"tutorial\"],\r\n  \"instructorList\": [\"John Doe\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
+					"raw": "{\r\n  \"title\": \"a\",\r\n  \"description\": \"A comprehensive course on programming basics\",\r\n  \"publisher\": \"Tech Learning\",\r\n  \"releaseDate\": \"2023-08-08\",\r\n  \"price\": 49.99,\r\n  \"language\": \"English\",\r\n  \"sections\": [\r\n    {\r\n     \"name\": \"Test-1\",\r\n            \"description\": \"An introduction to the course and programming concepts\",\r\n            \"content\": [\r\n                {\r\n                    \"type\": \"video\",\r\n                    \"title\": \"Test-1\",\r\n                    \"description\": \"Welcome to the course!\",\r\n                    \"url\": \"https://www.example-1.com\",\r\n                    \"duration\": \"00:10:00\",\r\n                    \"uploadDate\": \"2014-03-18\"\r\n                }\r\n            ],\r\n            \"tags\": [\r\n                \"beginner\",\r\n                \"programming\"\r\n            ]\r\n    \r\n    }\r\n  ],\r\n  \"tags\": [\"programming\", \"beginner\", \"tutorial\"],\r\n  \"instructorList\": [\"John Doe\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -43,7 +43,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"description\": \"Updated course description\",\r\n  \"language\": \"Spanish\",\r\n  \"tags\": [\"programming\", \"intermediate\"],\r\n  \"instructorList\": [\"Jane Smith\"],\r\n  \"offersCertificate\": false\r\n}\r\n",
+					"raw": "{\r\n  \"description\": \"description\",\r\n  \"language\": \"Portuguese\",\r\n  \"tags\": [\"programming\", \"intermediate\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -51,7 +51,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/courses/Introduction to Programming",
+					"raw": "http://localhost:3000/firebase/courses/a",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -60,7 +60,7 @@
 					"path": [
 						"firebase",
 						"courses",
-						"Introduction to Programming"
+						"a"
 					]
 				}
 			},
@@ -72,7 +72,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/firebase/courses/Introduction to Programming",
+					"raw": "http://localhost:3000/firebase/courses/a",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -81,7 +81,7 @@
 					"path": [
 						"firebase",
 						"courses",
-						"Introduction to Programming"
+						"a"
 					]
 				}
 			},
@@ -102,6 +102,103 @@
 					"path": [
 						"firebase",
 						"courses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Cursos Por Palabras Clave",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"keywords\": [\"a\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/courses/search-by-keywords",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"courses",
+						"search-by-keywords"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Curso Por Tags",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"tags\": [\"tutorial\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/courses/search-by-tags",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"courses",
+						"search-by-tags"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar Course",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/courses/deactivate/Test-2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"courses",
+						"deactivate",
+						"Test-2"
 					]
 				}
 			},

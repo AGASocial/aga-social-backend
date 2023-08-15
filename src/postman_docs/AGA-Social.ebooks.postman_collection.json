@@ -134,6 +134,29 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Desactivar Ebook",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/ebooks/deactivate/Ebook 4/DOCX",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"ebooks",
+						"deactivate",
+						"Ebook 4",
+						"DOCX"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

@@ -10,6 +10,7 @@ enum CouponStatus {
     Used = 'used',
     Expired = 'expired',
     Available = 'available',
+    Eliminated = 'eliminated'
 }
 
 export class Coupon {

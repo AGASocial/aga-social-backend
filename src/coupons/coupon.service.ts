@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { addDoc, collection, deleteDoc, DocumentReference, getDocs, limit, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { addDoc, collection, deleteDoc, doc, DocumentReference, getDoc, getDocs, limit, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
 import { CouponStatus, CreateCouponDto } from "./dto/createCoupon.dto";
 import { CreateCouponResponseDto } from "./dto/createCouponResponse.dto";
@@ -126,7 +126,7 @@ export class CouponService {
         }
     }
 
-
+    //NOT IN USE
     async deleteCoupon(code: string): Promise<DeleteCouponResponseDto> {
         try {
             const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
@@ -162,6 +162,94 @@ export class CouponService {
             throw new InternalServerErrorException('INTERNALERROR');
         }
     }
+
+
+
+
+    async deactivateCoupon(code: string): Promise<DeleteCouponResponseDto> {
+        try {
+            const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
+            const couponQuerySnapshot = await getDocs(query(couponCollectionRef, where('code', '==', code)));
+
+            if (couponQuerySnapshot.empty) {
+                console.log(`Coupon with code "${code}" not found in the coupons collection.`);
+                throw new NotFoundException('COUPONNOTFOUND');
+            }
+            const couponDoc = couponQuerySnapshot.docs[0];
+
+            // Update status to "eliminated"
+            await updateDoc(couponDoc.ref, { status: 'eliminated' });
+
+            // Update the cache
+            const cachedCoupons = await this.firebaseService.getCollectionData('coupons');
+            const indexToUpdate = cachedCoupons.findIndex((coupon) => coupon.code === code);
+
+            if (indexToUpdate !== -1) {
+                cachedCoupons[indexToUpdate].status = 'eliminated'; // Update status attribute
+                this.firebaseService.setCollectionData('coupons', cachedCoupons);
+            }
+
+            const response: DeleteCouponResponseDto = {
+                statusCode: 200,
+                message: 'COUPONELIMINATEDSUCCESSFULLY',
+            };
+
+            console.log(`The coupon has been marked as eliminated successfully.`);
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
+
+
+
+
+    async deactivateCouponForUser(code: string, userEmail: string): Promise<DeleteCouponResponseDto> {
+        try {
+            // Fetch user data from Firestore based on email
+            const userCollectionRef = collection(this.firebaseService.fireStore, 'users');
+            const userQuerySnapshot = await getDocs(query(userCollectionRef, where('email', '==', userEmail)));
+
+            if (userQuerySnapshot.empty) {
+                console.log(`User with email "${userEmail}" not found.`);
+                throw new NotFoundException('USERNOTFOUND');
+            }
+
+            const userDoc = userQuerySnapshot.docs[0];
+            const userData = userDoc.data();
+
+            // Find the coupon in user's coupons array
+            const couponIndex = userData.coupons.findIndex((coupon) => coupon.code === code);
+
+            if (couponIndex === -1) {
+                console.log(`Coupon with code "${code}" not found in user's coupons.`);
+                throw new NotFoundException('COUPONNOTFOUND');
+            }
+
+            // Mark the coupon as eliminated
+            userData.coupons[couponIndex].status = 'eliminated';
+
+            // Update user's data in Firestore
+            await updateDoc(userDoc.ref, { coupons: userData.coupons });
+
+            const response: DeleteCouponResponseDto = {
+                statusCode: 200,
+                message: 'COUPONELIMINATEDSUCCESSFULLY',
+            };
+
+            console.log(`The coupon has been marked as eliminated for user with email "${userEmail}" successfully.`);
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
+
+
+
+
+
 
 
     async getCoupons(): Promise<GetCouponsResponseDto> {

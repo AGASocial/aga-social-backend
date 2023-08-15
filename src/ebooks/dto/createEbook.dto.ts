@@ -42,6 +42,17 @@ export class CreateEbookDto {
     @IsString()
     url: string;
 
+
+
+    @ApiProperty({
+        description: 'URL to the ebook title page file',
+        example: 'https://example.com/ebook.pdf',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public titlePage: string;
+
     @ApiProperty({
         description: 'Price of the ebook',
         example: 19.99,

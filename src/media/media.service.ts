@@ -19,15 +19,6 @@ export class MediaService {
 
 
     async createNewMedia(createNewMediaDto: CreateMediaDto): Promise<CreateMediaResponseDto> {
-        const newMediaData = {
-            type: createNewMediaDto.type,
-            title: createNewMediaDto.title,
-            description: createNewMediaDto.description,
-            url: createNewMediaDto.url,
-            duration: createNewMediaDto.duration,
-            uploadDate: createNewMediaDto.uploadDate,
-        };
-
         const { type, title, description, url, duration, uploadDate } = createNewMediaDto;
         const mediaRef = collection(this.firebaseService.fireStore, 'media');
 
@@ -40,35 +31,37 @@ export class MediaService {
         }
 
         const newMedia: Media = {
-            type: type,
-            title: title,
-            description: description,
-            url: url,
-            duration: duration,
-            uploadDate: uploadDate,
-        };
-
-        const newMediaDocRef = await addDoc(mediaRef, newMedia);
-        const newMediaId = newMediaDocRef.id;
-
-
-        const cachedCourses = await this.firebaseService.getCollectionData('media');
-        cachedCourses.push({
             type,
             title,
             description,
             url,
             duration,
             uploadDate,
-        });
-        this.firebaseService.setCollectionData('media', cachedCourses);
-        console.log('Media added to the cache successfully.');
+            isActive: true,
+        };
 
-
+        const newMediaDocRef = await addDoc(mediaRef, newMedia);
+        const newMediaId = newMediaDocRef.id;
 
         const responseDto = new CreateMediaResponseDto(201, 'MEDIACREATEDSUCCESSFULLY');
+
+        // Update cache with the newly created media
+        const cachedMedia = await this.firebaseService.getCollectionData('media');
+        cachedMedia.push({
+            type,
+            title,
+            description,
+            url,
+            duration,
+            uploadDate,
+            isActive: true,
+        });
+        this.firebaseService.setCollectionData('media', cachedMedia);
+        console.log('Media added to the cache successfully.');
+
         return responseDto;
     }
+
 
     async updateMedia(url: string, newData: Partial<UpdateMediaDto>): Promise<UpdateMediaResponseDto> {
         try {
@@ -121,23 +114,24 @@ export class MediaService {
             const cachedMedia = await this.firebaseService.getCollectionData('media');
             if (cachedMedia.length > 0) {
                 console.log('Using cached media data.');
+                const activeMedia = cachedMedia.filter(media => media.isActive); // Filtrar por isActive
                 const getMediaDtoResponse: GetMediaResponseDto = {
                     statusCode: 200,
                     message: "MEDIAGOT",
-                    mediaFound: cachedMedia,
+                    mediaFound: activeMedia,
                 };
                 return getMediaDtoResponse;
             }
 
-            // If there is no data, it uses firestore instead
+            // If there is no data, query Firestore
             const mediaRef = this.firebaseService.mediaCollection;
-            const mediaQuery = query(mediaRef, orderBy("title"));
+            const mediaQuery = query(mediaRef, where('isActive', '==', true), orderBy("title")); // Filtrar por isActive
             console.log('Media query created.');
 
             const mediaQuerySnapshot = await getDocs(mediaQuery);
             console.log('Media query snapshot obtained.');
 
-            let queryResult = [];
+            const queryResult = [];
             mediaQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 queryResult.push({
@@ -146,18 +140,20 @@ export class MediaService {
                     title: data.title,
                     type: data.type,
                     uploadDate: data.uploadDate,
-                    url: data.url
+                    url: data.url,
+                    isActive: data.isActive,
                 });
             });
             console.log('Media data collected.');
 
-            // the data is saved in cache for future queries
+            // Save the data in cache for future queries
             this.firebaseService.setCollectionData('media', queryResult);
 
+            const activeMedia = queryResult.filter(media => media.isActive); // Filtrar por isActive
             const getMediaDtoResponse: GetMediaResponseDto = {
                 statusCode: 200,
                 message: "MEDIAGOT",
-                mediaFound: queryResult,
+                mediaFound: activeMedia,
             };
             console.log('Response created.');
 
@@ -172,6 +168,7 @@ export class MediaService {
 
 
 
+    //NOT IN USE
     async deleteMedia(title: string, description: string): Promise<DeleteMediaResponseDto> {
         try {
             const mediaCollectionRef = collection(this.firebaseService.fireStore, 'media');
@@ -218,6 +215,49 @@ export class MediaService {
     }
 
 
+
+    async deactivateMedia(title: string): Promise<DeleteMediaResponseDto> {
+        try {
+            const mediaCollectionRef = collection(this.firebaseService.fireStore, 'media');
+            const mediaQuerySnapshot = await getDocs(query(mediaCollectionRef, where('title', '==', title)));
+
+            if (mediaQuerySnapshot.empty) {
+                console.log(`Media with title "${title}" not found in the media collection.`);
+                throw new NotFoundException('MEDIANOTFOUND');
+            }
+            const mediaDoc = mediaQuerySnapshot.docs[0];
+
+            const mediaData = mediaDoc.data() as Media;
+
+
+            const cachedMedia = await this.firebaseService.getCollectionData('media');
+            const indexToUpdate = cachedMedia.findIndex((media) => media.title === title);
+
+            if (indexToUpdate !== -1) {
+                cachedMedia[indexToUpdate].isActive = false; // Update isActive attribute
+                this.firebaseService.setCollectionData('media', cachedMedia);
+            }
+
+            const response: DeleteMediaResponseDto = {
+                statusCode: 200,
+                message: 'MEDIADEACTIVATEDDSUCCESSFULLY',
+            };
+
+            console.log(`Media with title "${title}" has been deactivated successfully.`);
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
+
+
+
+
+
+
+
+
     async getMediaByKeywords(keywords: string[]): Promise<GetMediaResponseDto> {
         try {
             console.log('Initializing getMediaByKeywords...');
@@ -226,7 +266,8 @@ export class MediaService {
             const cachedMedia = await this.firebaseService.getCollectionData('media');
             if (cachedMedia.length > 0) {
                 console.log('Using cached media data.');
-                const matchedMedia = cachedMedia.filter(media =>
+                const activeMedia = cachedMedia.filter(media => media.isActive); // Filtrar por isActive
+                const matchedMedia = activeMedia.filter(media =>
                     keywords.some(keyword => media.title.toLowerCase().includes(keyword.toLowerCase()))
                 );
 
@@ -240,7 +281,7 @@ export class MediaService {
 
             // If there is no data in cache, query Firestore
             const mediaRef = this.firebaseService.mediaCollection;
-            const mediaQuery = query(mediaRef, orderBy('title'));
+            const mediaQuery = query(mediaRef, where('isActive', '==', true), orderBy('title')); // Filtrar por isActive
             console.log('Media query created.');
 
             const mediaQuerySnapshot = await getDocs(mediaQuery);
@@ -256,6 +297,7 @@ export class MediaService {
                     type: data.type,
                     uploadDate: data.uploadDate,
                     url: data.url,
+                    isActive: data.isActive,
                 });
             });
             console.log('Media data collected.');
@@ -281,6 +323,7 @@ export class MediaService {
             throw new Error('There was an error retrieving the media.');
         }
     }
+
 
 
 

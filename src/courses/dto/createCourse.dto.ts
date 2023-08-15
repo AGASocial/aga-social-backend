@@ -104,6 +104,15 @@ export class CreateCourseDto {
     @IsNumber()
     salesCount: number = 0;
 
+    @ApiProperty({
+        description: 'URL to the ebook title page file',
+        example: 'https://example.com/ebook.pdf',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public titlePage: string;
+
 
 }
 

@@ -190,7 +190,8 @@ export class AuthService {
                     coupons: [],
                     description: '',
                     country: '',
-                    phoneNumber: ''
+                    phoneNumber: '',
+                    isActive: true,
                 };
                 let docReference: DocumentReference = doc(this.firebaseService.usersCollection, id);
                 await setDoc(docReference, newUser);
@@ -211,7 +212,9 @@ export class AuthService {
                     coupons: [],
                     description: '',
                     country: '',
-                    phoneNumber: ''
+                    phoneNumber: '',
+                    isActive: true,
+
                 });
                 this.firebaseService.setCollectionData('users', cachedCourses);
                 console.log('User added to the cache successfully.');
@@ -228,7 +231,7 @@ export class AuthService {
         }
     }
 
-
+    //NOT IN USE
     async firebaseDeleteUser(deleteUserDto: DeleteUserDto): Promise<DeleteUserResponseDto> {
         const { email, security_answer } = deleteUserDto;
 
@@ -271,6 +274,54 @@ export class AuthService {
             throw new InternalServerErrorException('USERDELETEFAILED');
         }
     }
+
+
+
+    async deactivateUser(email: string): Promise<DeleteUserResponseDto> {
+        try {
+            console.log('Initiating user deactivation...');
+
+            const userQuery = query(
+                this.firebaseService.usersCollection,
+                where('email', '==', email),
+                limit(1)
+            );
+
+            const querySnapshot = await getDocs(userQuery);
+
+            if (querySnapshot.empty) {
+                console.log('User not found.');
+                throw new BadRequestException('User not found.');
+            }
+
+            const userDoc = querySnapshot.docs[0];
+            const userID = userDoc.id;
+            const userReference = doc(this.firebaseService.usersCollection, userID);
+
+            try {
+                await updateDoc(userReference, {
+                    isActive: false,
+                });
+            } catch (error: unknown) {
+                console.warn(`[ERROR]: ${error}`);
+            }
+
+            console.log('User deactivated successfully.');
+
+            const response: DeleteUserResponseDto = {
+                statusCode: 200,
+                message: 'USERDEACTIVATED',
+            };
+
+            console.log('user deactivation completed successfully.');
+
+            return response;
+        } catch (error) {
+            console.error('Error: ', error);
+            throw new BadRequestException('An error occurred while trying to deactivate the user.');
+        }
+    }
+
 
 
 
@@ -414,7 +465,9 @@ export class AuthService {
                     coupons: user.coupons,
                     description: user.description,
                     country: user.country,
-                    phoneNumber: user.phoneNumber
+                    phoneNumber: user.phoneNumber,
+                    isActive: user.isActive,
+
                 }));
 
                 const getUsersDtoResponse: GetUsersResponseDto = {
@@ -448,7 +501,9 @@ export class AuthService {
                     coupons: data.coupons,
                     description: data.description,
                     country: data.country,
-                    phoneNumber: data.phoneNumber
+                    phoneNumber: data.phoneNumber,
+                    isActive: data.isActive,
+
 
                 });
             });

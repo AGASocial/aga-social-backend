@@ -38,11 +38,17 @@ export class MediaController {
         return this.mediaService.getMedia();
     }
 
-
+    //NOT IN USE
     @Delete('firebase/media/:title/:description')
     async deleteMedia(@Param('title') title: string, @Param('description') description: string, @Req() req: Request): Promise<DeleteMediaResponseDto> {
 
         return await this.mediaService.deleteMedia(title, description);
+    }
+
+
+    @Post('firebase/media/deactivate/:title')
+    async deactivateMedia(@Param('title') title: string): Promise<DeleteMediaResponseDto> {
+        return this.mediaService.deactivateMedia(title);
     }
 
 

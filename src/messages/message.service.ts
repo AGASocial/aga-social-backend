@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { addDoc, collection, deleteDoc, doc, getDocs, query, Timestamp, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, query, Timestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
 import { CreateMessageDto, MessageType } from "./dto/createMessage.dto";
 import { CreateMessageResponseDto } from "./dto/createMessageResponse.dto";
@@ -54,6 +54,7 @@ export class MessageService {
                 sentDate: currentDate,
                 receivedDate: receivedDate,
                 readDate: null,
+                isActive: true,
             };
 
             console.log('Creating new message...');
@@ -74,6 +75,8 @@ export class MessageService {
                 sentDate: currentDate,
                 receivedDate: currentDate,
                 readDate: null,
+                isActive: true,
+
             });
             this.firebaseService.setCollectionData('messages', cachedMessages);
             console.log('Message added to cache successfully.');
@@ -91,7 +94,7 @@ export class MessageService {
 
 
 
-
+    //NOT IN USE
     async deleteMessage(deleteMessageDto: DeleteMessageDto): Promise<DeleteMessageResponseDto> {
         try {
             const { senderEmail, recipientEmail, subject } = deleteMessageDto;
@@ -139,23 +142,62 @@ export class MessageService {
 
 
 
-    async transformTimestamp(timestamp: any): Promise<string> {
-        if (timestamp && timestamp.seconds && timestamp.nanoseconds) {
-            const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
-            const formattedDate = date.toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                timeZone: 'UTC'
+    async deactivateMessage(deleteMessageDto: DeleteMessageDto): Promise<DeleteMessageResponseDto> {
+        try {
+            const { senderEmail, recipientEmail, subject } = deleteMessageDto;
+
+            const messageRef = collection(this.firebaseService.fireStore, 'messages');
+            const messageQuerySnapshot = await getDocs(query(
+                messageRef,
+                where('senderEmail', '==', senderEmail),
+                where('recipientEmail', '==', recipientEmail),
+                where('subject', '==', subject),
+            ));
+
+            if (messageQuerySnapshot.empty) {
+                console.log(`Message not found.`);
+                throw new NotFoundException('MESSAGENOTFOUND');
+            }
+            const messageDoc = messageQuerySnapshot.docs[0];
+
+            await updateDoc(messageDoc.ref, {
+                isActive: false
             });
-            return formattedDate;
+
+            const cachedMessages = await this.firebaseService.getCollectionData('messages');
+            const indexToUpdate = cachedMessages.findIndex((message) =>
+                message.senderEmail === senderEmail &&
+                message.recipientEmail === recipientEmail &&
+                message.subject === subject
+            );
+
+            if (indexToUpdate !== -1) {
+                cachedMessages[indexToUpdate].isActive = false; // Update isActive attribute
+                this.firebaseService.setCollectionData('messages', cachedMessages);
+            }
+
+            const response: DeleteMessageResponseDto = {
+                statusCode: 200,
+                message: 'MESSAGEDEACTIVATEDSUCCESSFULLY',
+            };
+
+            console.log(`The message has been deactivated successfully.`);
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
         }
-        return null;
     }
 
+
+
+
+
+
+
+
+
+  
 
 
 
@@ -165,11 +207,19 @@ export class MessageService {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
             // Query for senderEmail
-            const senderMessagesQuery = query(messageRef, where('senderEmail', '==', userEmail));
+            const senderMessagesQuery = query(
+                messageRef,
+                where('senderEmail', '==', userEmail),
+                where('isActive', '==', true)
+            );
             const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
 
             // Query for recipientEmail
-            const recipientMessagesQuery = query(messageRef, where('recipientEmail', '==', userEmail));
+            const recipientMessagesQuery = query(
+                messageRef,
+                where('recipientEmail', '==', userEmail),
+                where('isActive', '==', true)
+            );
             const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
 
             const userMessages = [];
@@ -189,7 +239,6 @@ export class MessageService {
                     receivedDate: this.transformTimestamp(data.receivedDate),
                     sentDate: this.transformTimestamp(data.sentDate),
                     readDate: this.transformTimestamp(data.readDate),
-
                 });
             });
 
@@ -208,10 +257,8 @@ export class MessageService {
                     receivedDate: this.transformTimestamp(data.receivedDate),
                     sentDate: this.transformTimestamp(data.sentDate),
                     readDate: this.transformTimestamp(data.readDate),
-
                 });
             });
-
 
             if (userMessages.length === 0) {
                 const responseDto = new GetMessagesByUserResponseDto(
@@ -236,16 +283,20 @@ export class MessageService {
             console.warn(`[ERROR]: ${error}`);
             throw new InternalServerErrorException('INTERNALERROR');
         }
-
     }
+
 
 
     async getReceivedMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-            // Query for recipientEmail
-            const recipientMessagesQuery = query(messageRef, where('recipientEmail', '==', userEmail));
+            // Query for recipientEmail and isActive
+            const recipientMessagesQuery = query(
+                messageRef,
+                where('recipientEmail', '==', userEmail),
+                where('isActive', '==', true)
+            );
             const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
 
             const userMessages = [];
@@ -265,7 +316,6 @@ export class MessageService {
                     receivedDate: this.transformTimestamp(data.receivedDate),
                     sentDate: this.transformTimestamp(data.sentDate),
                     readDate: this.transformTimestamp(data.readDate),
-
                 });
             });
 
@@ -279,8 +329,6 @@ export class MessageService {
                 console.log('No received messages found.');
                 return responseDto;
             }
-
-
 
             const responseDto = new GetMessagesByUserResponseDto(
                 200,
@@ -298,12 +346,17 @@ export class MessageService {
 
 
 
+
     async getSentMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-            // Query for senderEmail
-            const senderMessagesQuery = query(messageRef, where('senderEmail', '==', userEmail));
+            // Query for senderEmail and isActive
+            const senderMessagesQuery = query(
+                messageRef,
+                where('senderEmail', '==', userEmail),
+                where('isActive', '==', true)
+            );
             const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
 
             const userMessages = [];
@@ -323,10 +376,8 @@ export class MessageService {
                     receivedDate: this.transformTimestamp(data.receivedDate),
                     sentDate: this.transformTimestamp(data.sentDate),
                     readDate: this.transformTimestamp(data.readDate),
-
                 });
             });
-
 
             if (userMessages.length === 0) {
                 const responseDto = new GetMessagesByUserResponseDto(
@@ -335,10 +386,9 @@ export class MessageService {
                     userMessages
                 );
 
-                console.log('No received messages found.');
+                console.log('No sent messages found.');
                 return responseDto;
             }
-
 
             const responseDto = new GetMessagesByUserResponseDto(
                 200,
@@ -353,6 +403,7 @@ export class MessageService {
             throw new InternalServerErrorException('INTERNALERROR');
         }
     }
+
 
 
 
@@ -431,12 +482,20 @@ export class MessageService {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-            // Query for senderEmail
-            const senderMessagesQuery = query(messageRef, where('senderEmail', '==', userEmail));
+            // Query for senderEmail and isActive
+            const senderMessagesQuery = query(
+                messageRef,
+                where('senderEmail', '==', userEmail),
+                where('isActive', '==', true)
+            );
             const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
 
-            // Query for recipientEmail
-            const recipientMessagesQuery = query(messageRef, where('recipientEmail', '==', userEmail));
+            // Query for recipientEmail and isActive
+            const recipientMessagesQuery = query(
+                messageRef,
+                where('recipientEmail', '==', userEmail),
+                where('isActive', '==', true)
+            );
             const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
 
             const userInquiryMessages = [];
@@ -508,16 +567,25 @@ export class MessageService {
 
 
 
+
     async getComplaintMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-            // Query for senderEmail
-            const senderMessagesQuery = query(messageRef, where('senderEmail', '==', userEmail));
+            // Query for senderEmail and isActive
+            const senderMessagesQuery = query(
+                messageRef,
+                where('senderEmail', '==', userEmail),
+                where('isActive', '==', true)
+            );
             const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
 
-            // Query for recipientEmail
-            const recipientMessagesQuery = query(messageRef, where('recipientEmail', '==', userEmail));
+            // Query for recipientEmail and isActive
+            const recipientMessagesQuery = query(
+                messageRef,
+                where('recipientEmail', '==', userEmail),
+                where('isActive', '==', true)
+            );
             const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
 
             const userComplaintMessages = [];
@@ -588,6 +656,7 @@ export class MessageService {
     }
 
 
+
     async searchMessagesByKeywords(userEmail: string, keywords: string[]): Promise<GetMessagesByUserResponseDto> {
         try {
             console.log('Starting searchMessagesByKeywords function...');
@@ -608,7 +677,11 @@ export class MessageService {
                     return messageContent.includes(keyword.toLowerCase()) || messageSubject.includes(keyword.toLowerCase());
                 });
 
-                if (matchedKeywords.length > 0 && (message.senderEmail === userEmail || message.recipientEmail === userEmail)) {
+                if (
+                    matchedKeywords.length > 0 &&
+                    (message.senderEmail === userEmail || message.recipientEmail === userEmail) &&
+                    message.isActive === true
+                ) {
                     console.log(`Matched keywords: ${matchedKeywords.join(', ')}`);
 
                     matchedMessages.push({
@@ -653,6 +726,7 @@ export class MessageService {
             throw new InternalServerErrorException('INTERNALERROR');
         }
     }
+
 
 
 
@@ -721,18 +795,20 @@ export class MessageService {
 
             archivedMessagesSnapshot.forEach((doc) => {
                 const message = doc.data();
-                archivedMessages.push({
-                    senderEmail: message.senderEmail,
-                    recipientEmail: message.recipientEmail,
-                    content: message.content,
-                    isRead: message.isRead,
-                    attachmentUrls: message.attachmentUrls,
-                    subject: message.subject,
-                    type: message.type,
-                    receivedDate: this.transformTimestamp(message.receivedDate),
-                    sentDate: this.transformTimestamp(message.sentDate),
-                    readDate: this.transformTimestamp(message.readDate),
-                });
+                if (message.isActive === true) {
+                    archivedMessages.push({
+                        senderEmail: message.senderEmail,
+                        recipientEmail: message.recipientEmail,
+                        content: message.content,
+                        isRead: message.isRead,
+                        attachmentUrls: message.attachmentUrls,
+                        subject: message.subject,
+                        type: message.type,
+                        receivedDate: this.transformTimestamp(message.receivedDate),
+                        sentDate: this.transformTimestamp(message.sentDate),
+                        readDate: this.transformTimestamp(message.readDate),
+                    });
+                }
             });
 
             if (archivedMessages.length === 0) {
@@ -758,6 +834,7 @@ export class MessageService {
 
 
 
+
     async getReadMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
@@ -772,18 +849,20 @@ export class MessageService {
 
             readMessagesSnapshot.forEach((doc) => {
                 const message = doc.data();
-                readMessages.push({
-                    senderEmail: message.senderEmail,
-                    recipientEmail: message.recipientEmail,
-                    content: message.content,
-                    isArchived: message.isArchived,
-                    attachmentUrls: message.attachmentUrls,
-                    subject: message.subject,
-                    type: message.type,
-                    receivedDate: this.transformTimestamp(message.receivedDate),
-                    sentDate: this.transformTimestamp(message.sentDate),
-                    readDate: this.transformTimestamp(message.readDate),
-                });
+                if (message.isActive === true) {
+                    readMessages.push({
+                        senderEmail: message.senderEmail,
+                        recipientEmail: message.recipientEmail,
+                        content: message.content,
+                        isArchived: message.isArchived,
+                        attachmentUrls: message.attachmentUrls,
+                        subject: message.subject,
+                        type: message.type,
+                        receivedDate: this.transformTimestamp(message.receivedDate),
+                        sentDate: this.transformTimestamp(message.sentDate),       
+                        readDate: this.transformTimestamp(message.readDate),      
+                    });
+                }
             });
 
             if (readMessages.length === 0) {
@@ -808,39 +887,44 @@ export class MessageService {
     }
 
 
+
+
+
     async getUnreadMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
-            const readMessagesQuery = query(
+            const unreadMessagesQuery = query(
                 messageRef,
                 where('isRead', '==', false),
                 where('recipientEmail', '==', userEmail)
             );
 
-            const readMessagesSnapshot = await getDocs(readMessagesQuery);
-            const readMessages = [];
+            const unreadMessagesSnapshot = await getDocs(unreadMessagesQuery);
+            const unreadMessages = [];
 
-            readMessagesSnapshot.forEach((doc) => {
+            unreadMessagesSnapshot.forEach((doc) => {
                 const message = doc.data();
-                readMessages.push({
-                    senderEmail: message.senderEmail,
-                    recipientEmail: message.recipientEmail,
-                    content: message.content,
-                    isArchived: message.isArchived,
-                    attachmentUrls: message.attachmentUrls,
-                    subject: message.subject,
-                    type: message.type,
-                    receivedDate: this.transformTimestamp(message.receivedDate),
-                    sentDate: this.transformTimestamp(message.sentDate),
-                    readDate: this.transformTimestamp(message.readDate),
-                });
+                if (message.isActive === true) {
+                    unreadMessages.push({
+                        senderEmail: message.senderEmail,
+                        recipientEmail: message.recipientEmail,
+                        content: message.content,
+                        isArchived: message.isArchived,
+                        attachmentUrls: message.attachmentUrls,
+                        subject: message.subject,
+                        type: message.type,
+                        receivedDate: this.transformTimestamp(message.receivedDate),
+                        sentDate: this.transformTimestamp(message.sentDate),
+                        readDate: this.transformTimestamp(message.readDate),
+                    });
+                }
             });
 
-            if (readMessages.length === 0) {
+            if (unreadMessages.length === 0) {
                 const responseDto = new GetMessagesByUserResponseDto(
                     404,
                     'UNREADMESSAGESNOTFOUND',
-                    readMessages
+                    unreadMessages
                 );
                 return responseDto;
             }
@@ -848,7 +932,7 @@ export class MessageService {
             const responseDto = new GetMessagesByUserResponseDto(
                 200,
                 'UNREADMESSAGESRETRIEVEDSUCCESSFULLY',
-                readMessages
+                unreadMessages
             );
             return responseDto;
         } catch (error: unknown) {
@@ -856,5 +940,34 @@ export class MessageService {
             throw new InternalServerErrorException('INTERNALERROR');
         }
     }
+
+
+
+
+
+
+
+
+
+
+    transformTimestamp(timestamp: any): string {
+        if (timestamp && timestamp.seconds && timestamp.nanoseconds) {
+            const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
+
+            const year = date.getUTCFullYear();
+            const month = ('0' + (date.getUTCMonth() + 1)).slice(-2);
+            const day = ('0' + date.getUTCDate()).slice(-2);
+            const hours = ('0' + date.getUTCHours()).slice(-2);
+            const minutes = ('0' + date.getUTCMinutes()).slice(-2);
+            const seconds = ('0' + date.getUTCSeconds()).slice(-2);
+
+            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            return formattedDate;
+        }
+        return '';
+    }
+
+
+
 
 }

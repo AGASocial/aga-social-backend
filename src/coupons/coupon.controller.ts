@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put } from "@nestjs/common";
 import { CouponService } from "./coupon.service";
 import { AssignCouponDto } from "./dto/assignCoupon.dto";
 import { AssignCouponResponseDto } from "./dto/assignCouponResponse.dto";
@@ -36,11 +36,32 @@ export class CouponController {
     }
 
 
-
+    //NOT IN USE
     @Delete('firebase/coupons/:code')
     async deleteCoupon(@Param('code') code: string): Promise<DeleteCouponResponseDto> {
         return this.couponService.deleteCoupon(code);
     }
+
+
+
+    @Post('firebase/coupons/deactivate/:code')
+    async deactivateCoupon(@Param('code') code: string): Promise<DeleteCouponResponseDto> {
+        try {
+            return await this.couponService.deactivateCoupon(code);
+        } catch (error) {
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
+
+
+    @Post('firebase/coupons/users/deactivate/:email/:code')
+    async deactivateCouponForUser(
+        @Param('code') code: string,
+        @Param('email') email: string,
+    ) {
+        return this.couponService.deactivateCouponForUser(code, email);
+    }
+
 
 
 

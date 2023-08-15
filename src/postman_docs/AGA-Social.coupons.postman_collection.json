@@ -349,6 +349,52 @@
 				"header": []
 			},
 			"response": []
+		},
+		{
+			"name": "Desactivar Coupon en Firebase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/deactivate/SUMMER50",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"deactivate",
+						"SUMMER50"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar Coupon a User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/firebase/coupons/users/deactivate/fernanda333@gmail.com/SUMMER50",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"coupons",
+						"users",
+						"deactivate",
+						"fernanda333@gmail.com",
+						"SUMMER50"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

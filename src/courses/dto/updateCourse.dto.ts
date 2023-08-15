@@ -85,4 +85,16 @@ export class UpdateCourseDto {
     })
     @IsBoolean()
     public offersCertificate?: boolean;
+
+
+
+    @ApiProperty({
+        description: 'URL to the course title page file',
+        example: 'https://example.com/course.jpg',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public titlePage: string;
+
 }

@@ -111,4 +111,14 @@ export class Message {
     })
     public readDate?: Date;
 
+
+    @ApiProperty({
+        description: 'Status of the message, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
 }

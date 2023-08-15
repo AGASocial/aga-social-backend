@@ -4,7 +4,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { FirebaseService } from '../firebase/firebase.service';
 import { CreateEbookDto } from './dto/createEbook.dto';
 import { CreateEbookResponseDto } from './dto/createEbookResponse.dto';
-import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, updateDoc, where } from 'firebase/firestore';
 import { UpdateMediaDto } from '../media/dto/updateMedia.dto';
 import { UpdateMediaResponseDto } from '../media/dto/updateMediaResponse.dto';
 import { DeleteEbookResponseDto } from './dto/deleteEbookResponse.dto';
@@ -20,7 +20,7 @@ export class EbookService {
     async createNewEbook(createNewEbookDto: CreateEbookDto): Promise<CreateEbookResponseDto> {
     
 
-        const { title, description, url, author, releaseDate, price, language, pageCount, genres, format, publisher } = createNewEbookDto;
+        const { title, description, url, titlePage, author, releaseDate, price, language, pageCount, genres, format, publisher } = createNewEbookDto;
         const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
 
         const customEbookWhere: QueryFieldFilterConstraint = where('url', '==', url);
@@ -36,6 +36,7 @@ export class EbookService {
             publisher: publisher,
             description: description,
             url: url,
+            titlePage: titlePage,
             author: author,
             releaseDate: releaseDate,
             price: price,
@@ -44,6 +45,7 @@ export class EbookService {
             genres: genres,
             format: format,
             salesCount: 0,
+            isActive: true,
 
         };
 
@@ -64,7 +66,10 @@ export class EbookService {
             pageCount,
             genres,
             format,
-            salesCount: 0
+            salesCount: 0,
+            isActive: true,
+            titlePage,
+
         });
         this.firebaseService.setCollectionData('ebooks', cachedCourses);
         console.log('Ebook added to the cache successfully.');
@@ -116,7 +121,7 @@ export class EbookService {
         }
     }
 
-
+    //NOT IN USE
     async deleteEbook(title: string, format: EbookFormat): Promise<DeleteEbookResponseDto> {
         try {
 
@@ -167,6 +172,54 @@ export class EbookService {
 
 
 
+    async deactivateEbook(title: string, format: EbookFormat): Promise<DeleteEbookResponseDto> {
+        try {
+            const ebooksCollectionRef = collection(this.firebaseService.fireStore, 'ebooks');
+            const ebooksQuerySnapshot = await getDocs(query(ebooksCollectionRef, where('title', '==', title)));
+
+            if (ebooksQuerySnapshot.empty) {
+                console.log(`Ebook with title "${title}" not found in the ebooks collection.`);
+                throw new NotFoundException('EBOOKNOTFOUND');
+            }
+
+            const ebooksDoc = ebooksQuerySnapshot.docs[0];
+
+            const ebookData = ebooksDoc.data() as Ebook;
+
+            if (ebookData.format == format) {
+                // Update "isActive" attribute in Firestore
+                await updateDoc(ebooksDoc.ref, {
+                    isActive: false,
+                });
+            } else {
+                console.log(`Ebook with format "${format}" and title "${title}" not found in the ebooks collection.`);
+                throw new NotFoundException('EBOOKNOTFOUND');
+            }
+
+            const cachedEbooks = await this.firebaseService.getCollectionData('ebooks');
+            const indexToUpdate = cachedEbooks.findIndex((ebook) => ebook.title === title);
+
+            if (indexToUpdate !== -1) {
+                cachedEbooks[indexToUpdate].isActive = false; // Update isActive attribute
+                this.firebaseService.setCollectionData('ebooks', cachedEbooks);
+            }
+
+            const response: DeleteEbookResponseDto = {
+                statusCode: 200,
+                message: 'EBOOKDEACTIVATEDSUCCESSFULLY',
+            };
+
+            console.log(`The ebook has been deactivated successfully.`);
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
+
+
+
+
     async getEbooks(): Promise<GetEbooksResponseDto> {
         try {
             console.log('Initializing getEbooks...');
@@ -175,23 +228,24 @@ export class EbookService {
             const cachedEbooks = await this.firebaseService.getCollectionData('ebooks');
             if (cachedEbooks.length > 0) {
                 console.log('Using cached ebooks data.');
+                const activeEbooks = cachedEbooks.filter(ebook => ebook.isActive); 
                 const getEbooksDtoResponse: GetEbooksResponseDto = {
                     statusCode: 200,
                     message: "EBOOKSGOT",
-                    ebooksFound: cachedEbooks,
+                    ebooksFound: activeEbooks,
                 };
                 return getEbooksDtoResponse;
             }
 
             // If there is no data, it uses firestore instead
             const ebooksRef = this.firebaseService.ebooksCollection;
-            const ebooksQuery = query(ebooksRef, orderBy("title"));
+            const ebooksQuery = query(ebooksRef, where("isActive", "==", true), orderBy("title")); 
             console.log('Ebooks query created.');
 
             const ebooksQuerySnapshot = await getDocs(ebooksQuery);
             console.log('Ebooks query snapshot obtained.');
 
-            let queryResult = [];
+            const queryResult = [];
             ebooksQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 queryResult.push({
@@ -199,6 +253,7 @@ export class EbookService {
                     publisher: data.publisher,
                     author: data.author,
                     description: data.description,
+                    titlePage: data.titlePage,
                     url: data.url,
                     releaseDate: data.releaseDate,
                     price: data.price,
@@ -230,6 +285,7 @@ export class EbookService {
 
 
 
+
     async getEbooksByKeywords(keywords: string[]): Promise<GetEbooksResponseDto> {
         try {
             console.log('Initializing getEbooksByKeywords...');
@@ -239,7 +295,7 @@ export class EbookService {
             if (cachedEbooks.length > 0) {
                 console.log('Using cached ebooks data.');
                 const matchedEbooks = cachedEbooks.filter(ebook =>
-                    keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
+                    ebook.isActive && keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
                 );
 
                 const responseDto: GetEbooksResponseDto = {
@@ -266,6 +322,7 @@ export class EbookService {
                     publisher: data.publisher,
                     author: data.author,
                     description: data.description,
+                    titlePage: data.titlePage,
                     url: data.url,
                     releaseDate: data.releaseDate,
                     price: data.price,
@@ -274,13 +331,14 @@ export class EbookService {
                     genres: data.genres,
                     format: data.format,
                     salesCount: data.salesCount,
+                    isActive: data.isActive, 
                 });
             });
             console.log('Ebook data collected.');
 
-            // Filter the eBooks by keywords
+            // Filter the eBooks by keywords and isActive
             const matchedEbooks = queryResult.filter(ebook =>
-                keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
+                ebook.isActive && keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
             );
 
             // Save the data in cache for future queries
@@ -299,6 +357,7 @@ export class EbookService {
             throw new Error('There was an error retrieving the ebooks.');
         }
     }
+
 
   
 

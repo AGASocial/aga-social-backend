@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsArray } from "class-validator";
+import { IsNotEmpty, IsString, IsArray, IsBoolean } from "class-validator";
 import { Ebook } from "../../ebooks/entities/ebooks.entity";
 import { Media } from "../../media/entities/media.entity";
-import { UserProjection } from "../dto/userProjection.dto";
 
 export class Section {
     @ApiProperty({
@@ -40,5 +39,29 @@ export class Section {
     @IsNotEmpty()
     @IsArray()
     @IsString({ each: true })
-   public tags: string[];
+    public tags: string[];
+
+
+
+
+    @ApiProperty({
+        description: 'Status of the section, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
+
+    @ApiProperty({
+        description: 'Subsections within the section.',
+        type: [Section], // Each subsection is also a Section entity
+    })
+    public subsections?: Section[]; 
+
+
+
+
+
 }

@@ -32,7 +32,7 @@ export class MessageController {
     }
 
 
-
+    //NOT IN USE
     @Delete('firebase/messages')
     async deleteMessage(@Body() deleteMessageDto: DeleteMessageDto): Promise<DeleteMessageResponseDto> {
         try {
@@ -46,6 +46,15 @@ export class MessageController {
             throw new InternalServerErrorException('INTERNALERROR');
         }
     }
+
+
+
+    @Post('firebase/messages/deactivate')
+    async deactivateMessage(@Body() deleteMessageDto: DeleteMessageDto): Promise<DeleteMessageResponseDto> {
+        return this.messageService.deactivateMessage(deleteMessageDto);
+    }
+
+
 
     @Get('firebase/messages/:userEmail')
     async getUserMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {

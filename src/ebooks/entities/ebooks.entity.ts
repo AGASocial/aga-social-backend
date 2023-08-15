@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum, IsBoolean } from "class-validator";
 
 
 export enum EbookFormat {
@@ -94,7 +94,19 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsString()
-   public url: string;
+    public url: string;
+
+
+
+    @ApiProperty({
+        description: 'URL to the ebook title page file',
+        example: 'https://example.com/ebook.pdf',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public titlePage: string;
+
 
     @ApiProperty({
         description: 'Price of the ebook',
@@ -172,6 +184,16 @@ export class Ebook {
     @IsInt()
     @IsNotEmpty()
     @IsNumber()
-   public salesCount: number = 0;
+    public salesCount: number = 0;
+
+
+    @ApiProperty({
+        description: 'Status of the ebook, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
 
 }

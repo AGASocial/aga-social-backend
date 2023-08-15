@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsAlpha, IsArray, IsEmail, IsLowercase, IsNotEmpty, IsNumber, IsString, Length, Matches, MaxLength } from "class-validator";
+import { IsAlpha, IsArray, IsBoolean, IsEmail, IsLowercase, IsNotEmpty, IsNumber, IsString, Length, Matches, MaxLength } from "class-validator";
 import { Role } from 'src/roles/entities/role.entity'
 import { Coupon } from "../coupons/entities/coupon.entity";
 
@@ -136,6 +136,16 @@ export class User {
     })
     @IsString()
     phoneNumber?: string;
+
+    @ApiProperty({
+        description: 'Status of the users account',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
 }
 
 

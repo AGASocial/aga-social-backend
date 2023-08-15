@@ -105,4 +105,24 @@ export class Course {
     @IsNumber()
     salesCount: number = 0;
 
+
+    @ApiProperty({
+        description: 'Status of the course, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
+
+    @ApiProperty({
+        description: 'URL to the course title page file',
+        example: 'https://example.com/course.jpg',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public titlePage: string;
+
 }

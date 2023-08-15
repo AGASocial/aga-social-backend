@@ -1,4 +1,6 @@
 import { Controller, Post, Body, Param, Get, Put, Req, Delete, InternalServerErrorException } from '@nestjs/common';
+import { CreateEbookDto } from '../ebooks/dto/createEbook.dto';
+import { CreateMediaDto } from '../media/dto/createMedia.dto';
 import { AddMediaOrEbookDto } from './dto/addMediaorEbook.dto';
 import { AddMediaOrEbookResponseDto } from './dto/addMediaorEbookResponse.dto';
 import { CreateSectionDto } from './dto/createSection.dto';
@@ -22,6 +24,20 @@ export class SectionController {
     }
 
 
+
+    @Post('firebase/sections/:parentSectionName/add-subsection')
+    async createAndAddSubsectionToSection(
+        @Body() createSectionDto: CreateSectionDto,
+        @Param('parentSectionName') parentSectionName: string
+    ): Promise<CreateSectionResponseDto> {
+        return this.sectionService.createAndAddSubsectionToSection(
+            parentSectionName,
+            createSectionDto
+        );
+    }
+
+
+
     @Put('firebase/sections/:name/:description')
     async updateSection(@Param('name') name: string, @Param('description') description: string, @Body() updateSectionDto: Partial<UpdateSectionDto>, @Req() req: Request): Promise<UpdateSectionResponseDto> {
 
@@ -29,7 +45,13 @@ export class SectionController {
     }
 
 
+    @Post('firebase/sections/deactivate/:name/:description')
+    async deactivateSection(@Param('name') name: string, @Param('description') description: string, @Req() req: Request): Promise<DeleteSectionResponseDto> { 
+        return await this.sectionService.deactivateSection(name, description);
+    }
 
+
+    //NOT IN USE
     @Delete('firebase/sections/:name/:description')
     async deleteMedia(@Param('name') name: string, @Param('description') description: string, @Req() req: Request): Promise<DeleteSectionResponseDto> {
 
@@ -77,6 +99,38 @@ export class SectionController {
         }
     }
 
+
+    @Put('firebase/sections/add-media-or-ebook/:parentSectionName/:subsectionName')
+    async addMediaOrEbookToSubsection(
+        @Body() mediaOrEbookData: CreateMediaDto | CreateEbookDto,
+        @Param('parentSectionName') parentSectionName: string,
+        @Param('subsectionName') subsectionName: string
+    ): Promise<AddMediaOrEbookResponseDto> {
+        return this.sectionService.addMediaOrEbookToSubsection(
+            mediaOrEbookData,
+            parentSectionName,
+            subsectionName
+        );
+    }
+
+
+
+    @Put('firebase/sections/deactivate-subsection/:parentSectionName/:subsectionName')
+    async deactivateSubsection(
+        @Param('parentSectionName') parentSectionName: string,
+        @Param('subsectionName') subsectionName: string
+    ): Promise<DeleteSectionResponseDto> {
+        return this.sectionService.deactivateSubsection(parentSectionName, subsectionName);
+    }
+
+
+
+    @Get('firebase/sections/subsections/:sectionName')
+    async getSubsectionsBySectionName(
+        @Param('sectionName') sectionName: string
+    ): Promise<GetSectionsResponseDto> {
+        return this.sectionService.getSubsectionsBySectionName(sectionName);
+    }
 
 
 

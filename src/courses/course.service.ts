@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
 import { CreateCourseDto } from "./dto/createCourse.dto";
 import { CreateCourseResponseDto } from "./dto/createCourseResponse.dto";
@@ -20,7 +20,7 @@ export class CourseService {
         try {
             console.log('Creating a new course...');
 
-            const { title, description, publisher, releaseDate, price, language, sections, tags, instructorList, offersCertificate } = createNewCourseDto;
+            const { title, description, publisher, releaseDate, price, language, sections, tags, instructorList, offersCertificate, titlePage } = createNewCourseDto;
             const courseRef = collection(this.firebaseService.fireStore, 'courses');
 
             console.log('Checking if course with title already exists...');
@@ -72,7 +72,9 @@ export class CourseService {
                 tags: tags,
                 instructorList: instructorList,
                 offersCertificate: offersCertificate,
-                salesCount: 0
+                salesCount: 0,
+                isActive: true,
+                titlePage: titlePage,
             };
 
             console.log('Creating new course...');
@@ -92,7 +94,11 @@ export class CourseService {
                 instructorList,
                 language,
                 offersCertificate,
-                salesCount: 0
+                salesCount: 0,
+                isActive: true,
+                titlePage: titlePage,
+
+
             });
             this.firebaseService.setCollectionData('courses', cachedCourses);
             console.log('Course added to the cache successfully.');
@@ -157,7 +163,7 @@ export class CourseService {
         }
     }
 
-
+    //NOT IN USE
     async deleteCourse(title: string): Promise<DeleteCourseResponseDto> {
         try {
             const courseCollectionRef = collection(this.firebaseService.fireStore, 'courses');
@@ -197,55 +203,98 @@ export class CourseService {
     }
 
 
+
+
+    async deactivateCourse(title: string): Promise<DeleteCourseResponseDto> {
+        try {
+            const courseCollectionRef = collection(this.firebaseService.fireStore, 'courses');
+            const courseQuerySnapshot = await getDocs(query(courseCollectionRef, where('title', '==', title)));
+
+            if (courseQuerySnapshot.empty) {
+                console.log(`Course with title "${title}" not found in the courses collection.`);
+                throw new NotFoundException('COURSESNOTFOUND');
+            }
+
+            const courseDoc = courseQuerySnapshot.docs[0];
+
+            // Update "isActive" in Firestore
+            await updateDoc(courseDoc.ref, {
+                isActive: false
+            });
+
+            const response: DeleteCourseResponseDto = {
+                statusCode: 200,
+                message: 'COURSEDEACTIVATEDSUCCESSFULLY',
+            };
+
+            console.log(`The course has been deactivated successfully.`);
+            return response;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
+
+
+
+
+
+
+
+
     async getCourses(): Promise<GetCoursesResponseDto> {
         try {
             console.log('Initializing getCourses...');
 
-            // Tries to use data in cache if it exists
+            // If there is cached data and all courses are active, return cached data
             const cachedCourses = await this.firebaseService.getCollectionData('courses');
-            if (cachedCourses.length > 0) {
+            if (cachedCourses.length > 0 && cachedCourses.every(course => course.isActive)) {
                 console.log('Using cached courses data.');
                 const getCoursesDtoResponse: GetCoursesResponseDto = {
                     statusCode: 200,
-                    message: "COURSESGOT",
+                    message: 'COURSESGOT',
                     coursesFound: cachedCourses,
                 };
                 return getCoursesDtoResponse;
             }
 
-            // If there is no data, it uses firestore instead
+            // If there is no data or some courses are inactive, use Firestore
             const coursesRef = this.firebaseService.coursesCollection;
-            const coursesQuery = query(coursesRef, orderBy("title"));
+            const coursesQuery = query(coursesRef, orderBy('title'));
             console.log('Courses query created.');
 
             const coursesQuerySnapshot = await getDocs(coursesQuery);
             console.log('Courses query snapshot obtained.');
 
             let queryResult = [];
-            coursesQuerySnapshot.forEach((doc) => {
+            coursesQuerySnapshot.forEach(doc => {
                 const data = doc.data();
-                queryResult.push({
-                    title: data.title,
-                    description: data.description,
-                    publisher: data.publisher,
-                    price: data.price,
-                    sections: data.sections,
-                    tags: data.tags,
-                    releaseDate: data.releaseDate,
-                    instructorList: data.instructorList,
-                    language: data.language,
-                    offersCertificate: data.offersCertificate,
-                    salesCount: data.salesCount,
-                });
+                if (data.isActive) {
+                    queryResult.push({
+                        title: data.title,
+                        description: data.description,
+                        publisher: data.publisher,
+                        price: data.price,
+                        sections: data.sections,
+                        tags: data.tags,
+                        releaseDate: data.releaseDate,
+                        instructorList: data.instructorList,
+                        language: data.language,
+                        offersCertificate: data.offersCertificate,
+                        salesCount: data.salesCount,
+                        isActive: data.isActive,
+                        titlePage: data.titlePage,
+                    });
+                }
             });
             console.log('Courses data collected.');
 
-            // the data is saved in cache for future queries
+            // Save the active courses data in cache for future queries
             this.firebaseService.setCollectionData('courses', queryResult);
 
             const getCoursesDtoResponse: GetCoursesResponseDto = {
                 statusCode: 200,
-                message: "COURSESGOT",
+                message: 'COURSESGOT',
                 coursesFound: queryResult,
             };
             console.log('Response created.');
@@ -269,13 +318,15 @@ export class CourseService {
             const cachedCourses = await this.firebaseService.getCollectionData('courses');
             if (cachedCourses.length > 0) {
                 console.log('Using cached courses data.');
-                const matchedCourses = cachedCourses.filter(course =>
-                    keywords.some(keyword => course.title.toLowerCase().includes(keyword.toLowerCase()))
-                );
+                const matchedCourses = cachedCourses
+                    .filter(course => course.isActive) // Filter only active courses
+                    .filter(course =>
+                        keywords.some(keyword => course.title.toLowerCase().includes(keyword.toLowerCase()))
+                    );
 
                 const responseDto: GetCoursesResponseDto = {
                     statusCode: 200,
-                    message: 'COURSESOGT',
+                    message: 'COURSESGOT',
                     coursesFound: matchedCourses,
                 };
                 return responseDto;
@@ -290,7 +341,7 @@ export class CourseService {
             console.log('Courses query snapshot obtained.');
 
             const queryResult = [];
-            coursesQuerySnapshot.forEach((doc) => {
+            coursesQuerySnapshot.forEach(doc => {
                 const data = doc.data();
                 queryResult.push({
                     title: data.title,
@@ -304,16 +355,21 @@ export class CourseService {
                     language: data.language,
                     offersCertificate: data.offersCertificate,
                     salesCount: data.salesCount,
+                    isActive: data.isActive,
+                    titlePage: data.titlePage,
+
                 });
             });
             console.log('Course data collected.');
 
             // Filter the courses by keywords
-            const matchedCourses = queryResult.filter(course =>
-                keywords.some(keyword => course.title.toLowerCase().includes(keyword.toLowerCase()))
-            );
+            const matchedCourses = queryResult
+                .filter(course => course.isActive) // Filter only active courses
+                .filter(course =>
+                    keywords.some(keyword => course.title.toLowerCase().includes(keyword.toLowerCase()))
+                );
 
-            // Save the data in cache for future queries
+            // Save the active courses data in cache for future queries
             await this.firebaseService.setCollectionData('courses', queryResult);
 
             const responseDto: GetCoursesResponseDto = {
@@ -339,9 +395,11 @@ export class CourseService {
             const cachedCourses = await this.firebaseService.getCollectionData('courses');
             if (cachedCourses.length > 0) {
                 console.log('Using cached courses data.');
-                const matchedCourses = cachedCourses.filter(course =>
-                    tags.some(tag => course.tags.includes(tag))
-                );
+                const matchedCourses = cachedCourses
+                    .filter(course => course.isActive) // Filter only active courses
+                    .filter(course =>
+                        tags.some(tag => course.tags.includes(tag))
+                    );
 
                 const responseDto: GetCoursesResponseDto = {
                     statusCode: 200,
@@ -360,7 +418,7 @@ export class CourseService {
             console.log('Courses query snapshot obtained.');
 
             const queryResult = [];
-            coursesQuerySnapshot.forEach((doc) => {
+            coursesQuerySnapshot.forEach(doc => {
                 const data = doc.data();
                 queryResult.push({
                     title: data.title,
@@ -373,16 +431,22 @@ export class CourseService {
                     instructorList: data.instructorList,
                     language: data.language,
                     offersCertificate: data.offersCertificate,
+                    salesCount: data.salesCount,
+                    isActive: data.isActive,
+                    titlePage: data.titlePage,
+
                 });
             });
             console.log('Course data collected.');
 
             // Filter the courses by tags
-            const matchedCourses = queryResult.filter(course =>
-                tags.some(tag => course.tags.includes(tag))
-            );
+            const matchedCourses = queryResult
+                .filter(course => course.isActive) // Filter only active courses
+                .filter(course =>
+                    tags.some(tag => course.tags.includes(tag))
+                );
 
-            // Save the data in cache for future queries
+            // Save the active courses data in cache for future queries
             await this.firebaseService.setCollectionData('courses', queryResult);
 
             const responseDto: GetCoursesResponseDto = {

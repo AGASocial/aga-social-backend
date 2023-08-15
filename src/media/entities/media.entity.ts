@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsEnum, IsUrl } from "class-validator";
+import { IsNotEmpty, IsString, IsEnum, IsUrl, IsBoolean } from "class-validator";
 
 
 export enum MediaType {
@@ -62,4 +62,16 @@ export class Media {
     @IsNotEmpty()
     @IsString()
     public uploadDate: Date;
+
+
+    @ApiProperty({
+        description: 'Status of the media, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
+
 }

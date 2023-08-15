@@ -148,6 +148,37 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Desactivar Media",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"title\": \"TEST-1\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/firebase/media/deactivate/TEST-1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"firebase",
+						"media",
+						"deactivate",
+						"TEST-1"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

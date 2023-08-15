@@ -24,12 +24,19 @@ export class CourseController {
         return await this.courseService.updateCourse(title, updateCourseDto);
     }
 
-
+    //NOT IN USE
     @Delete('firebase/courses/:title')
     async deleteCourse(@Param('title') title: string, @Req() req: Request): Promise<DeleteCourseResponseDto> {
 
         return await this.courseService.deleteCourse(title);
     }
+
+
+    @Post('firebase/courses/deactivate/:title')
+    async deactivateCourse(@Param('title') title: string): Promise<DeleteCourseResponseDto> {
+        return this.courseService.deactivateCourse(title);
+    }
+
 
 
     @Get('firebase/courses')

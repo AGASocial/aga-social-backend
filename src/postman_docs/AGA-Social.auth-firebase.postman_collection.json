@@ -17,7 +17,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"alejandra1@gmail.com\",\r\n  \"username\": \"Test.1\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Alejandra Doe\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"yhormang444@gmail.com\",\r\n  \"username\": \"Yhormang.444\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Yhormang\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -25,12 +25,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/firebase/signup",
-					"protocol": "http",
+					"raw": "{{server}}/auth/firebase/signup",
 					"host": [
-						"localhost"
+						"{{server}}"
 					],
-					"port": "3000",
 					"path": [
 						"auth",
 						"firebase",
@@ -550,6 +548,36 @@
 						"firebase",
 						"users",
 						"phoneNumber"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar un Usuario",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n \"email\": \"armando222@gmail.com\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/firebase/deactivate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"firebase",
+						"deactivate"
 					]
 				}
 			},

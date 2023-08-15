@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsEnum, IsUrl, IsDateString } from "class-validator";
+import { IsNotEmpty, IsString, IsEnum, IsUrl, IsDateString, IsBoolean } from "class-validator";
 import { MediaType } from "../entities/media.entity";
 
 export class CreateMediaDto {
@@ -56,4 +56,13 @@ export class CreateMediaDto {
     @IsNotEmpty()
     @IsDateString()
     uploadDate: Date; //UploadDate
+
+    @ApiProperty({
+        description: 'Status of the ebook, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true; //isActive
 }

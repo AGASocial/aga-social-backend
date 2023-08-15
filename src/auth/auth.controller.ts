@@ -47,10 +47,20 @@ export class AuthController {
 
     }
 
+
+    //NOT IN USE
     @Delete('firebase/delete')
     async deleteUser(@Body() deleteUserDto: DeleteUserDto): Promise<DeleteUserResponseDto> {
         return this.authService.firebaseDeleteUser(deleteUserDto);
     }
+
+
+
+    @Post('firebase/deactivate')
+    async deactivateUser(@Body('email') email: string): Promise<DeleteUserResponseDto> {
+        return this.authService.deactivateUser(email);
+    }
+
 
 
     @UseGuards(FreezedGuard)
