@@ -17,20 +17,27 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const configService: ConfigService = app.get(ConfigService);
 
- 
 
+    /*
     const adminConfig: ServiceAccount = {
         "projectId": configService.get<string>('FIREBASE_PROJECT_ID'),
         "privateKey": configService.get<string>('FIREBASE_PRIVATE_KEY')
             .replace(/\\n/g, '\n'),
+        "clientEmail": configService.get<string>('FIREBASE_CLIENT_EMAIL'),
+    };*/
+
+
+    const adminConfig = {
+        "projectId": configService.get<string>('FIREBASE_PROJECT_ID'),
+        "privateKey": configService.get<string>('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
         "clientEmail": configService.get<string>('FIREBASE_CLIENT_EMAIL'),
     };
 
     console.log('Before Firebase Auth');
     try {
         await admin.initializeApp({
-            credential: admin.credential.cert(configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS')),
-           // databaseURL: configService.get<string>('FIREBASE_DATA_URL'),
+            credential: admin.credential.cert(adminConfig),
+            // databaseURL: configService.get<string>('FIREBASE_DATA_URL'),
             storageBucket: configService.get<string>('FIREBASE_STORAGE_BUCKET'),
             databaseAuthVariableOverride: {
                 uid: configService.get<string>('FIREBASE_AUTH_UID')
@@ -44,8 +51,8 @@ async function bootstrap() {
 
     const { initializeApp } = require('firebase-admin/app');
 
-  
-        
+
+
 
     const config = new DocumentBuilder()
         .setTitle('AGA Social Content Backend')
@@ -76,10 +83,10 @@ async function bootstrap() {
         whitelist: true,
     }));
 
-    const port = process.env.PORT || 3000; 
+    const port = process.env.PORT || 3000;
     await app.listen(port);
     console.log(`App listening on port ${port}`);
-  //await app.listen(3000);
+    //await app.listen(3000);
 }
 
 
