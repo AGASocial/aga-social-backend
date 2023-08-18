@@ -28,15 +28,9 @@ lerna-debug.log*
 *.sublime-workspace
 
 # IDE - VSCode
-.vs
-.vs/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
 .env
-
-practica-pasantia-6ef34-firebase-adminsdk-hy4mv-914dfc3c22.json
-aga-social-apps-db-firebase-adminsdk-fhi42-9ef28d3e07.json

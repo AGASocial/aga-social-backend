@@ -1,149 +1,177 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
+import * as admin from 'firebase-admin'
+import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { collection, QueryFieldFilterConstraint, where, limit, getDocs, DocumentData, query, doc, getDoc, DocumentSnapshot } from 'firebase/firestore';
-import { GeneratedSecret } from 'speakeasy'; 
-import { FirebaseService } from '../firebase/firebase.service';
-import { RolesService } from '../roles/roles.service';
-import { HashService } from '../utils/hash.service';
+import { HttpService } from '@nestjs/axios'
+import { jwtConstants } from 'src/auth/constants';
+import { AxiosResponse } from 'axios'
+import { Observable, tap, map, async, catchError } from 'rxjs';
+import { userDTO } from './dto/user.dto';
+import { PassworduserDTO } from './dto/password.user.dto';
+import { useremailDTO } from './dto/user.email.dto';
+import { ConfigService } from "@nestjs/config";
+import * as SendGrid from '@sendgrid/mail';
+import { FindPluginPayDTO } from 'src/pluggin/dto/Find-plugin-pay.dto';
+
+
+
+export type User = any;
+
 
 @Injectable()
 export class UsersService {
-    constructor(private firebaseService: FirebaseService, private hashService: HashService, private jwtService: JwtService, private rolesService: RolesService){}
 
-    async emailChecker(email: string, isEmailWanted: boolean) {
-        const usersRef = collection(this.firebaseService.fireStore, "users");
+    constructor(private jwtService: JwtService, private readonly httpService: HttpService, private readonly configService: ConfigService) {
+        SendGrid.setApiKey(this.configService.get<string>('SEND_GRID_KEY'));
 
-        //query for checking if there is someone with the email in dto
-        const customEmailWhere: QueryFieldFilterConstraint = where("email","==",email);
-        const emailQuery = query(usersRef,customEmailWhere,limit(1)); //Arma la consulta, usersRef es la tabla users, customEmailWhere es el filtro/constraint y limit es para que solo traiga un user
-        const emailQuerySnapshot = await getDocs(emailQuery);
 
-        if (emailQuerySnapshot.empty == isEmailWanted) {
-            if (isEmailWanted == true){
-                throw new BadRequestException('WRONGCREDENTIALS');
-            }
-            else if (isEmailWanted == false){
-                throw new BadRequestException('EMAILEXISTS');
-            }
-        }
-        console.log('Email Checker - Email:', email);
-        console.log('Email Checker - isEmailWanted:', isEmailWanted);
-
-        return emailQuerySnapshot;
     }
 
-    async searchUser(username: string) {
-        const usersRef = this.firebaseService.usersCollection;
 
-        const customUsernameWhere: QueryFieldFilterConstraint = where("username", "==", username);
-        const userQuery = query(usersRef, customUsernameWhere, limit(1));
-        const userQuerySnapshot = await getDocs(userQuery);
+    async sign_in_with_email_and_password(email: string, password: String) {
+        try {
+            const resp = await this.httpService.post('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + this.configService.get<string>('REST_KEY'), { email: email, password: password, "returnSecureToken": true }).toPromise();
 
-        if (userQuerySnapshot.empty) {
-            throw new BadRequestException('USERDOESNOTEXIST');
-        }
-        const docSnapshot = userQuerySnapshot.docs[0];
-        console.log('Search User - Username:', username);
+            const user = await admin.firestore().collection('users').doc(resp.data.localId).get();
 
-        return docSnapshot.id;
-    }
+            const mainDocs2 = [];
 
-    async getUserById(userId: string) {
-        const usersCollection = this.firebaseService.usersCollection;
-        const userReference = doc(usersCollection, userId);
-        const userSnap = await getDoc(userReference);
-        if(!userSnap.exists()){
-            throw new BadRequestException('USERDOESNOTEXIST');
-        }
-        return userSnap;
-    }
+            if (user.exists) {
+                let role = 'default role'; // Valor por defecto si la propiedad 'role' no está definida en Firestore
 
-   
-    async getUserRole(user: any): Promise<string | null> {
-        const userRole = user?.role; 
-
-        if (typeof userRole !== 'undefined') {
-            try {
-                const roleSnap = await this.rolesService.getRole(userRole);
-                if (roleSnap == null) {
-                    throw new BadRequestException('USERHASNONEXISTINGROLE');
+                if (user.data().role) {
+                    // Si la propiedad 'role' está definida en el documento de usuario en Firestore
+                    role = user.data().role;
                 }
-                console.log('Get User Role - User Role:', userRole);
-                return userRole; 
-            } catch (error: unknown) {
-                console.warn(`[ERROR]: ${error}`);
-                return null; 
+                
+                // Buscar el documento de role correspondiente al 'id' del rol en Firestore
+                const rolesCollection = admin.firestore().collection('roles');
+                const roleDoc = await rolesCollection.doc(role).get();
+
+                if (roleDoc.exists) {
+                    // Si se encuentra el documento de role en Firestore
+                    mainDocs2.push({ ...resp.data, role: roleDoc.data().name });
+                } else {
+                    // Si no se encuentra el documento de role en Firestore
+                    mainDocs2.push({ ...resp.data, role: 'Role not found' });
+                }
+            } else {
+                // Si no se encuentra el documento de usuario en Firestore
+                mainDocs2.push({ ...resp.data, role: 'User not found' });
             }
-        } else {
-            return null; 
+
+            return mainDocs2;
+        } catch (error) {
+            throw new UnauthorizedException(error.message);
         }
     }
 
+    public async Changepassword(userDto: PassworduserDTO) {
+        const { password, email } = userDto;
 
-
-
-    async passwordCheck(password: string, firestoreUserSnap: any): Promise<boolean> {
-        const doPasswordsMatch: boolean = await this.hashService.compareHashedStrings(
-            password,
-            firestoreUserSnap.get("password")
-        ) as boolean;
-
-        if (!doPasswordsMatch) {
-            throw new BadRequestException('WRONGCREDENTIALS');
-        }
-
-        console.log('Password Check - Do Passwords Match:', doPasswordsMatch);
-        return doPasswordsMatch;
-    }
-
-
-
-    extractID(jwtToken: string): string | null {
         try {
-            // Decodificar el token JWT y obtener el payload
-            const payload: any = this.jwtService.decode(jwtToken);
+            var uid = await admin.auth().getUserByEmail(userDto.email).then((userRecord) => { return userRecord.uid });
+            await admin.auth().updateUser(uid, { password: userDto.password, }).then((userRecord) => {
+                return userRecord.toJSON();
+            })
+                .catch((error) => {
+                    console.log('Error updating user:', error);
+                });
 
-            // Obtener el ID del usuario del payload (suponiendo que el campo es "id")
-            const userId: string = payload.id;
-            console.log('Extract ID - User ID');
-
-            return userId;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            return null; // Retorna null en caso de error al decodificar o si no se encuentra el ID en el payload
+        } catch (error) {
+            throw new UnauthorizedException(error.message);
         }
     }
 
 
-    extractEmail(jwtToken: string): string | null {
+
+    public async create_user(userDto: userDTO) {
+        const { displayName, password, email, role } = userDto;
+
         try {
-            // Decodificar el token JWT y obtener el payload
-            const payload: any = this.jwtService.decode(jwtToken);
-
-            // Obtener el correo electrÃ³nico del usuario del payload (suponiendo que el campo es "email")
-            const userEmail: string = payload.email;
-            console.log('Extract Email - User Email');
-            return userEmail;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            return null; // Retorna null en caso de error al decodificar o si no se encuentra el correo electrÃ³nico en el payload
+            const { uid } = await admin.auth().createUser({
+                displayName,
+                password,
+                email
+            });
+            await admin.auth().setCustomUserClaims(uid, { role });
+            admin.firestore().collection('users').doc(uid)
+                .set({
+                    displayName: displayName,
+                    email: email,
+                    role: role
+                })
+            return { uid };
+        } catch (error) {
+            throw new UnauthorizedException(error.message);
         }
     }
 
+    public async listusers() {
 
-    extractExpiration(jwtToken: string): number | null {
         try {
-            const payload: any = this.jwtService.decode(jwtToken);
+            const listUsers = await admin.auth().listUsers()
+            const users = listUsers.users.map(user => {
+                return {
 
-            const expiration: number = payload.exp;
-            console.log('Extract Expiration - Token Expiration:');
+                    uid: user.uid,
 
-            return expiration;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            return null;
+                    email: user.email,
+
+
+                    displayName: user.displayName,
+
+                    lastSignInTime: user.metadata.lastSignInTime,
+
+                    creationTime: user.metadata.creationTime
+
+                }
+
+            })
+            return { users }
+        } catch (error) {
+            throw new UnauthorizedException(error.message);
         }
     }
+ 
+    async password_resert(email: string) {
+        {
+            try {
+
+                return await this.httpService.post('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + this.configService.get<string>('REST_KEY'), {requestType: 'PASSWORD_RESET', email: email }).pipe(
+                    tap((resp) => console.log(resp)),
+                    map((resp) => resp.data),
+                    tap((data) =>  console.log(data)),
+                  );
+                
+            } catch (error) {
+                throw new UnauthorizedException(error.message);
+            }
+        }
+    }
+
+    async findpluginPay(uid: string) {
+        try {
+            const collection = await admin.firestore().collection(this.configService.get<string>('COLLECTION_COMPANYPLUGIN')).where('client_uid', '==', uid).get();
+            const mainDocs = [];
+            const mainDocs2 = [];
+
+            collection.forEach(async doc => {
+                mainDocs.push({ ...doc.data(), _id: doc.id });
+            })
+            for (const doc of mainDocs) {
+                const plugindata = await admin.firestore().collection(this.configService.get<string>('COLLECTION_PLUGIN')).doc(doc.plugin_uid).get().then
+                    (querySnapshot => {
+                        mainDocs2.push({ ...doc, ...querySnapshot.data() });
+                    })
+            }
+            return await mainDocs2;
+        }
+        catch (error) {
+            throw new UnauthorizedException(error.message);
+        }
+    }
+
 
 
 }

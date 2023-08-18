@@ -6,7 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2021",
+    "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
@@ -17,6 +17,8 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    //"types": [ "node", "express" ]
+    "resolveJsonModule": true,
+    "typeRoots": [ "node_modules/@nestjs/testing/src" ],
+    "types": [ "jest", "node", "reflect-metadata", "mocha" ],
   }
 }

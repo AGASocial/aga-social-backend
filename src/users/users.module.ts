@@ -1,14 +1,23 @@
-import { Module } from '@nestjs/common'; //Para poder usar el decorador Module
-import { UsersService} from './users.service';
-import { JwtModule } from '@nestjs/jwt'; //Tiene que ver con la autenticacion y los tokens
-import { ConfigModule } from '@nestjs/config'; //Usado para configurar variables de entorno o archivos de config rapidamente
-import { FirebaseService } from '../firebase/firebase.service';
-import { RolesModule } from '../roles/roles.module';
-import { HashService } from '../utils/hash.service';
+import { Module } from '@nestjs/common';
+import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from 'src/auth/constants';
+import { HttpModule } from '@nestjs/axios'
+import { FirebaseAuthStrategy } from 'src/auth/stategies/firebase-jwt.strategy';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [JwtModule.register({}), ConfigModule.forRoot(), RolesModule],
-  providers: [UsersService, FirebaseService, HashService],
-  exports: [UsersService]
+  imports: [
+    PassportModule.register({ defaultStrategy: 'firebase-jwt' }),
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '60s' },
+    }), HttpModule, ConfigModule.forRoot({ isGlobal: true })
+  ],
+  providers: [UsersService, FirebaseAuthStrategy],
+  exports: [UsersService],
+  controllers: [UsersController],
 })
-export class UsersModule {}
+export class UsersModule { }
