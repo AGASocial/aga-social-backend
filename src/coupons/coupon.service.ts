@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { addDoc, collection, deleteDoc, doc, DocumentReference, getDoc, getDocs, limit, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
-import { CouponStatus, CreateCouponDto } from "./dto/createCoupon.dto";
+import {CreateCouponDto } from "./dto/createCoupon.dto";
 import { CreateCouponResponseDto } from "./dto/createCouponResponse.dto";
 import { UpdateCouponDto } from "./dto/updateCoupon.dto";
 import { UpdateCouponResponseDto } from "./dto/updateCouponResponse.dto";
-import { Coupon } from "./entities/coupon.entity";
+import { Coupon, CouponStatus } from "./entities/coupon.entity";
 import * as admin from 'firebase-admin';
 import { DeleteCouponResponseDto } from "./dto/deleteCouponResponse.dto";
 import { GetCouponsResponseDto } from "./dto/getCouponsResponse.dto";
@@ -15,6 +15,7 @@ import { AssignCouponDto } from "./dto/assignCoupon.dto";
 import { AssignCouponResponseDto } from "./dto/assignCouponResponse.dto";
 import { SetCouponAsExpiredResponseDto } from "./dto/setCouponAsExpiredResponse.dto";
 import { User } from "../users/users.entity";
+import { ApiBadRequestResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 
 
 
@@ -25,6 +26,11 @@ export class CouponService {
 
 
 
+
+    @ApiOperation({ summary: 'Create a new coupon' })
+    @ApiOkResponse({ description: 'Coupon created successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async createNewCoupon(createCouponDto: CreateCouponDto): Promise<CreateCouponResponseDto> {
         try {
             const { code, description, discountType, discountAmount, expiryDate, maxUses, maxUsesPerUser } = createCouponDto;
@@ -79,6 +85,11 @@ export class CouponService {
     }
 
 
+
+    @ApiOperation({ summary: 'Update a coupon' })
+    @ApiOkResponse({ description: 'Coupon updated successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async updateCoupon(code: string, newData: Partial<UpdateCouponDto>): Promise<UpdateCouponResponseDto> {
         try {
             console.log('Initializing updateCoupon...');
@@ -126,6 +137,13 @@ export class CouponService {
         }
     }
 
+
+
+
+    @ApiOperation({ summary: 'Delete a coupon from firebase' })
+    @ApiOkResponse({ description: 'Coupon deleted successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     //NOT IN USE
     async deleteCoupon(code: string): Promise<DeleteCouponResponseDto> {
         try {
@@ -166,45 +184,12 @@ export class CouponService {
 
 
 
-    async deactivateCoupon(code: string): Promise<DeleteCouponResponseDto> {
-        try {
-            const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
-            const couponQuerySnapshot = await getDocs(query(couponCollectionRef, where('code', '==', code)));
-
-            if (couponQuerySnapshot.empty) {
-                console.log(`Coupon with code "${code}" not found in the coupons collection.`);
-                throw new NotFoundException('COUPONNOTFOUND');
-            }
-            const couponDoc = couponQuerySnapshot.docs[0];
-
-            // Update status to "eliminated"
-            await updateDoc(couponDoc.ref, { status: 'eliminated' });
-
-            // Update the cache
-            const cachedCoupons = await this.firebaseService.getCollectionData('coupons');
-            const indexToUpdate = cachedCoupons.findIndex((coupon) => coupon.code === code);
-
-            if (indexToUpdate !== -1) {
-                cachedCoupons[indexToUpdate].status = 'eliminated'; // Update status attribute
-                this.firebaseService.setCollectionData('coupons', cachedCoupons);
-            }
-
-            const response: DeleteCouponResponseDto = {
-                statusCode: 200,
-                message: 'COUPONELIMINATEDSUCCESSFULLY',
-            };
-
-            console.log(`The coupon has been marked as eliminated successfully.`);
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
 
 
-
-
+    @ApiOperation({ summary: 'Deactivate a coupon from a user' })
+    @ApiOkResponse({ description: 'Coupon deactivated successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async deactivateCouponForUser(code: string, userEmail: string): Promise<DeleteCouponResponseDto> {
         try {
             // Fetch user data from Firestore based on email
@@ -251,7 +236,10 @@ export class CouponService {
 
 
 
-
+    @ApiOperation({ summary: 'Retrieve all coupons' })
+    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getCoupons(): Promise<GetCouponsResponseDto> {
         try {
             console.log('Initializing getCoupons...');
@@ -312,6 +300,11 @@ export class CouponService {
     }
 
 
+
+    @ApiOperation({ summary: 'Redeem a coupon' })
+    @ApiOkResponse({ description: 'Coupon redeemed successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async redeemCoupon(redeemCouponDto: RedeemCouponDto): Promise<RedeemCouponResponseDto> {
         try {
             const { useremail, couponCode, resourceType, resourceTitle } = redeemCouponDto;
@@ -413,6 +406,11 @@ export class CouponService {
 
 
 
+
+    @ApiOperation({ summary: 'Assign a coupon to a user' })
+    @ApiOkResponse({ description: 'Coupon assigned successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async assignCouponToUser(assignCouponDto: AssignCouponDto): Promise<AssignCouponResponseDto> {
         try {
             const { email, couponCode } = assignCouponDto;
@@ -475,6 +473,11 @@ export class CouponService {
 
 
 
+
+    @ApiOperation({ summary: 'Retrieve a coupon by code' })
+    @ApiOkResponse({ description: 'Coupon retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getCouponByCode(code: string): Promise<GetCouponsResponseDto> {
         try {
             const cachedCoupons = await this.firebaseService.getCollectionData('coupons');
@@ -517,7 +520,10 @@ export class CouponService {
     }
 
 
-
+    @ApiOperation({ summary: 'Retrieve coupons by a status' })
+    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async filterCouponsByStatus(filterStatus: CouponStatus, userEmail: string): Promise<GetCouponsResponseDto> {
         try {
             const usersRef = this.firebaseService.usersCollection;
@@ -547,6 +553,12 @@ export class CouponService {
     }
 
 
+
+
+    @ApiOperation({ summary: 'Updates a coupons status to expired' })
+    @ApiOkResponse({ description: 'Coupon updated successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async updateExpiredCouponsStatus(): Promise<SetCouponAsExpiredResponseDto> {
         try {
             const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
@@ -595,6 +607,11 @@ export class CouponService {
 
 
 
+
+    @ApiOperation({ summary: 'Updates a coupons to status expired' })
+    @ApiOkResponse({ description: 'Coupons updated successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async updateUserExpiredCouponsStatus(userEmail: string): Promise<SetCouponAsExpiredResponseDto> {
         try {
             const userCollectionRef = collection(this.firebaseService.fireStore, 'users');
@@ -670,6 +687,11 @@ export class CouponService {
 
 
 
+
+    @ApiOperation({ summary: 'Retrieve all coupons from a user' })
+    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getCouponsByUser(userEmail: string): Promise<GetCouponsResponseDto> {
         try {
             const usersRef = this.firebaseService.usersCollection;
@@ -698,6 +720,12 @@ export class CouponService {
 
 
 
+
+
+    @ApiOperation({ summary: 'Delete all coupons from a user that have the status expired/used' })
+    @ApiOkResponse({ description: 'Coupons deleted successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async deleteExpiredAndUsedCouponsFromUser(userEmail: string): Promise<DeleteCouponResponseDto> {
         try {
             const userCollectionRef = collection(this.firebaseService.fireStore, 'users');
@@ -747,6 +775,13 @@ export class CouponService {
     }
 
 
+
+
+
+    @ApiOperation({ summary: 'Delete expired coupons from firebase' })
+    @ApiOkResponse({ description: 'Coupons deleted successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async deleteExpiredCouponsFromFirebase(): Promise<DeleteCouponResponseDto> {
         try {
             // Fetch coupons from Firestore

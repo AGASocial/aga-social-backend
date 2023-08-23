@@ -15,6 +15,7 @@ import { UsersService } from '../users/users.service';
 import { RolesService } from '../roles/roles.service';
 import { GetUserByIdDto } from '../users/dto/getUserById.dto';
 import { GetRoleByIdDto } from '../roles/dto/getRoleById.dto';
+import { ApiBadRequestResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 
 
@@ -22,11 +23,25 @@ import { GetRoleByIdDto } from '../roles/dto/getRoleById.dto';
 export class AuthorizationService {
     constructor(private firebaseService: FirebaseService, private usersService: UsersService, private rolesService: RolesService){}
 
+
+
+
+    @ApiOperation({ summary: 'Get user by id' })
+    @ApiOkResponse({ description: 'user retrieved successfully'})
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getUserById(getUserByIdDto: GetUserByIdDto) {
         const userId: string = getUserByIdDto.user;
         return await this.usersService.getUserById(userId);
     }
 
+
+
+
+    @ApiOperation({ summary: 'Set role to user' })
+    @ApiOkResponse({ description: 'role set to user successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async setRoleToUser(email: string, roleName: string): Promise<SetRoleToUserResponseDto> {
         try {
             const usersRef = collection(this.firebaseService.fireStore, 'users');
@@ -81,6 +96,12 @@ export class AuthorizationService {
 
 
 
+
+
+    @ApiOperation({ summary: 'Delete role of user' })
+    @ApiOkResponse({ description: 'role deleted from user successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async deleteRoleOfUser(email: string, roleName: string): Promise<SetRoleToUserResponseDto> {
         try {
             const usersRef = collection(this.firebaseService.fireStore, 'users');
@@ -125,6 +146,12 @@ export class AuthorizationService {
 
 
 
+
+
+    @ApiOperation({ summary: 'Delete role from firebase' })
+    @ApiOkResponse({ description: 'role deleted successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async deleteRoleFirebase(roleName: string): Promise<SetRoleToUserResponseDto> {
         try {
             const rolesCollectionRef = collection(this.firebaseService.fireStore, 'roles');
@@ -155,7 +182,10 @@ export class AuthorizationService {
 
    
 
-    
+    @ApiOperation({ summary: 'Create role firebase' })
+    @ApiOkResponse({ description: 'role created successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async createNewRole(createNewRoleDto: CreateNewRoleDto): Promise<CreateNewRoleResponseDto> {
         const roleName = createNewRoleDto.name;
         const roleDescription = createNewRoleDto.description;
@@ -191,6 +221,13 @@ export class AuthorizationService {
         return createNewRoleDtoResponse;
     }
 
+
+
+
+    @ApiOperation({ summary: 'Update role from firebase' })
+    @ApiOkResponse({ description: 'role updated successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async updateRole(roleName: string, newData: Partial<UpdateRoleDto>): Promise<UpdateRoleResponseDto> {
         try {
             console.log('Initializing updateRole...');
@@ -226,6 +263,8 @@ export class AuthorizationService {
 
    
 
+
+   
     async getAdmin(jwtToken: string){
         const adminId = this.usersService.extractID(jwtToken)
         const adminReference = doc(this.firebaseService.usersCollection, adminId)
@@ -233,7 +272,14 @@ export class AuthorizationService {
 
         return adminSnap;
     }
-    
+
+
+
+
+    @ApiOperation({ summary: 'get role by id from firebase' })
+    @ApiOkResponse({ description: 'role retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getRoleById(getRoleByIdDto: GetRoleByIdDto){
 
         let uuid: string = getRoleByIdDto.role;
@@ -245,6 +291,11 @@ export class AuthorizationService {
   
   
 
+
+    @ApiOperation({ summary: 'Get roles from firebase' })
+    @ApiOkResponse({ description: 'roles retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getAllRoles(): Promise<GetRolesResponseDto> {
         try {
             console.log('Initializing getAllRoles...');

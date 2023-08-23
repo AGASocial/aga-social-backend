@@ -97,4 +97,13 @@ export class UpdateCourseDto {
     @IsString()
     public titlePage: string;
 
+    @ApiProperty({
+        description: 'Status of the course, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
 }

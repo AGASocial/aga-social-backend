@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Seccion-Principal 222\",\r\n  \"description\": \"Seccion-Principal 222\",\r\n  \"content\": [\r\n    {\r\n         \"description\": \"TEST-1\",\r\n            \"type\": \"audio\",\r\n            \"title\": \"TEST-1\",\r\n            \"uploadDate\": \"2013-10-10\",\r\n            \"duration\": \"00:10:30\",\r\n            \"isActive\": true,\r\n            \"url\": \"https://TEST1.com/media/video.mp3\"\r\n    }\r\n    \r\n  ],\r\n  \"tags\": [\"Principal\"]\r\n  \r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Seccion-Test\",\r\n  \"description\": \"Seccion-Test\",\r\n  \"content\": [\r\n    {\r\n         \"description\": \"TEST-1\",\r\n            \"type\": \"audio\",\r\n            \"title\": \"TEST-1\",\r\n            \"uploadDate\": \"2013-10-10\",\r\n            \"duration\": \"00:10:30\",\r\n            \"isActive\": true,\r\n            \"url\": \"https://TEST1.com/media/video.mp3\"\r\n    }\r\n    \r\n  ],\r\n  \"tags\": [\"PRUEBA\"]\r\n  \r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -22,25 +22,54 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/sections",
+					"raw": "{{server}}sections",
 					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"sections"
+						"{{server}}sections"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Actualizar Section",
+			"name": "Crear/Agregar Subsection",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Subsection333\",\r\n  \"description\": \"Description333\",\r\n  \"assetsTitles\": [\"Pruebita 2\"],\r\n  \"tags\": [\"PRUEBA\"]\r\n  \r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}sections/subsections?parentSectionName=Pruebita-Test222",
+					"host": [
+						"{{server}}sections"
+					],
+					"path": [
+						"subsections"
+					],
+					"query": [
+						{
+							"key": "parentSectionName",
+							"value": "Pruebita-Test222"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Section/SubSection",
 			"request": {
 				"method": "PUT",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\r\n    \"name\": \"LMAO\",  \r\n    \"description\": \"DFGDGDFG\",\r\n    \"tags\": [\"YOOOOO\"]\r\n  }\r\n",
+					"raw": "  {\r\n    \"description\": \"Descripcion Actualizada\",\r\n    \"tags\": [\"1\", \"2\"],\r\n    \"isActive\": true\r\n  }\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -48,27 +77,28 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/sections/AAA/An introduction to the course and programming concepts",
+					"raw": "{{server}}sections?name=Pruebita-Test222",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}sections"
 					],
-					"path": [
-						"sections",
-						"AAA",
-						"An introduction to the course and programming concepts"
+					"query": [
+						{
+							"key": "name",
+							"value": "Pruebita-Test222"
+						}
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Eliminar Section",
+			"name": "Agregar Media o Ebook a Section",
 			"request": {
-				"method": "DELETE",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"name\": \"LMAO\",  \r\n    \"description\": \"DFGDGDFG\"\r\n\r\n}\r\n",
+					"raw": "{\r\n  \"sectionName\": \"Pruebita-Test222\",\r\n  \"typeOfResource\": \"Ebook\",\r\n  \"title\": \"Pruebita\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -76,14 +106,100 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/sections/LMAO/DFGDGDFG",
+					"raw": "{{server}}sections/media/ebooks",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}sections"
 					],
 					"path": [
-						"sections",
-						"LMAO",
-						"DFGDGDFG"
+						"media",
+						"ebooks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Agregar Media o Ebook a subSection",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"uploadDate\": \"2013-10-10\",\r\n\"type\": \"video\",\r\n\"title\": \"TEST-VIDEO\",\r\n\"duration\": \"00:10:30\",\r\n\"isActive\": true,\r\n\"description\": \"TEST-VIDEO\",\r\n\"url\": \"https://TESTVIDEO.com/media/video.mp4\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}sections/subsections/media/ebooks?parentSectionName=Pruebita-Test222&subsectionName=Subsection222",
+					"host": [
+						"{{server}}sections"
+					],
+					"path": [
+						"subsections",
+						"media",
+						"ebooks"
+					],
+					"query": [
+						{
+							"key": "parentSectionName",
+							"value": "Pruebita-Test222"
+						},
+						{
+							"key": "subsectionName",
+							"value": "Subsection222"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Activar/Desactivar Media/Ebook de una Section",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"sectionName\": \"PRUEBA\",\r\n  \"isActive\": false,\r\n  \"assetTitles\": [\"Pruebita 2\"]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}sections",
+					"host": [
+						"{{server}}sections"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Activar/Desactivar Media/Ebook de una Subsection",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"sectionName\": \"PRUEBA\",\r\n  \"isActive\": true,\r\n  \"assetTitles\": [\"Pruebita 2\"]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}sections/subsections",
+					"host": [
+						"{{server}}sections"
+					],
+					"path": [
+						"subsections"
 					]
 				}
 			},
@@ -107,12 +223,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/sections",
+					"raw": "{{server}}sections",
 					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"sections"
+						"{{server}}sections"
 					]
 				}
 			},
@@ -128,7 +241,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"keywords\": [\"seccion\"]\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -136,40 +249,35 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/sections/search-by-keywords",
+					"raw": "{{server}}sections?keywords=PRUEBITA-test222",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}sections"
 					],
-					"path": [
-						"sections",
-						"search-by-keywords"
+					"query": [
+						{
+							"key": "keywords",
+							"value": "PRUEBITA-test222"
+						}
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Agregar Media o Ebook a Section",
+			"name": "Consultar Contenido de Section Por Name",
 			"request": {
-				"method": "PUT",
+				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"sectionName\": \"Test-1\",\r\n  \"mediaOrEbookData\": {\r\n    \"url\": \"https://2example2.com/media/video.mp3\",\r\n    \"type\": \"audio\",\r\n    \"title\": \"Introduction to Science\",\r\n    \"description\": \"An Audio\",\r\n    \"duration\": \"00:10:30\",\r\n    \"uploadDate\": \"2013-10-10\"\r\n  }\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{server}}firebase/sections/add-media-or-ebook",
+					"raw": "{{server}}sections?name=Section-123",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}sections"
 					],
-					"path": [
-						"sections",
-						"add-media-or-ebook"
+					"query": [
+						{
+							"key": "name",
+							"value": "Section-123"
+						}
 					]
 				}
 			},
@@ -185,7 +293,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n    \"tags\": [\"principal\"]\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -193,129 +301,15 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/sections/search-by-tags",
+					"raw": "{{server}}sections?tags=principal",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}sections"
 					],
-					"path": [
-						"sections",
-						"search-by-tags"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Contenido de Section Por Name",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/sections/content/Seccion-Principal 222",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"sections",
-						"content",
-						"Seccion-Principal 222"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar Section",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/sections/deactivate/Test-3/hola",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"sections",
-						"deactivate",
-						"Test-3",
-						"hola"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Agregar Media o Ebook a subSection",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n\"uploadDate\": \"2013-10-10\",\r\n\"type\": \"video\",\r\n\"title\": \"TEST-VIDEO\",\r\n\"duration\": \"00:10:30\",\r\n\"isActive\": true,\r\n\"description\": \"TEST-VIDEO\",\r\n\"url\": \"https://TESTVIDEO.com/media/video.mp4\"\r\n\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+					"query": [
+						{
+							"key": "tags",
+							"value": "principal"
 						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/sections/add-media-or-ebook/Seccion-Principal/Subsection",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"sections",
-						"add-media-or-ebook",
-						"Seccion-Principal",
-						"Subsection"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Crear/Agregar Subsection",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"name\": \"PRUEBA\",\r\n    \"description\": \"PRUEBA\",\r\n    \"content\": [\r\n     \r\n\r\n      {\r\n           \"isActive\": true,\r\n            \"type\": \"video\",\r\n            \"title\": \"TEST-VIDEO2\",\r\n            \"url\": \"https://TESTVIDEO2.com/media/audio.mp4\",\r\n            \"uploadDate\": \"2013-10-10\",\r\n            \"duration\": \"00:10:30\",\r\n            \"description\": \"TEST-VIDEO2\"\r\n      }\r\n    ],\r\n    \"tags\": [\"PRUEBA\"]\r\n  }\r\n\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/sections/Seccion-Principal 222/add-subsection",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"sections",
-						"Seccion-Principal 222",
-						"add-subsection"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar Subsection",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/sections/deactivate-subsection/Seccion-Principal 222/Subsection 222",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"sections",
-						"deactivate-subsection",
-						"Seccion-Principal 222",
-						"Subsection 222"
 					]
 				}
 			},
@@ -327,14 +321,51 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}firebase/sections/subsections/Seccion-Principal 222",
+					"raw": "{{server}}sections/subsections?sectionName=Pruebita-Test222",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}sections"
 					],
 					"path": [
-						"sections",
-						"subsections",
-						"Seccion-Principal 222"
+						"subsections"
+					],
+					"query": [
+						{
+							"key": "sectionName",
+							"value": "Pruebita-Test222"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Section",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}sections?name=LMAO&description=DFGDGDFG",
+					"host": [
+						"{{server}}sections"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "LMAO"
+						},
+						{
+							"key": "description",
+							"value": "DFGDGDFG"
+						}
 					]
 				}
 			},

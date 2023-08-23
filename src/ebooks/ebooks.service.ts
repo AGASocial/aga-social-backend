@@ -4,12 +4,17 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { FirebaseService } from '../firebase/firebase.service';
 import { CreateEbookDto } from './dto/createEbook.dto';
 import { CreateEbookResponseDto } from './dto/createEbookResponse.dto';
-import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, updateDoc, where } from 'firebase/firestore';
 import { UpdateMediaDto } from '../media/dto/updateMedia.dto';
 import { UpdateMediaResponseDto } from '../media/dto/updateMediaResponse.dto';
 import { DeleteEbookResponseDto } from './dto/deleteEbookResponse.dto';
 import { GetEbooksResponseDto } from './dto/getEbooksResponse.dto';
-
+import { UploadEbookResponseDto } from './dto/uploadEbookResponse.dto';
+import { Readable } from 'stream';
+import { ApiBadRequestResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { v4 as uuidv4 } from 'uuid';
+import { UpdateEbookResponseDto } from './dto/updateEbookResponse.dto';
+import { UpdateEbookDto } from './dto/updateEbook.dto';
 
 
 @Injectable()
@@ -17,6 +22,10 @@ export class EbookService {
 
     constructor(private firebaseService: FirebaseService) { }
 
+
+
+    @ApiOperation({ summary: 'Create an ebook on firestore' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async createNewEbook(createNewEbookDto: CreateEbookDto): Promise<CreateEbookResponseDto> {
     
 
@@ -31,7 +40,29 @@ export class EbookService {
             throw new BadRequestException('URL ALREADY EXISTS');
         }
 
+
+        // Check if the title already exists in the collection
+        const titleQuery = query(ebookRef, where('title', '==', title));
+        const titleQuerySnapshot = await getDocs(titleQuery);
+
+        if (!titleQuerySnapshot.empty) {
+            throw new BadRequestException('TITLE ALREADY EXISTS');
+        }
+
+
+
+        const userRef = collection(this.firebaseService.fireStore, 'users');
+        const userQuery = query(userRef, where('username', '==', publisher));
+        const userQuerySnapshot = await getDocs(userQuery);
+
+        if (userQuerySnapshot.empty) {
+            throw new BadRequestException('PUBLISHER NOT FOUND. ENTER THE USERNAME OF A REGISTERED USER');
+        }
+
+        const newEbookId: string = uuidv4();
+
         const newEbook: Ebook = {
+            id: newEbookId,
             title: title,
             publisher: publisher,
             description: description,
@@ -50,11 +81,12 @@ export class EbookService {
         };
 
         const newEbookDocRef = await addDoc(ebookRef, newEbook);
-        const newEbookId = newEbookDocRef.id;
+        const newEbookId2 = newEbookDocRef.id;
 
 
         const cachedCourses = await this.firebaseService.getCollectionData('ebooks');
         cachedCourses.push({
+            id: newEbookId,
             title,
             publisher,
             description,
@@ -81,15 +113,21 @@ export class EbookService {
     }
 
 
-    async updateEbook(url: string, newData: Partial<UpdateMediaDto>): Promise<UpdateMediaResponseDto> {
+
+    @ApiOperation({ summary: 'Update ebook data' })
+    @ApiParam({ name: 'title', description: 'Title of the ebook to update' })
+    @ApiParam({ name: 'newData', description: 'Partial data to update in the ebook' })
+    @ApiNotFoundResponse({ description: 'Ebook not found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async updateEbook(id: string, newData: Partial<UpdateEbookDto>): Promise<UpdateEbookResponseDto> {
         try {
             console.log('Initializing updateEbook...');
             const ebooksCollectionRef = admin.firestore().collection('ebooks');
 
-            const querySnapshot = await ebooksCollectionRef.where('url', '==', url).get();
+            const querySnapshot = await ebooksCollectionRef.where('id', '==', id).get();
 
             if (querySnapshot.empty) {
-                console.log(`The ebook with the url "${url}" does not exist.`);
+                console.log(`The ebook with the id "${id}" does not exist.`);
                 throw new Error('EBOOKDOESNOTEXIST.');
             }
 
@@ -99,17 +137,17 @@ export class EbookService {
             });
 
             await batch.commit();
-            console.log(`Updated info for ebook with url "${url}"`);
+            console.log(`Updated info for ebook with id "${id}"`);
 
             const cachedCourses = await this.firebaseService.getCollectionData('ebooks');
-            const updatedCourseIndex = cachedCourses.findIndex((ebook) => ebook.url === url);
+            const updatedCourseIndex = cachedCourses.findIndex((ebook) => ebook.id === id);
             if (updatedCourseIndex !== -1) {
                 cachedCourses[updatedCourseIndex] = { ...cachedCourses[updatedCourseIndex], ...newData };
                 this.firebaseService.setCollectionData('ebooks', cachedCourses);
             }
 
 
-            const response: UpdateMediaResponseDto = {
+            const response: UpdateEbookResponseDto = {
                 statusCode: 200,
                 message: 'EBOOKUPDATEDSUCCESSFULLY',
             };
@@ -121,105 +159,15 @@ export class EbookService {
         }
     }
 
-    //NOT IN USE
-    async deleteEbook(title: string, format: EbookFormat): Promise<DeleteEbookResponseDto> {
-        try {
-
-            const ebooksCollectionRef = collection(this.firebaseService.fireStore, 'ebooks');
-            const ebooksQuerySnapshot = await getDocs(query(ebooksCollectionRef, where('title', '==', title)));
-
-            if (ebooksQuerySnapshot.empty) {
-                console.log(`Ebook with title "${title}" not found in the ebooks collection.`);
-                throw new NotFoundException('EBOOKNOTFOUND');
-            }
-            const ebooksDoc = ebooksQuerySnapshot.docs[0];
-
-            const ebookData = ebooksDoc.data() as Ebook;
+    
 
 
-
-                if (ebookData.format == format) {
-                    await deleteDoc(ebooksDoc.ref);
-                } else {
-                    console.log(`Ebook with format "${format}" and title "${title}" not found in the ebooks collection.`);
-                    throw new NotFoundException('EBOOKNOTFOUND');
+   
 
 
-            }
-
-
-            const cachedCourses = await this.firebaseService.getCollectionData('ebooks');
-            const indexToDelete = cachedCourses.findIndex((ebook) => ebook.title === title);
-
-            if (indexToDelete !== -1) {
-                cachedCourses.splice(indexToDelete, 1);
-                this.firebaseService.setCollectionData('ebooks', cachedCourses);
-            }
-
-
-            const response: DeleteEbookResponseDto = {
-                statusCode: 200,
-                message: 'EBOOKDELETEDSUCCESSFULLY',
-            };
-
-            console.log(`The ebook has been deleted successfully.`);
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
-
-
-
-    async deactivateEbook(title: string, format: EbookFormat): Promise<DeleteEbookResponseDto> {
-        try {
-            const ebooksCollectionRef = collection(this.firebaseService.fireStore, 'ebooks');
-            const ebooksQuerySnapshot = await getDocs(query(ebooksCollectionRef, where('title', '==', title)));
-
-            if (ebooksQuerySnapshot.empty) {
-                console.log(`Ebook with title "${title}" not found in the ebooks collection.`);
-                throw new NotFoundException('EBOOKNOTFOUND');
-            }
-
-            const ebooksDoc = ebooksQuerySnapshot.docs[0];
-
-            const ebookData = ebooksDoc.data() as Ebook;
-
-            if (ebookData.format == format) {
-                // Update "isActive" attribute in Firestore
-                await updateDoc(ebooksDoc.ref, {
-                    isActive: false,
-                });
-            } else {
-                console.log(`Ebook with format "${format}" and title "${title}" not found in the ebooks collection.`);
-                throw new NotFoundException('EBOOKNOTFOUND');
-            }
-
-            const cachedEbooks = await this.firebaseService.getCollectionData('ebooks');
-            const indexToUpdate = cachedEbooks.findIndex((ebook) => ebook.title === title);
-
-            if (indexToUpdate !== -1) {
-                cachedEbooks[indexToUpdate].isActive = false; // Update isActive attribute
-                this.firebaseService.setCollectionData('ebooks', cachedEbooks);
-            }
-
-            const response: DeleteEbookResponseDto = {
-                statusCode: 200,
-                message: 'EBOOKDEACTIVATEDSUCCESSFULLY',
-            };
-
-            console.log(`The ebook has been deactivated successfully.`);
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
-
-
-
-
+    @ApiOperation({ summary: 'Get all active ebooks from Firestore' })
+    @ApiOkResponse({ description: 'Ebooks retrieved successfully', type: GetEbooksResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getEbooks(): Promise<GetEbooksResponseDto> {
         try {
             console.log('Initializing getEbooks...');
@@ -262,6 +210,7 @@ export class EbookService {
                     genres: data.genres,
                     format: data.format,
                     salesCount: data.salesCount,
+                    isActive: data.isActive,
                 });
             });
             console.log('Ebook data collected.');
@@ -286,6 +235,11 @@ export class EbookService {
 
 
 
+
+    @ApiOperation({ summary: 'Get ebooks by keywords on the title' })
+    @ApiParam({ name: 'keywords', description: 'Keywords for filtering ebooks' })
+    @ApiOkResponse({ description: 'Ebooks retrieved successfully', type: GetEbooksResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getEbooksByKeywords(keywords: string[]): Promise<GetEbooksResponseDto> {
         try {
             console.log('Initializing getEbooksByKeywords...');
@@ -359,7 +313,182 @@ export class EbookService {
     }
 
 
-  
+    @ApiOperation({ summary: 'Upload an ebook file to Datastorage' })
+    @ApiParam({ name: 'userEmail', description: 'User email. Must be from a registered user' })
+    @ApiOkResponse({ description: 'Ebook file uploaded successfully', type: UploadEbookResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async uploadEbookFile(userEmail: string, file: any): Promise<UploadEbookResponseDto> {
+        try {
+            const mediaFileName = `${Date.now()}_${file.originalname}`;
+            const mediaPath = `users/${userEmail}/ebooks/${mediaFileName}`;
+
+            console.log('Uploading file to:', mediaPath);
+
+            const fileBucket = admin.storage().bucket();
+            const uploadStream = fileBucket.file(mediaPath).createWriteStream({
+                metadata: {
+                    contentType: file.mimetype,
+                },
+            });
+
+            const readableStream = new Readable();
+            readableStream._read = () => { };
+            readableStream.push(file.buffer);
+            readableStream.push(null);
+
+            await new Promise<void>((resolve, reject) => {
+                readableStream.pipe(uploadStream)
+                    .on('error', (error) => {
+                        console.error('Error uploading the file:', error);
+                        reject(error);
+                    })
+                    .on('finish', () => {
+                        console.log('File uploaded successfully.');
+                        resolve();
+                    });
+            });
+
+            const responseDto = new UploadEbookResponseDto(201, 'EBOOKUPLOADEDSUCCESSFULLY');
+            return responseDto;
+        } catch (error) {
+            console.error('Error uploading the file:', error);
+            throw new Error(`Error uploading the file: ${error.message}`);
+        }
+    }
+
+
+
+
+
+    @ApiOperation({ summary: 'Upload to Datastorage and create an ebook on Firestore' })
+    @ApiParam({ name: 'userEmail', description: 'User email. Must be from a registered user' })
+    @ApiOkResponse({ description: 'Ebook uploaded and created successfully', type: UploadEbookResponseDto })
+    @ApiBadRequestResponse({ description: 'User not found or publisher not registered' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async uploadAndCreateEbook(
+        file: any,
+        createNewEbookDto: CreateEbookDto
+    ): Promise<UploadEbookResponseDto> {
+        try {
+            
+
+            const { title, description, author, releaseDate, price, language, pageCount, genres, format, publisher, titlePage } = createNewEbookDto;
+
+            const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
+            const ebookQuery = query(ebookRef);
+            const ebookQuerySnapshot = await getDocs(ebookQuery);
+
+            // Check if the title already exists in the collection
+            const titleQuery = query(ebookRef, where('title', '==', title));
+            const titleQuerySnapshot = await getDocs(titleQuery);
+
+            if (!titleQuerySnapshot.empty) {
+                throw new BadRequestException('TITLE ALREADY EXISTS');
+            }
+
+
+            const userRef = collection(this.firebaseService.fireStore, 'users');
+            const userQuery = query(userRef, where('username', '==', publisher));
+            const userQuerySnapshot = await getDocs(userQuery);
+
+
+
+
+            if (userQuerySnapshot.empty) {
+                throw new BadRequestException('PUBLISHER NOT FOUND. ENTER THE USERNAME OF A REGISTERED USER');
+            }
+
+
+            const newEbookId: string = uuidv4();
+
+            const mediaFileName = `${Date.now()}_${file.originalname}`;
+            const mediaPath = `assets/${newEbookId}/${mediaFileName}`;
+
+
+            const newEbook: Ebook = {
+                id: newEbookId,
+                title: title,
+                publisher: publisher,
+                description: description,
+                url: mediaPath,
+                titlePage: titlePage,
+                author: author,
+                releaseDate: releaseDate,
+                price: price,
+                language: language,
+                pageCount: pageCount,
+                genres: genres,
+                format: format,
+                salesCount: 0,
+                isActive: true,
+            };
+
+            const newEbookDocRef = await addDoc(ebookRef, newEbook);
+
+            const cachedCourses = await this.firebaseService.getCollectionData('ebooks');
+            cachedCourses.push({
+                id: newEbookId,
+                title,
+                publisher,
+                description,
+                author,
+                releaseDate,
+                price,
+                language,
+                pageCount,
+                genres,
+                format,
+                salesCount: 0,
+                isActive: true,
+                titlePage,
+                url: mediaPath,
+
+            });
+
+
+
+           
+
+            console.log('Uploading file to:', mediaPath);
+
+            const fileBucket = admin.storage().bucket();
+            const uploadStream = fileBucket.file(mediaPath).createWriteStream({
+                metadata: {
+                    contentType: file.mimetype,
+                },
+            });
+
+            const readableStream = new Readable();
+            readableStream._read = () => { };
+            readableStream.push(file.buffer);
+            readableStream.push(null);
+
+            await new Promise<void>((resolve, reject) => {
+                readableStream.pipe(uploadStream)
+                    .on('error', (error) => {
+                        console.error('Error uploading the file:', error);
+                        reject(error);
+                    })
+                    .on('finish', () => {
+                        console.log('File uploaded successfully.');
+                        resolve();
+                    });
+            });
+
+           
+
+            this.firebaseService.setCollectionData('ebooks', cachedCourses);
+            console.log('Ebook added to the cache successfully.');
+
+            const responseDto = new UploadEbookResponseDto(201, 'EBOOKUPLOADEDSUCCESSFULLY');
+            return responseDto;
+        } catch (error) {
+            console.error('Error uploading the file or creating ebook:', error);
+            throw new Error(`Error uploading the file or creating ebook: ${error.message}`);
+        }
+    }
+
+
 
 
 

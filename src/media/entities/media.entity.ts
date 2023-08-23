@@ -43,7 +43,7 @@ export class Media {
     })
     @IsNotEmpty()
     @IsUrl()
-    public url: string;
+    public url?: string;
 
     @ApiProperty({
         description: "Duration of the multimedia content",
@@ -61,7 +61,7 @@ export class Media {
     })
     @IsNotEmpty()
     @IsString()
-    public uploadDate: Date;
+    public uploadDate?: Date;
 
 
     @ApiProperty({
@@ -74,4 +74,22 @@ export class Media {
     isActive?: boolean = true;
 
 
+
+    @ApiProperty({
+        description: 'Publisher of the media',
+        example: 'Pepito Perez',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public publisher: string;
+
+
+
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
 }

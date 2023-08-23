@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { CouponStatus } from '../entities/coupon.entity';
 
 enum DiscountType {
     Nominal = 'nominal',
@@ -70,4 +71,12 @@ export class UpdateCouponDto {
     @IsNumber()
     @Min(1)
     maxUsesPerUser?: number;
+
+    @ApiProperty({
+        description: 'Coupon status',
+        enum: CouponStatus,
+    })
+    @IsNotEmpty()
+    @IsEnum(CouponStatus)
+    public status?: CouponStatus;
 }

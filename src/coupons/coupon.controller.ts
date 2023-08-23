@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, Param, Patch, Post, Put, Query } from "@nestjs/common";
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CouponService } from "./coupon.service";
 import { AssignCouponDto } from "./dto/assignCoupon.dto";
 import { AssignCouponResponseDto } from "./dto/assignCouponResponse.dto";
-import { CouponStatus, CreateCouponDto } from "./dto/createCoupon.dto";
+import { CreateCouponDto } from "./dto/createCoupon.dto";
 import { CreateCouponResponseDto } from "./dto/createCouponResponse.dto";
 import { DeleteCouponResponseDto } from "./dto/deleteCouponResponse.dto";
 import { GetCouponsResponseDto } from "./dto/getCouponsResponse.dto";
@@ -11,67 +12,50 @@ import { RedeemCouponResponseDto } from "./dto/redeemCouponResponse.dto";
 import { SetCouponAsExpiredResponseDto } from "./dto/setCouponAsExpiredResponse.dto";
 import { UpdateCouponDto } from "./dto/updateCoupon.dto";
 import { UpdateCouponResponseDto } from "./dto/updateCouponResponse.dto";
+import { CouponStatus } from "./entities/coupon.entity";
 
 
 
 
 @Controller()
+@ApiTags('Coupons')
 export class CouponController {
     constructor(private readonly couponService: CouponService) { }
 
 
-    @Post('firebase/coupons')
+    @ApiOperation({ summary: 'Create a coupon' })
+    @ApiOkResponse({ description: 'Coupon created successfully '})
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @Post('coupons')
     async createCoupon(@Body() createCouponDto: CreateCouponDto): Promise<CreateCouponResponseDto> {
         return this.couponService.createNewCoupon(createCouponDto);
     }
 
 
 
-    @Put('firebase/coupons/:code')
+
+    
+    @ApiOperation({ summary: 'Update a coupon using its code' })
+    @ApiOkResponse({ description: 'Coupon updated successfully' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
+    @Put('coupons')
     async updateCoupon(
-        @Param('code') code: string,
+        @Query('code') code: string,
         @Body() updateCouponDto: UpdateCouponDto,
     ): Promise<UpdateCouponResponseDto> {
         return this.couponService.updateCoupon(code, updateCouponDto);
     }
 
 
-    //NOT IN USE
-    @Delete('firebase/coupons/:code')
-    async deleteCoupon(@Param('code') code: string): Promise<DeleteCouponResponseDto> {
-        return this.couponService.deleteCoupon(code);
-    }
-
-
-
-    @Post('firebase/coupons/deactivate/:code')
-    async deactivateCoupon(@Param('code') code: string): Promise<DeleteCouponResponseDto> {
-        try {
-            return await this.couponService.deactivateCoupon(code);
-        } catch (error) {
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
-
-
-    @Post('firebase/coupons/users/deactivate/:email/:code')
-    async deactivateCouponForUser(
-        @Param('code') code: string,
-        @Param('email') email: string,
-    ) {
-        return this.couponService.deactivateCouponForUser(code, email);
-    }
 
 
 
 
-    @Get('firebase/coupons')
-    async getCoupons(): Promise<GetCouponsResponseDto> {
-        return this.couponService.getCoupons();
-    }
 
-
-    @Post('firebase/coupons/redeem')
+    @ApiOperation({ summary: 'Redeem a coupon' })
+    @ApiOkResponse({ description: 'Coupon redeemed successfully ' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
+    @Post('coupons/ebooks/courses')
     async redeemCoupon(@Body() redeemCouponDto: RedeemCouponDto): Promise<RedeemCouponResponseDto> {
         const response = await this.couponService.redeemCoupon(redeemCouponDto);
         return response;
@@ -80,62 +64,106 @@ export class CouponController {
 
 
 
-
-    @Post('firebase/coupons/assign')
+    @ApiOperation({ summary: 'Assign a coupon to a user' })
+    @ApiOkResponse({ description: 'Coupon assigned successfully ' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon/user not found' })
+    @Post('coupons/users')
     async assignCouponToUser(@Body() assignCouponDto: AssignCouponDto): Promise<AssignCouponResponseDto> {
         return this.couponService.assignCouponToUser(assignCouponDto);
     }
 
 
 
-    @Get('firebase/coupons/:code')
-    async getCouponByCode(@Param('code') code: string): Promise<GetCouponsResponseDto> {
-        return this.couponService.getCouponByCode(code);
-    }
 
 
 
-    @Get('firebase/coupons/users/:email/:status')
-    async filterCouponsByStatusAndUser(
-        @Param('status') status: CouponStatus,
-        @Param('email') email: string
-    ): Promise<GetCouponsResponseDto> {
-        return this.couponService.filterCouponsByStatus(status, email);
-    }
 
 
-
-    @Post('firebase/coupons/update-expired')
+    
+    @ApiOperation({ summary: 'Sets a coupons status to expired' })
+    @ApiOkResponse({ description: 'Coupons updated successfully ' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+    @Patch('coupons')
     async updateExpiredCouponsStatus(): Promise<SetCouponAsExpiredResponseDto> {
         return this.couponService.updateExpiredCouponsStatus();
     }
 
 
-    @Post('firebase/coupons/update-expired/:userEmail')
-    async updateExpiredCouponsStatusForUser(@Param('userEmail') userEmail: string): Promise<SetCouponAsExpiredResponseDto> {
-        return this.couponService.updateUserExpiredCouponsStatus(userEmail);
+
+
+    @ApiOperation({ summary: 'Manage coupons from user to eliminate them or mark them as expired' })
+    @ApiOkResponse({ description: 'Coupon from user updated successfully ' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon/user not found' })
+    @Patch('coupons/users')
+    async manageCouponStatusOfUser(
+        @Query('code') code?: string,
+        @Query('email') email?: string,
+    ) {
+        if (email && code) {
+            return this.couponService.deactivateCouponForUser(code, email);
+        } else if (email) {
+            return this.couponService.updateUserExpiredCouponsStatus(email);
+        } else {
+            throw new BadRequestException('Invalid input');
+        }
     }
 
-
-
-
-    @Get('firebase/coupons/users/:userEmail')
-    async getCouponsByUser(@Param('userEmail') userEmail: string): Promise<GetCouponsResponseDto> {
-        return this.couponService.getCouponsByUser(userEmail);
-    }
-
-
-
-    @Delete('firebase/coupons/users/:userEmail/expired-used')
-    async deleteExpiredAndUsedCouponsFromUser(@Param('userEmail') userEmail: string): Promise<DeleteCouponResponseDto> {
-        return this.couponService.deleteExpiredAndUsedCouponsFromUser(userEmail);
-    }
-
-
-    @Delete('firebase/coupons/expired/cleanup')
+    @ApiOperation({ summary: 'Delete expired coupons from firebase' })
+    @ApiOkResponse({ description: 'Coupons deleted successfully ' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+    @Delete('coupons')
     async deleteExpiredCouponsFromFirebase(): Promise<DeleteCouponResponseDto> {
         return this.couponService.deleteExpiredCouponsFromFirebase();
     }
+
+
+
+
+    @ApiOperation({ summary: 'Retrieve coupons using filters or retrieve all coupons from an user' })
+    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+    @Get('coupons')
+    async getCoupons(
+        @Query('code') code: string,
+        @Query('status') status: CouponStatus,
+        @Query('userEmail') userEmail: string
+    ): Promise<GetCouponsResponseDto> {
+
+        if (!code && !status && !userEmail) {
+            return this.couponService.getCoupons();
+        }
+
+        else if (code) {
+            return this.couponService.getCouponByCode(code);
+        } else if (status && userEmail) {
+            return this.couponService.filterCouponsByStatus(status, userEmail);
+        } else if (userEmail) {
+            return this.couponService.getCouponsByUser(userEmail);
+        } else {
+            throw new BadRequestException('Invalid parameters');
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+  @ApiOperation({ summary: 'Delete expired/used coupons from a user' })
+  @ApiOkResponse({ description: 'Coupons deleted successfully ' })
+  @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+  @Delete('coupons/users/:userEmail')
+  async deleteExpiredAndUsedCouponsFromUser(@Param('userEmail') userEmail: string): Promise<DeleteCouponResponseDto> {
+      return this.couponService.deleteExpiredAndUsedCouponsFromUser(userEmail);
+  }*/
 
 
 }

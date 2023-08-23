@@ -22,12 +22,136 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/messages",
+					"raw": "{{server}}messages",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}messages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Usuario",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"userEmail\": \"joel123@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}messages?email=joel123@gmail.com",
+					"host": [
+						"{{server}}messages"
 					],
-					"path": [
-						"messages"
+					"query": [
+						{
+							"key": "email",
+							"value": "joel123@gmail.com"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes Por Palabras Clave",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}messages?email=joel123@gmail.com&keywords=Pruebita",
+					"host": [
+						"{{server}}messages"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joel123@gmail.com"
+						},
+						{
+							"key": "keywords",
+							"value": "Pruebita"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Mensajes por Filtrado",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"email\": \"joel123@gmail.com\"\r\n   \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}messages?filter=sent&email=joel123@gmail.com",
+					"host": [
+						"{{server}}messages"
+					],
+					"query": [
+						{
+							"key": "filter",
+							"value": "sent"
+						},
+						{
+							"key": "email",
+							"value": "joel123@gmail.com"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Estado Mensaje",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"senderEmail\": \"amanda333@gmail.com\",\r\n  \"recipientEmail\": \"yhormang333@gmail.com\",\r\n  \"subject\": \"Test 3\",\r\n  \"isRead\": false,\r\n  \"isActive\": true\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}messages",
+					"host": [
+						"{{server}}messages"
 					]
 				}
 			},
@@ -48,347 +172,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/messages",
+					"raw": "{{server}}messages",
 					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes Usuario",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/yhormang333@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"yhormang333@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes Recibidos Usuario",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/messages/received/amanda333@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"received",
-						"amanda333@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes Enviados Usuario",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/messages/sent/amanda333@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"sent",
-						"amanda333@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Marcar Mensaje Como Leido",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"senderEmail\": \"amanda333@gmail.com\",\r\n  \"recipientEmail\": \"yhormang333@gmail.com\",\r\n  \"subject\": \"Test 3\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/mark-as-read",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"mark-as-read"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes Tipo Inquiry (Consulta)",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n    \"userEmail\": \"yhormang333@gmail.com\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/inquiries/yhormang333@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"inquiries",
-						"yhormang333@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes Tipo Complaint (Quejas)",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n    \"userEmail\": \"joel114@gmail.com\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/complaints/joel114@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"complaints",
-						"joel114@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes Por Palabras Clave",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"userEmail\": \"joel114@gmail.com\",\r\n  \"keywords\": [\"test\"]\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/keywords/joel114@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"keywords",
-						"joel114@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Marcar Mensaje Como Archivado",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"senderEmail\": \"annadoe@gmail.com\",\r\n  \"recipientEmail\": \"joel114@gmail.com\",\r\n  \"subject\": \"Test\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/mark-as-archived",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"mark-as-archived"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes Archivados",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n    \"userEmail\": \"joel114@gmail.com\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/archived/joel114@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"archived",
-						"joel114@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes Leidos",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n    \"userEmail\": \"yhormang333@gmail.com\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/read/yhormang333@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"read",
-						"yhormang333@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Mensajes No Leidos",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n    \"userEmail\": \"yhormang333@gmail.com\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/unread/yhormang333@gmail.com",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"unread",
-						"yhormang333@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar Mensaje",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n  \"senderEmail\": \"amanda333@gmail.com\",\r\n\"recipientEmail\": \"yhormang333@gmail.com\",\r\n\"subject\": \"Test 3\"\r\n\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/messages/deactivate",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"messages",
-						"deactivate"
+						"{{server}}messages"
 					]
 				}
 			},

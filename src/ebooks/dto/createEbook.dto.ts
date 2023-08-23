@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum, IsEmail, IsBoolean } from "class-validator";
 import { EbookFormat, EbookGenre } from "../entities/ebooks.entity";
 
 export class CreateEbookDto {
@@ -14,12 +14,12 @@ export class CreateEbookDto {
 
 
     @ApiProperty({
-        description: 'Publisher of the ebook',
-        example: 'Pepito Perez',
+        description: 'Publisher of the ebook, must be the username of a registered user',
+        example: 'Username.123',
         type: String,
     })
     @IsNotEmpty()
-    @IsString()
+    @IsString()    
     public publisher: string;
 
 
@@ -40,7 +40,7 @@ export class CreateEbookDto {
     })
     @IsNotEmpty()
     @IsString()
-    url: string;
+    url?: string;
 
 
 
@@ -51,7 +51,7 @@ export class CreateEbookDto {
     })
     @IsNotEmpty()
     @IsString()
-    public titlePage: string;
+    public titlePage?: string;
 
     @ApiProperty({
         description: 'Price of the ebook',
@@ -128,7 +128,29 @@ export class CreateEbookDto {
     @IsInt()
     @IsNotEmpty()
     @IsNumber()
-    salesCount: number = 0;
+    salesCount?: number = 0;
   
+
+
+
+    @ApiProperty({
+        description: 'Firestore ID of the ebook',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
+
+
+
+    @ApiProperty({
+        description: 'Status of the section, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
+
 
 }

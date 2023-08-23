@@ -6,5 +6,10 @@ export class DocResult {
     public ebookEarnings?: number
     public courseEarnings?: number
     public totalEarnings?: number
+    public email?: string
+    public fullName?: string
+    public securityAnswer?: string
+    public tags?: string[]
+
    
 }

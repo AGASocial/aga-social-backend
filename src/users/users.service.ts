@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
 import { collection, QueryFieldFilterConstraint, where, limit, getDocs, DocumentData, query, doc, getDoc, DocumentSnapshot } from 'firebase/firestore';
 import { GeneratedSecret } from 'speakeasy'; 
 import { FirebaseService } from '../firebase/firebase.service';
@@ -10,12 +11,16 @@ import { HashService } from '../utils/hash.service';
 export class UsersService {
     constructor(private firebaseService: FirebaseService, private hashService: HashService, private jwtService: JwtService, private rolesService: RolesService){}
 
+
+
+    @ApiOkResponse({ description: 'Email check successful'})
+    @ApiBadRequestResponse({ description: 'Wrong credentials or email exists' })
     async emailChecker(email: string, isEmailWanted: boolean) {
         const usersRef = collection(this.firebaseService.fireStore, "users");
 
         //query for checking if there is someone with the email in dto
         const customEmailWhere: QueryFieldFilterConstraint = where("email","==",email);
-        const emailQuery = query(usersRef,customEmailWhere,limit(1)); //Arma la consulta, usersRef es la tabla users, customEmailWhere es el filtro/constraint y limit es para que solo traiga un user
+        const emailQuery = query(usersRef,customEmailWhere,limit(1)); 
         const emailQuerySnapshot = await getDocs(emailQuery);
 
         if (emailQuerySnapshot.empty == isEmailWanted) {
@@ -32,6 +37,10 @@ export class UsersService {
         return emailQuerySnapshot;
     }
 
+
+
+    @ApiOkResponse({ description: 'User found successfully', type: String })
+    @ApiBadRequestResponse({ description: 'User does not exist' })
     async searchUser(username: string) {
         const usersRef = this.firebaseService.usersCollection;
 
@@ -48,6 +57,11 @@ export class UsersService {
         return docSnapshot.id;
     }
 
+
+
+
+    @ApiOkResponse({ description: 'User retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'User does not exist' })
     async getUserById(userId: string) {
         const usersCollection = this.firebaseService.usersCollection;
         const userReference = doc(usersCollection, userId);
@@ -58,7 +72,10 @@ export class UsersService {
         return userSnap;
     }
 
-   
+
+
+    @ApiOkResponse({ description: 'User role retrieved successfully.', type: String })
+    @ApiBadRequestResponse({ description: 'User role does not exist.', type: BadRequestException })
     async getUserRole(user: any): Promise<string | null> {
         const userRole = user?.role; 
 
@@ -100,37 +117,40 @@ export class UsersService {
 
     extractID(jwtToken: string): string | null {
         try {
-            // Decodificar el token JWT y obtener el payload
             const payload: any = this.jwtService.decode(jwtToken);
 
-            // Obtener el ID del usuario del payload (suponiendo que el campo es "id")
             const userId: string = payload.id;
             console.log('Extract ID - User ID');
 
             return userId;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            return null; // Retorna null en caso de error al decodificar o si no se encuentra el ID en el payload
+            return null; 
         }
     }
 
 
+
+    @ApiOkResponse({ description: 'Password is correct.', type: Boolean })
+    @ApiBadRequestResponse({ description: 'Password is incorrect.', type: BadRequestException })
     extractEmail(jwtToken: string): string | null {
         try {
-            // Decodificar el token JWT y obtener el payload
+           
             const payload: any = this.jwtService.decode(jwtToken);
 
-            // Obtener el correo electrónico del usuario del payload (suponiendo que el campo es "email")
             const userEmail: string = payload.email;
             console.log('Extract Email - User Email');
             return userEmail;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            return null; // Retorna null en caso de error al decodificar o si no se encuentra el correo electrónico en el payload
+            return null;
         }
     }
 
 
+
+    @ApiOkResponse({ description: 'Expiration timestamp extracted.', type: Number })
+    @ApiOkResponse({ description: 'Failed to extract expiration timestamp.', type: null })
     extractExpiration(jwtToken: string): number | null {
         try {
             const payload: any = this.jwtService.decode(jwtToken);

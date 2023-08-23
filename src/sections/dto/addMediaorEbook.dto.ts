@@ -1,8 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsArray, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsString, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateMediaDto } from '../../media/dto/createMedia.dto';
 import { CreateEbookDto } from '../../ebooks/dto/createEbook.dto';
+import { Media } from '../../media/entities/media.entity';
+import { Ebook } from '../../ebooks/entities/ebooks.entity';
+
+export enum ResourceType {
+    Media = 'Media',
+    Ebook = 'Ebook',
+}
 
 export class AddMediaOrEbookDto {
     @ApiProperty({
@@ -15,12 +22,20 @@ export class AddMediaOrEbookDto {
     sectionName: string;
 
     @ApiProperty({
-        description: 'Media (audios or videos) and Ebooks associated with the section.',
-        type: [CreateEbookDto, CreateMediaDto],
+        description: 'Type of resource (Media or Ebook)',
+        enum: ResourceType,
+        type: String,
     })
     @IsNotEmpty()
-    @ValidateNested({ each: true })
-    @Type(() => CreateMediaDto)
-    @Type(() => CreateEbookDto)
-    mediaOrEbookData: CreateMediaDto | CreateEbookDto;
+    @IsEnum(ResourceType)
+    typeOfResource: ResourceType;
+
+    @ApiProperty({
+        description: 'Title of the media or ebook.',
+        example: 'Introduction Video',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    title: string;
 }

@@ -12,47 +12,78 @@ import { GetRoleByIdResponseDto } from 'src/roles/dto/getRoleByIdResponse.dto';
 import { GetRolesResponseDto } from 'src/roles/dto/getRolesResponse.dto';
 import { UpdateRoleDto } from './dto/updateRole.dto';
 import { UpdateRoleResponseDto } from './dto/updateRoleResponse.dto';
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 
 @Controller('authorization')
+@ApiTags('authorization')
 export class AuthorizationController {
     constructor(private readonly authorizationService: AuthorizationService){}
 
-    @Put('firebase/users/:email/roles/:roleName')
-    async setRoleToUser(@Param('email') email: string, @Param('roleName') roleName: string, @Req() req: Request): Promise<SetRoleToUserResponseDto> {
 
 
+    @ApiOperation({ summary: 'Set a role to a user' })
+    @ApiOkResponse({ description: 'Role set successfully ' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
+    @Put('users/roles')
+    async setRoleToUser(
+        @Query('email') email: string,
+        @Query('roleName') roleName: string,
+        @Req() req: Request
+    ): Promise<SetRoleToUserResponseDto> {
         return await this.authorizationService.setRoleToUser(email, roleName);
     }
 
 
 
 
-    
-    @Delete('firebase/users/:email/roles/:roleName')
-    async deleteRoleOfUser(@Param('email') email: string, @Param('roleName') roleName: string, @Req() req: Request): Promise<DeleteRoleOfUserResponseDto> {
 
+    @ApiOperation({ summary: 'Delete a role from a user' })
+    @ApiOkResponse({ description: 'Role deleted successfully' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
+    @Delete('users/roles')
+    async deleteRoleFromUser(
+        @Query('email') email: string,
+        @Query('roleName') roleName: string,
+        @Req() req: Request
+    ): Promise<DeleteRoleOfUserResponseDto> {
         return await this.authorizationService.deleteRoleOfUser(email, roleName);
     }
 
 
 
-    @Delete('firebase/roles/:roleName')
-    async deleteRoleFirebase(@Param('roleName') roleName: string): Promise<SetRoleToUserResponseDto> {
+
+    @ApiOperation({ summary: 'Delete role from firebase (Not in use)' })
+    @ApiOkResponse({ description: 'Role deleted successfully' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or role not found' })
+    @Delete('roles')
+    async deleteRoleFirebase(
+        @Query('roleName') roleName: string
+    ): Promise<SetRoleToUserResponseDto> {
         return await this.authorizationService.deleteRoleFirebase(roleName);
-
     }
-    
 
-    @Post('firebase/roles')
+
+
+
+
+    @ApiOperation({ summary: 'Create a role' })
+    @ApiOkResponse({ description: 'Role created successfully ' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @Post('roles')
     async createNewRole(@Body() createNewRoleDto: CreateNewRoleDto, @Req() req: Request){
 
         return await this.authorizationService.createNewRole(createNewRoleDto);
     }
 
-    @Put('firebase/roles/:name') //:Subscriber, Publisher or Admin
+
+
+    @ApiOperation({ summary: 'Update a role' })
+    @ApiOkResponse({ description: 'Role updated successfully' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or role not found' })
+    @Put('roles')
     async updateRole(
-        @Param('name') roleName: string,
+        @Query('name') roleName: string,
         @Body() updateRoleDto: UpdateRoleDto,
     ): Promise<UpdateRoleResponseDto> {
         try {
@@ -65,10 +96,13 @@ export class AuthorizationController {
         }
     }
 
-    
 
     
-    @Get('firebase/roles')
+
+    @ApiOperation({ summary: 'Get roles' })
+    @ApiOkResponse({ description: 'Roles retrieved successfully ' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Roles not found' })
+    @Get('roles')
     async getRoles(@Req() req: Request): Promise<GetRolesResponseDto> {
 
         return this.authorizationService.getAllRoles();

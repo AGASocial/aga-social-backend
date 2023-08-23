@@ -6,11 +6,17 @@ import { GetRolesResponseDto } from './dto/getRolesResponse.dto';
 import { Role } from './entities/role.entity';
 import * as admin from 'firebase-admin';
 import { FirebaseService } from '../firebase/firebase.service';
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 @Injectable()
 export class RolesService {
 
     constructor(private firebaseService: FirebaseService){}
 
+
+
+    @ApiOperation({ summary: 'Get role by UUID' })
+    @ApiOkResponse({ description: 'Role Gotten'})
+    @ApiBadRequestResponse({ description: 'Role does not exist' })
     async getRoleById(uuid: string){
         const roleReference = await doc(this.firebaseService.rolesCollection, uuid);
         const roleSnap = await getDoc(roleReference);
@@ -22,6 +28,10 @@ export class RolesService {
         return roleSnap;
     }
 
+
+
+    @ApiOperation({ summary: 'Get role by name' })
+    @ApiOkResponse({ description: 'Role Gotten' })
     async getRole(roleName: string) {
         console.log('Fetching role with name:', roleName);
 

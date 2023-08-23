@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Get, Put, Req, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Put, Req, Delete, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { CreateEbookDto } from './dto/createEbook.dto';
 import { CreateEbookResponseDto } from './dto/createEbookResponse.dto';
 import { DeleteEbookDto } from './dto/deleteEbook.dto';
@@ -7,24 +7,77 @@ import { GetEbooksResponseDto } from './dto/getEbooksResponse.dto';
 import { UpdateEbookDto } from './dto/updateEbook.dto';
 import { UpdateEbookResponseDto } from './dto/updateEbookResponse.dto';
 import { EbookService } from './ebooks.service';
-import { EbookFormat } from './entities/ebooks.entity';
+import { EbookFormat, EbookGenre } from './entities/ebooks.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadEbookResponseDto } from './dto/uploadEbookResponse.dto';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+
 
 
 @Controller()
+@ApiTags('Ebooks')
 export class EbookController {
     constructor(private readonly ebookService: EbookService) { }
 
-    @Post('firebase/ebooks')
-    async createNewEbook(@Body() createNewEbookDto: CreateEbookDto): Promise<CreateEbookResponseDto> {
-        return this.ebookService.createNewEbook(createNewEbookDto);
+
+
+    //UPLOADS THE FILE TO DATASTORAGE AND REGISTERS THE FILE IN FIRESTORE
+    @ApiOperation({ summary: 'Upload to Datastorage and create an ebook on Firestore' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Post('assets/ebooks')
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadAndCreateEbook(
+        @UploadedFile() file: any,
+        @Body('titlePage') titlePage: string,
+        @Body('title') title: string,
+        @Body('description') description: string,
+        @Body('author') author: string[],
+        @Body('releaseDate') releaseDate: Date,
+        @Body('price') price: number,
+        @Body('language') language: string[],
+        @Body('pageCount') pageCount: number,
+        @Body('genres') genres: EbookGenre[],
+        @Body('format') format: EbookFormat,
+        @Body('publisher') publisher: string,
+    ): Promise<UploadEbookResponseDto> {
+        try {
+            const createNewEbookDto: CreateEbookDto = {
+                title,
+                description,
+                titlePage
+                , author,
+                releaseDate,
+                price,
+                language,
+                pageCount,
+                genres,
+                format,
+                publisher,
+            };
+
+            const result = await this.ebookService.uploadAndCreateEbook(file, createNewEbookDto);
+            return result;
+        } catch (error) {
+            throw new Error(`Error uploading media or creating ebook: ${error.message}`);
+        }
     }
 
 
-    @Put('firebase/ebooks')
-    async updateEbook(@Body() updateEbookDto: Partial<UpdateEbookDto>): Promise<UpdateEbookResponseDto> {
+
+
+
+
+
+    @ApiOperation({ summary: 'Update an ebook registered on Firestore' })
+    @ApiBadRequestResponse({ description: 'Bad request. Check the parameters' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Put('assets/ebooks')
+    async updateEbook(
+        @Query('id') id: string,
+        @Body() updateEbookDto: Partial<UpdateEbookDto>
+    ): Promise<UpdateEbookResponseDto> {
         try {
-            const url = updateEbookDto.url;
-            const response = await this.ebookService.updateEbook(url, updateEbookDto);
+            const response = await this.ebookService.updateEbook(id, updateEbookDto);
             return response;
         } catch (error) {
             console.error('There was an error updating the ebook:', error);
@@ -32,36 +85,24 @@ export class EbookController {
         }
     }
 
-    //NOT IN USE
-    @Delete('firebase/ebooks/:title/:format')
-    async deleteMedia(@Param('title') title: string, @Param('format') format: EbookFormat, @Req() req: Request): Promise<DeleteEbookResponseDto> {
 
-        return await this.ebookService.deleteEbook(title, format);
+    @ApiOperation({ summary: 'Get all ebooks from Firestore or get ebooks based on keywords from their titles' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Get('assets/ebooks')
+    async getEbooks(
+        @Query('keywords') keywords?: string[]
+    ): Promise<GetEbooksResponseDto> {
+        if (keywords && Array.isArray(keywords) && keywords.length > 0) {
+            const response = await this.ebookService.getEbooksByKeywords(keywords);
+            return response;
+        } else {
+            const response =  await this.ebookService.getEbooks();
+            return response;
+        }
     }
 
 
-    @Put('firebase/ebooks/deactivate/:title/:format')
-    async deactivateEbook(
-        @Param('title') title: string,
-        @Param('format') format: EbookFormat,
-    ): Promise<DeleteEbookResponseDto> {
-        return this.ebookService.deactivateEbook(title, format);
-    }
 
-
-
-    @Get('firebase/ebooks')
-    async getMedia(@Req() req: Request): Promise<GetEbooksResponseDto> {
-
-        return this.ebookService.getEbooks();
-    }
-
-
-    @Get('firebase/ebooks/search-by-keywords')
-    async getEbooksByKeywords(@Body('keywords') keywords: string[]): Promise<GetEbooksResponseDto> {
-        const response = await this.ebookService.getEbooksByKeywords(keywords);
-        return response;
-    }
 
 
 }

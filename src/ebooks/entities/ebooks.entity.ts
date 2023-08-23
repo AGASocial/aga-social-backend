@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum, IsBoolean } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum, IsBoolean, IsEmail } from "class-validator";
 
 
 export enum EbookFormat {
@@ -69,12 +69,12 @@ export class Ebook {
 
 
     @ApiProperty({
-        description: 'Publisher of the ebook',
-        example: 'Pepito Perez',
+        description: 'Publisher of the ebook, must be the email of a registered user',
+        example: 'pepito@gmail.com',
         type: String,
     })
     @IsNotEmpty()
-    @IsString()
+    @IsEmail()
     public publisher: string;
 
 
@@ -94,7 +94,7 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsString()
-    public url: string;
+    public url?: string;
 
 
 
@@ -105,7 +105,7 @@ export class Ebook {
     })
     @IsNotEmpty()
     @IsString()
-    public titlePage: string;
+    public titlePage?: string;
 
 
     @ApiProperty({
@@ -184,7 +184,7 @@ export class Ebook {
     @IsInt()
     @IsNotEmpty()
     @IsNumber()
-    public salesCount: number = 0;
+    public salesCount?: number = 0;
 
 
     @ApiProperty({
@@ -195,5 +195,15 @@ export class Ebook {
     })
     @IsBoolean()
     isActive?: boolean = true;
+
+
+
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
+
 
 }

@@ -43,9 +43,7 @@ export class Course {
         description: 'Sections included in the course',
         type: [Section],
     })
-    @IsNotEmpty()
-    @IsArray()
-    public sections: Section[];
+    public sections?: Section[];
 
     @ApiProperty({
         description: 'Tags associated with the course',
@@ -123,6 +121,13 @@ export class Course {
     })
     @IsNotEmpty()
     @IsString()
-    public titlePage: string;
+    public titlePage?: string;
+
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
 
 }

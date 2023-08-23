@@ -56,4 +56,13 @@ export class SignUpDto {
     @IsString()
     public security_answer: string;
 
+
+
+
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
 }

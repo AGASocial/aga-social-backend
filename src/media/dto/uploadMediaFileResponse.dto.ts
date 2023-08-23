@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
-import { DocResult } from "../../utils/docResult.entity";
 
-export class GetUsersEarningsResponseDto {
+export class UploadMediaResponseDto {
 
     @ApiProperty({
         description: 'HTTP response status code',
@@ -15,8 +14,8 @@ export class GetUsersEarningsResponseDto {
     public statusCode: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "USERSEARNINGSRETRIEVEDSUCCESSFULLY"',
-        default: 'USERSEARNINGSRETRIEVEDSUCCESSFULLY',
+        description: 'Descriptive response message, should return "MEDIAUPLOADEDSUCCESSFULLY"',
+        default: 'MEDIAUPLOADEDSUCCESSFULLY',
         type: String,
     })
     @IsString()
@@ -26,18 +25,8 @@ export class GetUsersEarningsResponseDto {
     public message: string;
 
 
-    @ApiProperty({
-        description: 'Array containing the info of user found'
-    })
-    public usersFound: DocResult[]
-
-
-
-    constructor(statusCode: number, message: string, usersFound: DocResult[]) {
+    constructor(statusCode: number, message: string) {
         this.statusCode = statusCode;
         this.message = message;
-        this.usersFound = usersFound;
-
-
     }
 }

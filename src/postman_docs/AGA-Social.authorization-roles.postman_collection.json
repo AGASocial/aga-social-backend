@@ -22,12 +22,11 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/firebase/roles",
+					"raw": "{{server}}authorization/roles",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
-						"firebase",
 						"roles"
 					]
 				}
@@ -49,14 +48,18 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/firebase/roles/Subscriber",
+					"raw": "{{server}}authorization/roles?name=Subscriber",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
-						"firebase",
-						"roles",
-						"Subscriber"
+						"roles"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Subscriber"
+						}
 					]
 				}
 			},
@@ -75,12 +78,11 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{server}}authorization/firebase/roles",
+					"raw": "{{server}}authorization/roles",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
-						"firebase",
 						"roles"
 					]
 				}
@@ -102,16 +104,23 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/firebase/users/armando222@gmail.com/roles/Publisher",
+					"raw": "{{server}}authorization/users/roles?email=armando222@gmail.com&roleName=Publisher",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
-						"firebase",
 						"users",
-						"armando222@gmail.com",
-						"roles",
-						"Publisher"
+						"roles"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "armando222@gmail.com"
+						},
+						{
+							"key": "roleName",
+							"value": "Publisher"
+						}
 					]
 				}
 			},
@@ -132,16 +141,23 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/firebase/users/vincent@gmail.com/roles/TestRole",
+					"raw": "{{server}}authorization/users/roles?email=joel123@gmail.com&roleName=Publisher",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
-						"firebase",
 						"users",
-						"vincent@gmail.com",
-						"roles",
-						"TestRole"
+						"roles"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joel123@gmail.com"
+						},
+						{
+							"key": "roleName",
+							"value": "Publisher"
+						}
 					]
 				}
 			},
@@ -162,14 +178,18 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/firebase/roles/Test",
+					"raw": "{{server}}authorization/roles?roleName=Test",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
-						"firebase",
-						"roles",
-						"Test"
+						"roles"
+					],
+					"query": [
+						{
+							"key": "roleName",
+							"value": "Test"
+						}
 					]
 				}
 			},
