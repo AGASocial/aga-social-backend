@@ -5,6 +5,16 @@ import { Coupon } from "../coupons/entities/coupon.entity";
 
 export class User {
 
+
+
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
+
+
     @ApiProperty({
         description: 'Email the user will use, it must be unique between users',
         example: 'test@gmail.com',
@@ -145,6 +155,17 @@ export class User {
     })
     @IsBoolean()
     isActive?: boolean = true;
+
+
+    @ApiProperty({
+        description: 'URL to the users profile picture file',
+        example: 'https://example.com/picture.jpg',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public profilePicture?: string;
+
 
 }
 

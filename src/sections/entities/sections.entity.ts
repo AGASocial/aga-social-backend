@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString, IsArray, IsBoolean } from "class-validator";
+import { CreateEbookDto } from "../../ebooks/dto/createEbook.dto";
 import { Ebook } from "../../ebooks/entities/ebooks.entity";
+import { CreateMediaDto } from "../../media/dto/createMedia.dto";
 import { Media } from "../../media/entities/media.entity";
 
 export class Section {
@@ -20,16 +22,14 @@ export class Section {
     })
     @IsNotEmpty()
     @IsString()
-   public description: string;
+   public description?: string;
 
 
     @ApiProperty({
         description: 'Media (audios or videos) and Ebooks associated with the section.',
-        type: [Media, Ebook],
+        type: [Media, Ebook, CreateMediaDto, CreateEbookDto],
     })
-    @IsNotEmpty()
-    @IsArray()
-  public  content: (Media | Ebook)[]; 
+    public content?: (Media | Ebook | CreateMediaDto | CreateEbookDto)[]; 
 
     @ApiProperty({
         description: 'Tags or keywords describing the section content.',
@@ -62,6 +62,21 @@ export class Section {
 
 
 
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
 
+
+
+    @ApiProperty({
+        description: 'Titles of the media/ebooks that will be added to the section content.',
+        example: ['mediatitle', 'ebooktitle'],
+        type: [String],
+    })
+    @IsString({ each: true })
+    assetsTitles?: string[];
 
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsEnum, IsUrl } from "class-validator";
+import { IsNotEmpty, IsString, IsEnum, IsUrl, IsBoolean } from "class-validator";
 
 
 export enum MediaType {
@@ -57,4 +57,17 @@ export class UpdateMediaDto {
     })
     @IsString()
     uploadDate?: Date;
+
+
+    @ApiProperty({
+        description: 'Status of the ebook, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true; //isActive
+
+
+
 }

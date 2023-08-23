@@ -26,23 +26,32 @@ import { UsersService } from '../users/users.service';
 import { User } from '../users/users.entity';
 import { SessionService } from '../session/session.service';
 import { cookieTimeMultiplier, jwtSecret, refreshSecret } from '../utils/constants';
-import { ChangeUsernameDto } from './dto/changeUsername.dto';
-import { ChangeUsernameDtoResponse } from './dto/changeUsernameResponse.dto';
 import { ChangeEmailDto } from './dto/changeEmail.dto';
 import { ChangeEmailDtoResponse } from './dto/changeEmailResponse.dto';
-import { ChangeNameDto } from './dto/changeName.dto';
-import { ChangeNameDtoResponse } from './dto/changeNameResponse.dto';
 import { ChangeSecurityAnswerDto } from './dto/changeSecurityAnswer.dto';
 import { ChangeSecurityAnswerDtoResponse } from './dto/changeSecurityAnswerResponse.dto';
-import { GetUsersEarningsResponseDto } from './dto/userEarningsResponse.dto';
-import { ChangeDescriptionDto } from './dto/changeDescription.dto';
-import { ChangeCountryDto } from './dto/changeCountry.dto';
-import { ChangePhoneNumberDto } from './dto/changePhoneNumber.dto';
+import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { UpdateUserResponseDto } from './dto/updateUserResponse.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
+import * as admin from 'firebase-admin';
+import { GetUsersEarningsResponseDto } from './dto/getUsersEarningsResponse.dto';
+
+
+
 dotenv.config();
 @Injectable()
 export class AuthService {
     constructor(private firebaseService: FirebaseService, private jwtService: JwtService, private hashService: HashService, private usersService: UsersService, private sessionService: SessionService) { }
 
+
+
+
+
+    @ApiOperation({ summary: 'User login' })
+    @ApiBody({ type: LogInDto })
+    @ApiCreatedResponse({ description: 'Login successful', type: LogInResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid credentials' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseLogin(logInDto: LogInDto): Promise<LogInResponseDto> {
         console.log('firebaseLogin - Start of function');
 
@@ -116,7 +125,9 @@ export class AuthService {
     }
 
 
-
+    @ApiOkResponse({ description: 'Session token successfully refreshed', type: RefreshResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid refresh token' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseRefresh(refreshDto: RefreshDto): Promise<RefreshResponseDto> {
         const userId = this.usersService.extractID(refreshDto.refresh_token);
         const userSnap = await this.usersService.getUserById(userId);
@@ -130,13 +141,18 @@ export class AuthService {
         return refreshDtoResponse;
     }
 
+
+
+
+    @ApiCreatedResponse({ description: 'User registration successful', type: SignUpDtoResponse })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or username already exists' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseSignUp(signUpDto: SignUpDto): Promise<SignUpDtoResponse> {
         const roleId = process.env.SUBSCRIBER_ID;
         const roleRef = doc(this.firebaseService.fireStore, 'roles', roleId);
         const roleSnapshot = await getDoc(roleRef);
         const roleData = roleSnapshot.data();
         const roleEntity: Role = {
-            
             name: roleData.name,
             description: roleData.description,
             isDefault: roleData.isDefault,
@@ -174,9 +190,10 @@ export class AuthService {
             console.log('After createUserWithEmailAndPassword...');
 
             if (userCredential) {
-                
-                const id: string = userCredential.user.uid;
+                const id: string = userCredential.user.uid; 
+
                 let newUser: User = {
+                    id, 
                     email: email,
                     username: username,
                     password: hashedPassword,
@@ -192,33 +209,16 @@ export class AuthService {
                     country: '',
                     phoneNumber: '',
                     isActive: true,
+                    profilePicture: ''
                 };
+
                 let docReference: DocumentReference = doc(this.firebaseService.usersCollection, id);
                 await setDoc(docReference, newUser);
 
-
-                const cachedCourses = await this.firebaseService.getCollectionData('users');
-                cachedCourses.push({
-                    email,
-                    username,
-                    password,
-                    name,
-                    security_answer,
-                    role: [roleEntity],
-                    purchasedBooks: [],
-                    purchasedCourses: [],
-                    courseEarnings: 0,
-                    ebookEarnings: 0,
-                    coupons: [],
-                    description: '',
-                    country: '',
-                    phoneNumber: '',
-                    isActive: true,
-
-                });
-                this.firebaseService.setCollectionData('users', cachedCourses);
+                const cachedUsers = await this.firebaseService.getCollectionData('users');
+                cachedUsers.push(newUser);
+                this.firebaseService.setCollectionData('users', cachedUsers);
                 console.log('User added to the cache successfully.');
-
 
                 const signUpDtoResponse: SignUpDtoResponse = {
                     statusCode: 201,
@@ -231,7 +231,13 @@ export class AuthService {
         }
     }
 
+
     //NOT IN USE
+
+    @ApiOkResponse({ description: 'User successfully deleted', type: DeleteUserResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
+    @ApiUnauthorizedResponse({ description: 'Unauthorized: Incorrect security answer' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseDeleteUser(deleteUserDto: DeleteUserDto): Promise<DeleteUserResponseDto> {
         const { email, security_answer } = deleteUserDto;
 
@@ -277,6 +283,10 @@ export class AuthService {
 
 
 
+    /*
+    @ApiOkResponse({ description: 'User successfully deactivated', type: DeleteUserResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: User not found or deactivation failed' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async deactivateUser(email: string): Promise<DeleteUserResponseDto> {
         try {
             console.log('Initiating user deactivation...');
@@ -320,14 +330,16 @@ export class AuthService {
             console.error('Error: ', error);
             throw new BadRequestException('An error occurred while trying to deactivate the user.');
         }
-    }
+    }*/
 
 
 
 
 
 
-
+    @ApiOkResponse({ description: 'Password successfully recovered', type: RecoverPasswordDtoResponse })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid user, wrong security answer, or password recovery failed' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseRecoverPassword(recoverPasswordDto: RecoverPasswordDto): Promise<RecoverPasswordDtoResponse> {
         console.log('firebaseRecoverPassword - Start of function');
 
@@ -404,6 +416,10 @@ export class AuthService {
 
     
 
+
+    @ApiOkResponse({ description: 'Password successfully changed', type: ChangePasswordDtoResponse })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid password or password change failed' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseChangePassword(changePasswordDto: ChangePasswordDto, jwtToken: string) {
         const { password, new_password } = changePasswordDto;
 
@@ -434,6 +450,10 @@ export class AuthService {
         return changePasswordDtoResponse;
     }
 
+
+
+    @ApiOkResponse({ description: 'Logout successful', type: LogOutResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseLogout(): Promise<LogOutResponseDto> {
         try {
             this.firebaseService.auth.signOut;
@@ -446,6 +466,9 @@ export class AuthService {
     }
 
 
+
+    @ApiOkResponse({ description: 'Users retrieved successfully', type: GetUsersResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getUsers(): Promise<GetUsersResponseDto> {
         try {
             console.log('Initializing getUsers...');
@@ -467,6 +490,8 @@ export class AuthService {
                     country: user.country,
                     phoneNumber: user.phoneNumber,
                     isActive: user.isActive,
+                    profilePicture: user.profilePicture,
+
 
                 }));
 
@@ -503,6 +528,8 @@ export class AuthService {
                     country: data.country,
                     phoneNumber: data.phoneNumber,
                     isActive: data.isActive,
+                    profilePicture: data.profilePicture,
+
 
 
                 });
@@ -528,6 +555,10 @@ export class AuthService {
 
 
 
+
+    @ApiOkResponse({ description: 'User retrieved successfully', type: GetUsersResponseDto })
+    @ApiNotFoundResponse({ description: 'User not found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getSingleUser(email: string): Promise<GetUsersResponseDto> {
         try {
             console.log('Initializing getSingleUser...');
@@ -550,7 +581,9 @@ export class AuthService {
                         coupons: user.coupons,
                         description: user.description,
                         country: user.country,
-                        phoneNumber: user.phoneNumber
+                        phoneNumber: user.phoneNumber,
+                        profilePicture: user.profilePicture,
+
 
                     };
                     const getSingleUserDtoResponse: GetUsersResponseDto = {
@@ -584,7 +617,9 @@ export class AuthService {
                     coupons: data.coupons,
                     description: data.description,
                     country: data.country,
-                    phoneNumber: data.phoneNumber
+                    phoneNumber: data.phoneNumber,
+                    profilePicture: data.profilePicture,
+
 
 
                 };
@@ -611,62 +646,16 @@ export class AuthService {
 
 
 
-    async changeUsername(changeUsernameDto: ChangeUsernameDto, jwtToken: string): Promise<ChangeUsernameDtoResponse> {
-        try {
-            const { password, username, email } = changeUsernameDto;
-
-            console.log('Initiating changeUsername...');
-
-            const user = await this.firebaseService.getUserByEmail(email);
-            const userID = this.usersService.extractID(jwtToken);
-            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
-            const singleUserSnap = await getDoc(singleUserReference);
-
-            if (!user) {
-                console.log('User not found.');
-                throw new BadRequestException('User not found.');
-            }
-
-            console.log('User found:', user);
-
-            const doPasswordsMatch = await this.hashService.compareHashedStrings(password, user.password);
-
-            if (!doPasswordsMatch) {
-                console.log('Incorrect credentials.');
-                throw new BadRequestException('Incorrect credentials.');
-            }
-
-            console.log('Passwords match.');
-
-
-            try {
-                await updateDoc(singleUserReference, {
-                    username: username
-                });
-            } catch (error: unknown) {
-                console.warn(`[ERROR]: ${error}`);
-            }
-
-            
-
-            console.log('Username updated successfully.');
-
-            const response: ChangeUsernameDtoResponse = {
-                statusCode: 200,
-                message: 'NEWUSERNAMEASSIGNED',
-            };
-
-            console.log('changeUsername completed successfully.');
-
-            return response;
-        } catch (error) {
-            console.error('Error: ', error);
-            throw new BadRequestException('An error occurred while trying to change the username.');
-        }
-    }
 
 
 
+   
+
+
+
+    @ApiOkResponse({ description: 'Email changed successfully', type: ChangeEmailDtoResponse })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async changeEmail(changeEmailDto: ChangeEmailDto, jwtToken: string): Promise<ChangeEmailDtoResponse> {
         try {
             const { old_email, security_answer, new_email } = changeEmailDto;
@@ -732,200 +721,8 @@ export class AuthService {
 
 
 
-
-    async changeName(changeNameDto: ChangeNameDto, jwtToken: string): Promise<ChangeNameDtoResponse> {
-        try {
-            const { password, name, email } = changeNameDto;
-
-            console.log('Initiating changeName...');
-
-            const user = await this.firebaseService.getUserByEmail(email);
-            const userID = this.usersService.extractID(jwtToken); 
-            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
-            const singleUserSnap = await getDoc(singleUserReference);
-
-            if (!user) {
-                console.log('User not found.');
-                throw new BadRequestException('User not found.');
-            }
-
-            console.log('User found:', user);
-
-            const doPasswordsMatch = await this.hashService.compareHashedStrings(password, user.password);
-
-            if (!doPasswordsMatch) {
-                console.log('Incorrect credentials.');
-                throw new BadRequestException('Incorrect credentials.');
-            }
-
-            console.log('Passwords match.');
-
-            try {
-                await updateDoc(singleUserReference, {
-                    name: name
-                });
-            } catch (error: unknown) {
-                console.warn(`[ERROR]: ${error}`);
-            }
-
-            console.log('Name updated successfully.');
-
-            const response: ChangeNameDtoResponse = {
-                statusCode: 200,
-                message: 'NEWNAMEASSIGNED',
-            };
-
-            console.log('changeName completed successfully.');
-
-            return response;
-        } catch (error) {
-            console.error('Error: ', error);
-            throw new BadRequestException('An error occurred while trying to change the name.');
-        }
-    }
-
-
-
-
-    async changeDescription(changeDescriptionDto: ChangeDescriptionDto, jwtToken: string): Promise<ChangeNameDtoResponse> {
-        try {
-            const { description, email } = changeDescriptionDto;
-
-            console.log('Initiating changeDescription...');
-
-            const user = await this.firebaseService.getUserByEmail(email);
-            const userID = this.usersService.extractID(jwtToken);
-            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
-            const singleUserSnap = await getDoc(singleUserReference);
-
-            if (!user) {
-                console.log('User not found.');
-                throw new BadRequestException('User not found.');
-            }
-
-            console.log('User found:', user);
-
-
-            try {
-                await updateDoc(singleUserReference, {
-                    description: description
-                });
-            } catch (error: unknown) {
-                console.warn(`[ERROR]: ${error}`);
-            }
-
-            console.log('Description updated successfully.');
-
-            const response: ChangeNameDtoResponse = {
-                statusCode: 200,
-                message: 'NEWDESCRIPTIONASSIGNED', 
-            };
-
-            console.log('changeDescription completed successfully.');
-
-            return response;
-        } catch (error) {
-            console.error('Error: ', error);
-            throw new BadRequestException('An error occurred while trying to change the description.');
-        }
-    }
-
-
-
-
-    async changeCountry(changeCountryDto: ChangeCountryDto, jwtToken: string): Promise<ChangeNameDtoResponse> {
-        try {
-            const { country, email } = changeCountryDto;
-
-            console.log('Initiating changeCountry...');
-
-            const user = await this.firebaseService.getUserByEmail(email);
-            const userID = this.usersService.extractID(jwtToken);
-            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
-            const singleUserSnap = await getDoc(singleUserReference);
-
-            if (!user) {
-                console.log('User not found.');
-                throw new BadRequestException('User not found.');
-            }
-
-            console.log('User found:', user);
-
-            try {
-                await updateDoc(singleUserReference, {
-                    country: country
-                });
-            } catch (error: unknown) {
-                console.warn(`[ERROR]: ${error}`);
-            }
-
-            console.log('Country updated successfully.');
-
-            const response: ChangeNameDtoResponse = {
-                statusCode: 200,
-                message: 'NEWCOUNTRYASSIGNED', // Puedes ajustar el mensaje si lo deseas
-            };
-
-            console.log('changeCountry completed successfully.');
-
-            return response;
-        } catch (error) {
-            console.error('Error: ', error);
-            throw new BadRequestException('An error occurred while trying to change the country.');
-        }
-    }
-
-
-
-    async changePhoneNumber(changePhoneNumberDto: ChangePhoneNumberDto, jwtToken: string): Promise<ChangeNameDtoResponse> {
-        try {
-            const { phoneNumber, email } = changePhoneNumberDto;
-
-            console.log('Initiating changePhoneNumber...');
-
-            const user = await this.firebaseService.getUserByEmail(email);
-            const userID = this.usersService.extractID(jwtToken);
-            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
-            const singleUserSnap = await getDoc(singleUserReference);
-
-            if (!user) {
-                console.log('User not found.');
-                throw new BadRequestException('User not found.');
-            }
-
-            console.log('User found:', user);
-
-            try {
-                await updateDoc(singleUserReference, {
-                    phoneNumber: phoneNumber
-                });
-            } catch (error: unknown) {
-                console.warn(`[ERROR]: ${error}`);
-            }
-
-            console.log('Phone number updated successfully.');
-
-            const response: ChangeNameDtoResponse = {
-                statusCode: 200,
-                message: 'NEWPHONENUMBERASSIGNED', // Puedes ajustar el mensaje si lo deseas
-            };
-
-            console.log('changePhoneNumber completed successfully.');
-
-            return response;
-        } catch (error) {
-            console.error('Error: ', error);
-            throw new BadRequestException('An error occurred while trying to change the phone number.');
-        }
-    }
-
-
-
-
-
-
-
-
+    @ApiOkResponse({ description: 'Security answer changed successfully', type: ChangeSecurityAnswerDtoResponse })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or incorrect credentials' })
     async changeSecurityAnswer(changeSecurityAnswerDto: ChangeSecurityAnswerDto, jwtToken: string): Promise<ChangeSecurityAnswerDtoResponse> {
         const { email, password, new_security_answer } = changeSecurityAnswerDto;
 
@@ -961,6 +758,9 @@ export class AuthService {
     }
 
 
+    /*
+    @ApiOkResponse({ description: 'Security answer changed successfully', type: ChangeSecurityAnswerDtoResponse })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or incorrect credentials' })
     async getUserEbookEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
         try {
             const userResponse = await this.getSingleUser(email);
@@ -988,9 +788,13 @@ export class AuthService {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving ebook earnings.');
         }
-    }
+    }*/
 
 
+
+    /*
+    @ApiOkResponse({ description: 'User courses earnings retrieved successfully', type: GetUsersEarningsResponseDto })
+    @ApiNotFoundResponse({ description: 'User not found or courses earnings missing' })
     async getUserCoursesEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
         try {
             const userResponse = await this.getSingleUser(email);
@@ -1018,10 +822,11 @@ export class AuthService {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving courses earnings.');
         }
-    }
+    }*/
 
-
-
+/*
+    @ApiOkResponse({ description: 'User total earnings retrieved successfully', type: GetUsersEarningsResponseDto })
+    @ApiNotFoundResponse({ description: 'User not found or earnings missing' })
     async getUserTotalEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
         try {
             const userResponse = await this.getSingleUser(email);
@@ -1057,6 +862,152 @@ export class AuthService {
         } catch (error) {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving total earnings.');
+        }
+    }
+    */
+
+
+
+
+
+
+    async updateUser(id: string, newData: Partial<UpdateUserDto>, jwtToken: string): Promise<UpdateUserResponseDto> {
+        try {
+            console.log('Initializing updateUser...');
+
+            const {
+                username,
+                name,
+                security_answer,
+                description,
+                country,
+                phoneNumber,
+                isActive,
+                profilePicture,
+                new_email,
+            } = newData;
+
+
+            const usersCollectionRef = admin.firestore().collection('users');
+
+            const querySnapshot = await usersCollectionRef.where('id', '==', id).get();
+
+            if (querySnapshot.empty) {
+                console.log(`The user with the id"${id}" does not exist.`);
+                throw new Error('USERDOESNOTEXIST.');
+            }
+
+            const usersRef = collection(this.firebaseService.fireStore, 'users');
+
+
+            if (username) {
+                const customUserWhere: QueryFieldFilterConstraint = where('username', '==', username);
+                console.log('customUserWhere:', customUserWhere);
+
+                const userQuery = query(usersRef, customUserWhere);
+
+                const userQuerySnapshot = await getDocs(userQuery);
+
+                if (!userQuerySnapshot.empty) {
+                    throw new BadRequestException('USERNAMEEXISTS');
+                }
+
+            }
+
+            const userID = this.usersService.extractID(jwtToken);
+
+            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
+
+            const singleUserSnap = await getDoc(singleUserReference);
+
+
+            if (new_email) {
+
+                try {
+                    const auth = getAuth();
+                    const userCredential = await updateEmail(auth.currentUser, new_email);
+                    console.log('Email Updated in Firebase Auth.');
+
+                } catch (error: unknown) {
+                    console.warn(`[ERROR]: ${error}`);
+                    throw new BadRequestException('An error occurred while updating the email.');
+                }
+
+                try {
+                    await updateDoc(singleUserReference, {
+                        email: new_email
+                    });
+                    console.log('Email updated in Firestore:', new_email);
+                } catch (error: unknown) {
+                    console.warn(`[ERROR]: ${error}`);
+                    throw new BadRequestException('An error occurred while updating the email in Firestore.');
+                }
+
+            }
+
+            const batch = admin.firestore().batch();
+            querySnapshot.forEach((doc) => {
+                batch.update(doc.ref, newData);
+            });
+
+            await batch.commit();
+            console.log(`Updated info for user with id "${id}"`);
+
+            const response: UpdateUserResponseDto = {
+                statusCode: 200,
+                message: 'USERUPDATEDSUCCESSFULLY',
+            };
+
+            return response;
+        } catch (error) {
+            console.error('There was an error updating the user data:', error);
+            throw error;
+        }
+    }
+
+
+
+
+    async getUsersEarnings(id: string): Promise<GetUsersEarningsResponseDto> {
+        try {
+            const usersRef = collection(this.firebaseService.fireStore, 'users');
+            const customUserWhere = where('id', '==', id);
+            const userQuery = query(usersRef, customUserWhere);
+
+            const userQuerySnapshot = await getDocs(userQuery);
+
+            if (userQuerySnapshot.empty) {
+                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
+                    404,
+                    'USERNOTFOUNDORCOURSESEARNINGSMISSING',
+                    []
+                );
+
+                return usersEarningsResponse;
+            }
+
+            const userDoc = userQuerySnapshot.docs[0];
+            const user = userDoc.data();
+            const ebookEarnings = user?.ebookEarnings || 0;
+            const courseEarnings = user?.courseEarnings || 0;
+            const totalEarnings = ebookEarnings + courseEarnings;
+
+            const earningsInfo = {
+                ebookEarnings: ebookEarnings,
+                courseEarnings: courseEarnings,
+                totalEarnings: totalEarnings
+            };
+
+            const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
+                200,
+                'EARNINGSRETRIEVEDSUCCESSFULLY',
+                [earningsInfo]
+            );
+
+            return usersEarningsResponse;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving user earnings.');
         }
     }
 

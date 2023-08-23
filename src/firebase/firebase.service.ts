@@ -39,7 +39,7 @@ export class FirebaseService {
         sections: [],
         courses: [],
         messages: [],
-        coupons: []
+        coupons: [],
     };
 
    
@@ -79,11 +79,14 @@ export class FirebaseService {
 
 
 
+
         this.initializeCollectionCaches();
 
       
        
     }
+
+
 
 
 

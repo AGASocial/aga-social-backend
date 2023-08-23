@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum, IsBoolean } from "class-validator";
 import { EbookFormat, EbookGenre } from 'src/ebooks/entities/ebooks.entity';
 
 export class UpdateEbookDto {
@@ -106,4 +106,27 @@ export class UpdateEbookDto {
     @IsNotEmpty()
     @IsEnum(EbookFormat)
     format?: EbookFormat;
+
+
+
+    @ApiProperty({
+        description: 'Firestore ID of the ebook',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
+
+
+
+
+    @ApiProperty({
+        description: 'Status of the ebook, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
+
 }

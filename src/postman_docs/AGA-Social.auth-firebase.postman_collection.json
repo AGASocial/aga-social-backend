@@ -17,7 +17,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"yhormang555@gmail.com\",\r\n  \"username\": \"Yhormang.555\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Yhormang\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"pruebita@gmail.com\",\r\n  \"username\": \"Pruebita.123\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Pruebita\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -25,13 +25,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/firebase/signup",
+					"raw": "{{server}}auth/users",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"signup"
+						"users"
 					]
 				}
 			},
@@ -44,7 +43,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"armando222@gmail.com\",\r\n  \"password\": \"Vitra/?13\"\r\n}",
+					"raw": "{\r\n  \"email\": \"pruebita@gmail.com\",\r\n  \"password\": \"Viztrak/?1344\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -52,31 +51,45 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/firebase/login",
+					"raw": "{{server}}auth/users/sessions",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"login"
+						"users",
+						"sessions"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Refrescar Firebase Session",
+			"name": "Actualizar User",
 			"request": {
 				"method": "PUT",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n     \r\n    \"isActive\": true\r\n   \r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{server}}auth/firebase/session",
+					"raw": "{{server}}auth/users?id=nyoBoIroCqNTL7FnInQohxF7t7I2",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"session"
+						"users"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "nyoBoIroCqNTL7FnInQohxF7t7I2"
+						}
 					]
 				}
 			},
@@ -85,11 +98,11 @@
 		{
 			"name": "Recuperar Contrasena de Usuario Firebase",
 			"request": {
-				"method": "POST",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"user\": \"Joel.15\",\r\n  \"security_answer\": \"perfect blue\",\r\n  \"new_password\": \"Viztrak/?1344\"\r\n}",
+					"raw": "{\r\n  \"user\": \"pruebita@gmail.com\",\r\n  \"security_answer\": \"Perfect Green\",\r\n  \"new_password\": \"Viztrak/?1344\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -97,13 +110,26 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/firebase/credentials",
+					"raw": "{{server}}auth/users?email=pruebita@gmail.com&security_answer=Perfect Green&new_password=Viztrak/?1344",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"credentials"
+						"users"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "pruebita@gmail.com"
+						},
+						{
+							"key": "security_answer",
+							"value": "Perfect Green"
+						},
+						{
+							"key": "new_password",
+							"value": "Viztrak/?1344"
+						}
 					]
 				}
 			},
@@ -112,7 +138,7 @@
 		{
 			"name": "Cambiar Contrasena de Usuario Firebase",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
@@ -124,13 +150,80 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/firebase/credentials",
+					"raw": "{{server}}auth/users?password=Vitra/?13&new_password=NewPass123/.",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"credentials"
+						"users"
+					],
+					"query": [
+						{
+							"key": "password",
+							"value": "Vitra/?13"
+						},
+						{
+							"key": "new_password",
+							"value": "NewPass123/."
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar Security Answer",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"new_security_answer\": \"Perfect Green\",\r\n  \"email\": \"pruebita@gmail.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}auth/users?email=new_email@example.com&password=Vitra/?13&new_security_answer=Perfect Green",
+					"host": [
+						"{{server}}auth"
+					],
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "new_email@example.com"
+						},
+						{
+							"key": "password",
+							"value": "Vitra/?13"
+						},
+						{
+							"key": "new_security_answer",
+							"value": "Perfect Green"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refrescar Firebase Session",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{server}}auth/users/sessions",
+					"host": [
+						"{{server}}auth"
+					],
+					"path": [
+						"users",
+						"sessions"
 					]
 				}
 			},
@@ -149,40 +242,13 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{server}}auth/firebase/logout",
+					"raw": "{{server}}auth/users/sessions",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"logout"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Eliminar Usuario Firebase",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"joel115@gmail.com\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/delete",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"delete"
+						"users",
+						"sessions"
 					]
 				}
 			},
@@ -194,125 +260,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}auth/firebase/users",
+					"raw": "{{server}}auth/users",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
 						"users"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cambiar Username",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"username\": \"Updated.1\",\r\n  \"email\": \"joel115@gmail.com\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/users/username",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"users",
-						"username"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cambiar Email",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"old_email\": \"joel115@gmail.com\",\r\n  \"security_answer\": \"perfect blue\",\r\n  \"new_email\": \"new_email@example.com\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/users/email",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"users",
-						"email"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cambiar Name",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"NewName\",\r\n  \"email\": \"new_email@example.com\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/users/name",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"users",
-						"name"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cambiar Security Answer",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"new_security_answer\": \"Perfect Green\",\r\n  \"email\": \"new_email@example.com\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/users/security-answer",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"users",
-						"security-answer"
 					]
 				}
 			},
@@ -336,99 +289,54 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/firebase/users/armando222@gmail.com",
+					"raw": "{{server}}auth/users?email=joel123@gmail.com",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"users",
-						"armando222@gmail.com"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Ganancias Ebooks de Usuario",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
+						"users"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joel123@gmail.com"
 						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/users/armando222@gmail.com/ebook-earnings",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"users",
-						"armando222@gmail.com",
-						"ebook-earnings"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Consultar Ganancias Cursos de Usuario",
+			"name": "Consultar Ganancias Usuarios",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}auth/firebase/users/armando222@gmail.com/courses-earnings",
+					"raw": "{{server}}auth/users?id=nyoBoIroCqNTL7FnInQohxF7t7I2",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"users",
-						"armando222@gmail.com",
-						"courses-earnings"
+						"users"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "nyoBoIroCqNTL7FnInQohxF7t7I2"
+						}
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Consultar Ganancias Totales Usuario",
+			"name": "Eliminar Usuario Firebase",
 			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{server}}auth/firebase/users/armando222@gmail.com/total-earnings",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"users",
-						"armando222@gmail.com",
-						"total-earnings"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cambiar Description",
-			"request": {
-				"method": "PUT",
+				"method": "DELETE",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n \r\n  \"description\": \"Updated Description\",\r\n  \"email\": \"armando222@gmail.com\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"joel115@gmail.com\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -436,97 +344,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/firebase/users/description",
+					"raw": "{{server}}auth/users",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"firebase",
-						"users",
-						"description"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cambiar Country",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n \r\n  \"country\": \"Venezuela\",\r\n  \"email\": \"armando222@gmail.com\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/users/country",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"users",
-						"country"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cambiar PhoneNumber",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n \r\n  \"phoneNumber\": \"+58 123 7088\",\r\n  \"email\": \"armando222@gmail.com\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/users/phoneNumber",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"users",
-						"phoneNumber"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar un Usuario",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n \"email\": \"armando222@gmail.com\"\r\n\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/firebase/deactivate",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"firebase",
-						"deactivate"
+						"users"
 					]
 				}
 			},

@@ -1,26 +1,33 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, InternalServerErrorException, NotFoundException, Param, Post, Put, Query } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, HttpException, HttpStatus, InternalServerErrorException, NotFoundException, Param, Post, Put, Query } from "@nestjs/common";
+import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { CreateMessageDto } from "./dto/createMessage.dto";
 import { CreateMessageResponseDto } from "./dto/createMessageResponse.dto";
 import { DeleteMessageDto } from "./dto/deleteMessage.dto";
 import { DeleteMessageResponseDto } from "./dto/deleteMessageResponse.dto";
 import { GetMessagesByKeywordsDto } from "./dto/getMessagesByKeywords.dto";
 import { GetMessagesByUserResponseDto } from "./dto/getMessagesByUserResponse.dto";
+import {GetMessagesFilteredDto } from "./dto/getMessagesFiltered.dto";
 import { MarkAsArchivedDto } from "./dto/markAsArchived.dto";
 import { MarkAsArchivedResponseDto } from "./dto/markAsArchivedResponse.dto";
 import { MarkAsReadDto } from "./dto/markAsRead.dto";
 import { MarkAsReadResponseDto } from "./dto/markAsReadResponse.dto";
+import { UpdateMessageStatusDto } from "./dto/updateMessageStatus.dto";
+import { UpdateMessageStatusResponseDto } from "./dto/updateMessageStatusResponse.dto";
 import { MessageService } from "./message.service";
 
 
-
-
-
 @Controller()
+@ApiTags('Messages')
 export class MessageController {
     constructor(private readonly messageService: MessageService) { }
 
 
-    @Post('firebase/messages')
+
+    @ApiOperation({ summary: 'Creates and sends a message to a user' })
+    @ApiCreatedResponse({ description: 'Message created successfully.', type: CreateMessageResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad request.' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
+    @Post('messages')
     async createAndSendMessage(@Body() createNewMessageDto: CreateMessageDto): Promise<CreateMessageResponseDto> {
         try {
             const responseDto = await this.messageService.createAndSendMessage(createNewMessageDto);
@@ -31,9 +38,13 @@ export class MessageController {
         }
     }
 
-
+    /*
     //NOT IN USE
-    @Delete('firebase/messages')
+    @ApiOperation({ summary: 'Delete messages from firebase (Not in use)' })
+    @ApiNotFoundResponse({ description: 'Message not found.' })
+    @ApiBadRequestResponse({ description: 'Bad request.' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
+    @Delete('messages')
     async deleteMessage(@Body() deleteMessageDto: DeleteMessageDto): Promise<DeleteMessageResponseDto> {
         try {
             const responseDto = await this.messageService.deleteMessage(deleteMessageDto);
@@ -45,110 +56,52 @@ export class MessageController {
             }
             throw new InternalServerErrorException('INTERNALERROR');
         }
-    }
+    }*/
 
 
 
-    @Post('firebase/messages/deactivate')
-    async deactivateMessage(@Body() deleteMessageDto: DeleteMessageDto): Promise<DeleteMessageResponseDto> {
-        return this.messageService.deactivateMessage(deleteMessageDto);
-    }
-
-
-
-    @Get('firebase/messages/:userEmail')
-    async getUserMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        return this.messageService.getUserMessages(userEmail);
-    }
-
-
-    @Get('firebase/messages/received/:userEmail')
-    async getReceivedMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        return this.messageService.getReceivedMessages(userEmail);
-    }
-
-    @Get('firebase/messages/sent/:userEmail')
-    async getSentMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        return this.messageService.getSentMessages(userEmail);
-    }
-
-
-
-    @Put('firebase/messages/mark-as-read')
-    async markMessageAsRead(@Body() markMessageAsReadDto: MarkAsReadDto): Promise<MarkAsReadResponseDto> {
-        try {
-            const response = await this.messageService.markMessageAsRead(markMessageAsReadDto);
-            return response;
-        } catch (error: unknown) {
-            console.error('[ERROR]', error);
-            throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
-
-    @Get('firebase/messages/inquiries/:userEmail')
-    async getInquiryMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        return this.messageService.getInquiryMessages(userEmail);
-    }
-
-
-
-    @Get('firebase/messages/complaints/:userEmail')
-    async getComplaintMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        return this.messageService.getComplaintMessages(userEmail);
-    }
-
-
-
-
-    @Get('firebase/messages/keywords/:userEmail')
-    async searchMessagesByKeywords(
-        @Param('userEmail') userEmail: string,
-        @Body('keywords') keywords: string[]
+    @ApiOperation({ summary: 'Get messages by user email, keywords or filters' })
+    @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
+    @Get('messages')
+    async getMessages(
+        @Query('filter') filter: string,
+        @Query('email') email: string,
+        @Query('keywords') keywords: string[] 
     ): Promise<GetMessagesByUserResponseDto> {
+        if (filter && email) {
+            return await this.messageService.getFilteredMessages(filter, email);
+        } else if (email && keywords && keywords.length > 0) {
+            return await this.messageService.searchMessagesByKeywords(email, keywords);
+        } else if (email) {
+            return this.messageService.getUserMessages(email);
+        } else {
+            throw new BadRequestException('Invalid parameters');
+        }
+    }
+
+
+
+
+    @ApiOperation({ summary: 'Update message status to read, unread, inquiry, complaint, archived, unarchived, deactivated, activated' })
+    @ApiOkResponse({ description: 'Message status updated successfully', type: UpdateMessageStatusResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Put('messages')
+    async updateMessageStatus(
+        @Body() dto: UpdateMessageStatusDto,
+    ): Promise<UpdateMessageStatusResponseDto> {
         try {
-            const responseDto = await this.messageService.searchMessagesByKeywords(userEmail, keywords);
-            return responseDto;
+            return await this.messageService.updateMessageStatus(dto);
         } catch (error) {
-            console.error('Error:', error);
-            if (error instanceof NotFoundException) {
-                throw new NotFoundException(error.message);
-            }
-            throw new InternalServerErrorException('INTERNALERROR');
+            console.error('An error occurred:', error);
+            throw new Error('There was an error updating the message status.');
         }
     }
 
 
 
-    @Put('firebase/messages/mark-as-archived')
-    async markMessageAsArchived(@Body() markMessageAsArchivedDto: MarkAsArchivedDto): Promise<MarkAsArchivedResponseDto> {
-        try {
-            const response = await this.messageService.archiveMessage(markMessageAsArchivedDto);
-            return response;
-        } catch (error: unknown) {
-            console.error('[ERROR]', error);
-            throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+   
 
-
-    @Get('firebase/messages/archived/:userEmail')
-    async getArchivedMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        return this.messageService.getArchivedMessages(userEmail);
-    }
-
-
-    @Get('firebase/messages/read/:userEmail')
-    async getReadMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        return this.messageService.getReadMessages(userEmail);
-    }
-
-
-    @Get('firebase/messages/unread/:userEmail')
-    async getUnreadMessages(@Param('userEmail') userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        return this.messageService.getUnreadMessages(userEmail);
-    }
 
 
 }

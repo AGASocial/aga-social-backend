@@ -23,7 +23,7 @@ export class CreateSectionDto {
     })
     @IsNotEmpty()
     @IsString()
-    description: string;
+    description?: string;
 
    
 
@@ -31,8 +31,6 @@ export class CreateSectionDto {
         description: 'Media (audios or videos) and Ebooks associated with the section.',
         type: [CreateEbookDto, CreateMediaDto],
     })
-    @IsNotEmpty()
-    @IsArray()
     content: (CreateMediaDto | CreateEbookDto)[];
 
     @ApiProperty({
@@ -45,9 +43,29 @@ export class CreateSectionDto {
     @IsString({ each: true })
     tags: string[];
 
+
+
+    @ApiProperty({
+        description: 'Titles of the media/ebooks that will be added to the section content. Must already exist in firestore and datastorage',
+        example: ['mediatitle', 'ebooktitle'],
+        type: [String],
+    })
+    @IsString({ each: true })
+    assetsTitles?: string[];
+
+
+
+
     @ApiProperty({
         description: 'Subsections within the section.',
         type: [Section], // Each subsection is also a Section entity
     })
     public subsections?: Section[];
+
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
 }

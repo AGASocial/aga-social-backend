@@ -20,7 +20,7 @@ export class AppController {
     constructor(private authService: AuthService, private abilityFactory: AbilityFactory, private authorizationService: AuthorizationService, private dataFiltererService: DataFiltererService) { }
 
 
-
+/*
    @UseGuards(JwtAuthGuard)
     @Get('mock/subscriber')
     @Roles("subscriber")
@@ -119,6 +119,6 @@ export class AppController {
 
         return getUserByIdResponseDto;
     }
-
+    */
 }
 

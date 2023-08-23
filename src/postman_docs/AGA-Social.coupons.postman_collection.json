@@ -22,12 +22,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/coupons",
+					"raw": "{{server}}coupons",
 					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons"
+						"{{server}}coupons"
 					]
 				}
 			},
@@ -48,12 +45,11 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/coupons/SUMMER10",
+					"raw": "{{server}}coupons/SUMMER10",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}coupons"
 					],
 					"path": [
-						"coupons",
 						"SUMMER10"
 					]
 				}
@@ -61,13 +57,13 @@
 			"response": []
 		},
 		{
-			"name": "Eliminar Coupon",
+			"name": "Redimir Coupon",
 			"request": {
-				"method": "DELETE",
+				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n \"code\": \"SUMMER25\"\r\n\r\n}",
+					"raw": "{\r\n  \"useremail\": \"amanda111@gmail.com\",\r\n  \"couponCode\": \"SUMMER50\",\r\n  \"resourceType\": \"Course\",\r\n  \"resourceTitle\": \"a\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -75,13 +71,39 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/coupons/SUMMER25",
+					"raw": "{{server}}coupons/ebooks/courses",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}coupons"
 					],
 					"path": [
-						"coupons",
-						"SUMMER25"
+						"ebooks",
+						"courses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Asignar Coupon a User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"fernanda333@gmail.com\",\r\n  \"couponCode\": \"WINTER25\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}coupons/users",
+					"host": [
+						"{{server}}coupons"
+					],
+					"path": [
+						"users"
 					]
 				}
 			},
@@ -105,133 +127,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/coupons",
+					"raw": "{{server}}coupons",
 					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Redimir Coupon",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"useremail\": \"amanda111@gmail.com\",\r\n  \"couponCode\": \"SUMMER50\",\r\n  \"resourceType\": \"Course\",\r\n  \"resourceTitle\": \"a\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/coupons/redeem",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons",
-						"redeem"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Asignar Coupon a User",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"fernanda333@gmail.com\",\r\n  \"couponCode\": \"WINTER25\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/coupons/assign",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons",
-						"assign"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Coupon Por Su Codigo",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/coupons/TEST",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons",
-						"TEST"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Coupons de Usuario Segun Su Status",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{server}}firebase/coupons/users/fernanda333@gmail.com/available",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons",
-						"users",
-						"fernanda333@gmail.com",
-						"available"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Colocar Coupon Como Expirado Firebase",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{server}}firebase/coupons/update-expired",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons",
-						"update-expired"
+						"{{server}}coupons"
 					]
 				}
 			},
@@ -255,34 +153,120 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/coupons/users/fernanda333@gmail.com",
+					"raw": "{{server}}coupons?userEmail=fernanda333@gmail.com",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}coupons"
 					],
-					"path": [
-						"coupons",
-						"users",
-						"fernanda333@gmail.com"
+					"query": [
+						{
+							"key": "userEmail",
+							"value": "fernanda333@gmail.com"
+						}
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Eliminar Coupons Usados y Expirados de Usuario",
+			"name": "Consultar Coupon Por Su Codigo",
 			"request": {
-				"method": "DELETE",
+				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}firebase/coupons/users/amanda111@gmail.com/expired-used",
+					"raw": "{{server}}coupons?code=SUMMER10",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}coupons"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "SUMMER10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Coupons de Usuario Segun Su Status",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{server}}coupons?status=available&userEmail=fernanda333@gmail.com",
+					"host": [
+						"{{server}}coupons"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "available"
+						},
+						{
+							"key": "userEmail",
+							"value": "fernanda333@gmail.com"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desactivar Coupon a User",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}coupons/users?code=SUMMER50&email=fernanda333@gmail.com",
+					"host": [
+						"{{server}}coupons"
 					],
 					"path": [
-						"coupons",
-						"users",
-						"amanda111@gmail.com",
-						"expired-used"
+						"users"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "SUMMER50"
+						},
+						{
+							"key": "email",
+							"value": "fernanda333@gmail.com"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Colocar Coupon Como Expirado Firebase",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{server}}coupons",
+					"host": [
+						"{{server}}coupons"
 					]
 				}
 			},
@@ -291,17 +275,21 @@
 		{
 			"name": "Colocar Coupon Como Expirado para un User",
 			"request": {
-				"method": "POST",
+				"method": "PATCH",
 				"header": [],
 				"url": {
-					"raw": "{{server}}firebase/coupons/update-expired/amanda111@gmail.com",
+					"raw": "{{server}}coupons/users?email=fernanda333@gmail.com",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}coupons"
 					],
 					"path": [
-						"coupons",
-						"update-expired",
-						"amanda111@gmail.com"
+						"users"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "fernanda333@gmail.com"
+						}
 					]
 				}
 			},
@@ -313,54 +301,9 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "{{server}}firebase/coupons/expired/cleanup",
+					"raw": "{{server}}coupons",
 					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons",
-						"expired",
-						"cleanup"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar Coupon en Firebase",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/coupons/deactivate/TEST",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons",
-						"deactivate",
-						"TEST"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar Coupon a User",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/coupons/users/deactivate/fernanda333@gmail.com/SUMMER50",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"coupons",
-						"users",
-						"deactivate",
-						"fernanda333@gmail.com",
-						"SUMMER50"
+						"{{server}}coupons"
 					]
 				}
 			},

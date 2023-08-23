@@ -37,7 +37,7 @@ export class CreateMediaDto {
     })
     @IsNotEmpty()
     @IsUrl()
-    url: string; //URL
+    url?: string; //URL
 
     @ApiProperty({
         description: "Duration of the multimedia content",
@@ -54,8 +54,8 @@ export class CreateMediaDto {
         type: Date,
     })
     @IsNotEmpty()
-    @IsDateString()
-    uploadDate: Date; //UploadDate
+   @IsDateString()
+    uploadDate?: Date; //UploadDate
 
     @ApiProperty({
         description: 'Status of the ebook, can be active or not',
@@ -65,4 +65,23 @@ export class CreateMediaDto {
     })
     @IsBoolean()
     isActive?: boolean = true; //isActive
+
+
+    @ApiProperty({
+        description: 'Publisher of the media',
+        example: 'Pepito Perez',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public publisher: string;
+
+
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
+
 }

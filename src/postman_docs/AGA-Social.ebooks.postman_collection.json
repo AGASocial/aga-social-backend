@@ -8,28 +8,81 @@
 	},
 	"item": [
 		{
-			"name": "Crear Ebook",
+			"name": "Subir y Crear Ebook",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"Introduction to Programming\",\r\n  \"author\": [\"John Smith\", \"John Doe\"],\r\n  \"url\": \"https://example.com/ebook.pdf\",\r\n  \"price\": 19.99,\r\n  \"description\": \"A comprehensive guide to programming basics.\",\r\n  \"releaseDate\": \"2023-08-01\",\r\n  \"language\": [\"English\", \"Spanish\"],\r\n  \"pageCount\": 300,\r\n  \"genres\": [\"Science Fiction\", \"Technology\"],\r\n  \"format\": \"PDF\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/veron/Downloads/plus (2).jpg"
+						},
+						{
+							"key": "title",
+							"value": "Ebook3",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Descripcion",
+							"type": "text"
+						},
+						{
+							"key": "titlePage",
+							"value": "https://www.example.com.jpg",
+							"type": "text"
+						},
+						{
+							"key": "author",
+							"value": "Armando",
+							"type": "text"
+						},
+						{
+							"key": "releaseDate",
+							"value": "2022-08-12",
+							"type": "text"
+						},
+						{
+							"key": "price",
+							"value": "35.00",
+							"type": "text"
+						},
+						{
+							"key": "language",
+							"value": "English",
+							"type": "text"
+						},
+						{
+							"key": "pageCount",
+							"value": "250",
+							"type": "text"
+						},
+						{
+							"key": "genres",
+							"value": "Law",
+							"type": "text"
+						},
+						{
+							"key": "format",
+							"value": "DOCX",
+							"type": "text"
+						},
+						{
+							"key": "publisher",
+							"value": "Joel.123",
+							"type": "text"
 						}
-					}
+					]
 				},
 				"url": {
-					"raw": "http://localhost:3000/firebase/ebooks",
-					"protocol": "http",
+					"raw": "{{server}}assets/ebooks",
 					"host": [
-						"localhost"
+						"{{server}}assets"
 					],
-					"port": "3000",
 					"path": [
-						"firebase",
 						"ebooks"
 					]
 				}
@@ -43,7 +96,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"url\": \"https://ebooook/ebook.pdf\", \r\n  \"author\": [\"Jane Smith\", \"John Doe\"],\r\n  \"price\": 99.99,\r\n  \"description\": \"An updated guide to programming basics.\",\r\n  \"format\": \"EPUB\"\r\n}\r\n",
+					"raw": "{\r\n \"isActive\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -51,40 +104,18 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/ebooks",
+					"raw": "{{server}}assets/ebooks?id=aa3e8e8d-4a27-46ad-a3ea-bd5b0ecf3b79",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}assets"
 					],
 					"path": [
 						"ebooks"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Eliminar Ebook",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/ebooks/Ebook 1/EPUB",
-					"host": [
-						"{{server}}firebase"
 					],
-					"path": [
-						"ebooks",
-						"Ebook 1",
-						"EPUB"
+					"query": [
+						{
+							"key": "id",
+							"value": "aa3e8e8d-4a27-46ad-a3ea-bd5b0ecf3b79"
+						}
 					]
 				}
 			},
@@ -96,9 +127,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}firebase/ebooks",
+					"raw": "{{server}}assets/ebooks",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}assets"
 					],
 					"path": [
 						"ebooks"
@@ -117,7 +148,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"keywords\": [\"5\"]\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -125,33 +156,18 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/ebooks/search-by-keywords",
+					"raw": "{{server}}assets/ebooks?keywords=pruebita",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}assets"
 					],
 					"path": [
-						"ebooks",
-						"search-by-keywords"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar Ebook",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"url": {
-					"raw": "{{server}}firebase/ebooks/deactivate/Ebook 5/DOCX",
-					"host": [
-						"{{server}}firebase"
+						"ebooks"
 					],
-					"path": [
-						"ebooks",
-						"deactivate",
-						"Ebook 5",
-						"DOCX"
+					"query": [
+						{
+							"key": "keywords",
+							"value": "pruebita"
+						}
 					]
 				}
 			},

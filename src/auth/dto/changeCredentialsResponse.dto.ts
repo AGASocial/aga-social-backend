@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsAlpha, IsNotEmpty, IsNumber, IsPositive, IsString, IsUppercase } from "class-validator";
 
 
-export class ChangeUsernameDtoResponse {
+export class ChangeCredentialsDtoResponse {
     @ApiProperty({
         description: 'Http response status code',
         type: Number
@@ -13,7 +13,7 @@ export class ChangeUsernameDtoResponse {
     public statusCode: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "NEWUSERNAMEASSIGNED"',
+        description: 'Descriptive response message, it should return "NEWCREDENTIALSASSIGNED"',
         type: String
     })
     @IsString()

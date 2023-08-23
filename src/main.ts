@@ -9,7 +9,6 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import * as admin from 'firebase-admin';
 import * as dotenv from 'dotenv';
-import { ServiceAccount } from "firebase-admin";
 import { ConfigService } from '@nestjs/config';
 
 dotenv.config();
@@ -19,13 +18,7 @@ async function bootstrap() {
     const configService: ConfigService = app.get(ConfigService);
 
 
-    /*
-    const adminConfig: ServiceAccount = {
-        "projectId": configService.get<string>('FIREBASE_PROJECT_ID'),
-        "privateKey": configService.get<string>('FIREBASE_PRIVATE_KEY')
-            .replace(/\\n/g, '\n'),
-        "clientEmail": configService.get<string>('FIREBASE_CLIENT_EMAIL'),
-    };*/
+  
 
     const firebaseConfig = {
         credential: admin.credential.cert({
@@ -88,12 +81,10 @@ async function bootstrap() {
 
 
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
 
     const port = process.env.PORT || 3000;
     await app.listen(port);
     console.log(`App listening on port ${port}`);
-    //await app.listen(3000);
 }
 
 

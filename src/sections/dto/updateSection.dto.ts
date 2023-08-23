@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsArray } from "class-validator";
+import { IsNotEmpty, IsString, IsArray, IsBoolean } from "class-validator";
 import { Section } from "../entities/sections.entity";
 
 export class UpdateSectionDto {
@@ -10,7 +10,7 @@ export class UpdateSectionDto {
     })
     @IsNotEmpty()
     @IsString()
-    name: string;
+    name?: string;
 
     @ApiProperty({
         description: 'Description of the section.',
@@ -19,7 +19,7 @@ export class UpdateSectionDto {
     })
     @IsNotEmpty()
     @IsString()
-    description: string;
+    description?: string;
 
 
  
@@ -39,4 +39,26 @@ export class UpdateSectionDto {
     })
     @IsArray()
     public subsections?: Section[];
+
+
+
+    @ApiProperty({
+        description: 'Status of the section, can be active or not',
+        example: true,
+        default: true,
+        type: String
+    })
+    @IsBoolean()
+    isActive?: boolean = true;
+
+
+
+    @ApiProperty({
+        description: 'Titles of the media/ebooks that will be added to the section content.',
+        example: ['mediatitle', 'ebooktitle'],
+        type: [String],
+    })
+    @IsString({ each: true })
+    assetsTitles?: string[];
+
 }

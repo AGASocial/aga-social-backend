@@ -8,23 +8,54 @@
 	},
 	"item": [
 		{
-			"name": "Crear Media",
+			"name": "Subir y Crear Media",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \r\n    \"url\": \"https://TESTVIDEO2.com/media/audio.mp4\",\r\n    \"type\": \"video\",\r\n    \"title\": \"TEST-VIDEO2\",\r\n    \"description\": \"TEST-VIDEO2\",\r\n    \"duration\": \"00:10:30\",\r\n    \"uploadDate\": \"2013-10-10\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/veron/Downloads/tap.jpg"
+						},
+						{
+							"key": "publisher",
+							"value": "Joel.123",
+							"type": "text"
+						},
+						{
+							"key": "type",
+							"value": "video",
+							"type": "text"
+						},
+						{
+							"key": "title",
+							"value": "Pruebita 5",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Descripcion",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "00:10:52",
+							"type": "text"
+						},
+						{
+							"key": "uploadDate",
+							"value": "2020-09-11",
+							"type": "text"
 						}
-					}
+					]
 				},
 				"url": {
-					"raw": "{{server}}firebase/media",
+					"raw": "{{server}}assets/media",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}assets"
 					],
 					"path": [
 						"media"
@@ -40,7 +71,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"url\": \"https://www.example.com\",\r\n  \"title\": \"AAA\"\r\n\r\n}",
+					"raw": "{\r\n\r\n\"isActive\": true\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -48,12 +79,18 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/media",
+					"raw": "{{server}}assets/media?id=7136090b-25f9-4368-8fce-65ba8a3a2e70",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}assets"
 					],
 					"path": [
 						"media"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "7136090b-25f9-4368-8fce-65ba8a3a2e70"
+						}
 					]
 				}
 			},
@@ -65,40 +102,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}firebase/media",
+					"raw": "{{server}}assets/media",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}assets"
 					],
 					"path": [
 						"media"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Eliminar Media",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n\"title\": \"Introduction to Science\",\r\n\"description\": \"An introductory video about the world of science\"\r\n    \r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/media/Introduction to Science/An introductory video about the world of science",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"media",
-						"Introduction to Science",
-						"An introductory video about the world of science"
 					]
 				}
 			},
@@ -114,7 +123,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"keywords\": [\"test\"]\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -122,41 +131,18 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}firebase/media/search-by-keywords",
+					"raw": "{{server}}assets/media?keywords=test",
 					"host": [
-						"{{server}}firebase"
+						"{{server}}assets"
 					],
 					"path": [
-						"media",
-						"search-by-keywords"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar Media",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n\"title\": \"TEST-1\"\r\n\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+						"media"
+					],
+					"query": [
+						{
+							"key": "keywords",
+							"value": "test"
 						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}firebase/media/deactivate/TEST-1",
-					"host": [
-						"{{server}}firebase"
-					],
-					"path": [
-						"media",
-						"deactivate",
-						"TEST-1"
 					]
 				}
 			},
