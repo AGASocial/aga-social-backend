@@ -19,7 +19,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     }
 
     async validate(payload: any) {
-        console.log('JwtRefreshStrategy - validate executing...'); // Agregado console.log()
+        console.log('JwtRefreshStrategy - validate executing...'); 
         return {
             email: payload.name,
             id: payload.sub,
@@ -27,7 +27,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     }
 
     private static extractJWT(@Req() req: Request): string | null {
-        console.log('JwtRefreshStrategy - extractJWT executing...'); // Agregado console.log()
+        console.log('JwtRefreshStrategy - extractJWT executing...'); 
         if (req.signedCookies && 'refresh_token' in req.signedCookies) {
             return req.signedCookies.refresh_token;
         } else {

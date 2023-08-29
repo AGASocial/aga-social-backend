@@ -27,11 +27,11 @@ export class AuthorizationController {
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
     @Put('users/roles')
     async setRoleToUser(
-        @Query('email') email: string,
+        @Query('id') id: string,
         @Query('roleName') roleName: string,
         @Req() req: Request
     ): Promise<SetRoleToUserResponseDto> {
-        return await this.authorizationService.setRoleToUser(email, roleName);
+        return await this.authorizationService.setRoleToUser(id, roleName);
     }
 
 
@@ -43,11 +43,11 @@ export class AuthorizationController {
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
     @Delete('users/roles')
     async deleteRoleFromUser(
-        @Query('email') email: string,
+        @Query('id') id: string,
         @Query('roleName') roleName: string,
         @Req() req: Request
     ): Promise<DeleteRoleOfUserResponseDto> {
-        return await this.authorizationService.deleteRoleOfUser(email, roleName);
+        return await this.authorizationService.deleteRoleOfUser(id, roleName);
     }
 
 

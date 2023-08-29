@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString, IsBoolean, IsArray, IsDate, IsEmail } from "class-validator";
+import { Tags } from "../../tags/entities/tags.entity";
 
 enum MessageType {
     Inquiry = 'Inquiry',
@@ -120,5 +121,26 @@ export class Message {
     })
     @IsBoolean()
     isActive?: boolean = true;
+
+    @ApiProperty({
+        description: 'Tags associated with the message',
+    })
+    public tags?: Tags[];
+
+    @ApiProperty({
+        description: 'Firestore ID of the message',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
+
+    @ApiProperty({
+        description: 'It states whether the message is highlighted or not (Destacado)',
+        example: true,
+        type: String
+    })
+    @IsBoolean()
+    isHighlight?: boolean;
+
 
 }

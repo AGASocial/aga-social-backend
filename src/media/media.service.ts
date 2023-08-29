@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { DocumentReference, DocumentSnapshot, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, collection, where, deleteDoc, QueryFieldFilterConstraint, addDoc } from 'firebase/firestore';
+import { DocumentReference, DocumentSnapshot, doc, getDoc, setDoc, updateDoc, getDocs, query, orderBy, collection, where, deleteDoc, QueryFieldFilterConstraint, addDoc, Timestamp } from 'firebase/firestore';
 import * as admin from 'firebase-admin';
 import { CreateMediaDto } from './dto/createMedia.dto';
 import { CreateMediaResponseDto } from './dto/createMediaResponse.dto';
@@ -15,6 +15,8 @@ import { Readable } from 'stream';
 import { UploadMediaResponseDto } from './dto/uploadMediaFileResponse.dto';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { v4 as uuidv4 } from 'uuid';
+import { convertFirestoreTimestamp } from '../utils/timeUtils.dto';
+import { VimeoService } from '../vimeo/vimeo.service';
 
 
 
@@ -22,7 +24,7 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class MediaService {
 
-    constructor(private firebaseService: FirebaseService) { }
+    constructor(private firebaseService: FirebaseService, private vimeoService: VimeoService) { }
 
 
 
@@ -90,6 +92,12 @@ export class MediaService {
         console.log('Media added to the cache successfully.');
 
         return responseDto;
+
+
+
+
+
+
     }
 
 
@@ -144,7 +152,6 @@ export class MediaService {
 
 
 
-
     @ApiOperation({ summary: 'Get media resources registered on Firestore' })
     @ApiOkResponse({
         description: 'Media resources have been successfully retrieved.',
@@ -158,18 +165,25 @@ export class MediaService {
             const cachedMedia = await this.firebaseService.getCollectionData('media');
             if (cachedMedia.length > 0) {
                 console.log('Using cached media data.');
-                const activeMedia = cachedMedia.filter(media => media.isActive); 
+                const activeMedia = cachedMedia.filter(media => media.isActive);
+
+                // Convert uploadDate in cached media using the imported function
+                const activeMediaWithFormattedDates = activeMedia.map(media => ({
+                    ...media,
+                    uploadDate: convertFirestoreTimestamp(media.uploadDate),
+                }));
+
                 const getMediaDtoResponse: GetMediaResponseDto = {
                     statusCode: 200,
                     message: "MEDIAGOT",
-                    mediaFound: activeMedia,
+                    mediaFound: activeMediaWithFormattedDates,
                 };
                 return getMediaDtoResponse;
             }
 
             // If there is no data, query Firestore
             const mediaRef = this.firebaseService.mediaCollection;
-            const mediaQuery = query(mediaRef, where('isActive', '==', true), orderBy("title")); 
+            const mediaQuery = query(mediaRef, where('isActive', '==', true));
             console.log('Media query created.');
 
             const mediaQuerySnapshot = await getDocs(mediaQuery);
@@ -178,27 +192,36 @@ export class MediaService {
             const queryResult = [];
             mediaQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
-                queryResult.push({
-                    publisher: data.publisher,
-                    description: data.description,
-                    duration: data.duration,
-                    title: data.title,
-                    type: data.type,
-                    uploadDate: data.uploadDate,
-                    url: data.url,
-                    isActive: data.isActive,
-                });
+                if (data.isActive) {
+                    const uploadTimestamp: Timestamp = data.uploadDate;
+                    const uploadDate = convertFirestoreTimestamp(uploadTimestamp);
+                    queryResult.push({
+                        publisher: data.publisher,
+                        description: data.description,
+                        duration: data.duration,
+                        title: data.title,
+                        type: data.type,
+                        uploadDate: uploadDate,
+                        url: data.url,
+                        isActive: data.isActive,
+                    });
+                }
             });
             console.log('Media data collected.');
 
             // Save the data in cache for future queries
-            this.firebaseService.setCollectionData('media', queryResult);
+            await this.firebaseService.setCollectionData('media', queryResult);
 
             const activeMedia = queryResult.filter(media => media.isActive);
+            const activeMediaWithFormattedDates = activeMedia.map(media => ({
+                ...media,
+                uploadDate: convertFirestoreTimestamp(media.uploadDate),
+            }));
+
             const getMediaDtoResponse: GetMediaResponseDto = {
                 statusCode: 200,
                 message: "MEDIAGOT",
-                mediaFound: activeMedia,
+                mediaFound: activeMediaWithFormattedDates,
             };
             console.log('Response created.');
 
@@ -208,6 +231,7 @@ export class MediaService {
             throw new Error('There was an error retrieving the media.');
         }
     }
+
 
 
 
@@ -289,22 +313,28 @@ export class MediaService {
             const cachedMedia = await this.firebaseService.getCollectionData('media');
             if (cachedMedia.length > 0) {
                 console.log('Using cached media data.');
-                const activeMedia = cachedMedia.filter(media => media.isActive); 
+                const activeMedia = cachedMedia.filter(media => media.isActive);
                 const matchedMedia = activeMedia.filter(media =>
                     keywords.some(keyword => media.title.toLowerCase().includes(keyword.toLowerCase()))
                 );
 
+                // Convert uploadDate in cached media using the imported function
+                const matchedMediaWithFormattedDates = matchedMedia.map(media => ({
+                    ...media,
+                    uploadDate: convertFirestoreTimestamp(media.uploadDate),
+                }));
+
                 const responseDto: GetMediaResponseDto = {
                     statusCode: 200,
                     message: 'MEDIAGOT',
-                    mediaFound: matchedMedia,
+                    mediaFound: matchedMediaWithFormattedDates,
                 };
                 return responseDto;
             }
 
             // If there is no data in cache, query Firestore
             const mediaRef = this.firebaseService.mediaCollection;
-            const mediaQuery = query(mediaRef, where('isActive', '==', true), orderBy('title'));
+            const mediaQuery = query(mediaRef, where('isActive', '==', true));
             console.log('Media query created.');
 
             const mediaQuerySnapshot = await getDocs(mediaQuery);
@@ -313,16 +343,20 @@ export class MediaService {
             const queryResult = [];
             mediaQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
-                queryResult.push({
-                    publisher: data.publisher,
-                    description: data.description,
-                    duration: data.duration,
-                    title: data.title,
-                    type: data.type,
-                    uploadDate: data.uploadDate,
-                    url: data.url,
-                    isActive: data.isActive,
-                });
+                if (data.isActive) {
+                    const uploadTimestamp: Timestamp = data.uploadDate;
+                    const uploadDate = convertFirestoreTimestamp(uploadTimestamp);
+                    queryResult.push({
+                        publisher: data.publisher,
+                        description: data.description,
+                        duration: data.duration,
+                        title: data.title,
+                        type: data.type,
+                        uploadDate: uploadDate,
+                        url: data.url,
+                        isActive: data.isActive,
+                    });
+                }
             });
             console.log('Media data collected.');
 
@@ -331,13 +365,18 @@ export class MediaService {
                 keywords.some(keyword => media.title.toLowerCase().includes(keyword.toLowerCase()))
             );
 
+            const matchedMediaWithFormattedDates = matchedMedia.map(media => ({
+                ...media,
+                uploadDate: convertFirestoreTimestamp(media.uploadDate),
+            }));
+
             // Save the data in cache for future queries
             await this.firebaseService.setCollectionData('media', queryResult);
 
             const responseDto: GetMediaResponseDto = {
                 statusCode: 200,
                 message: 'MEDIAGOT',
-                mediaFound: matchedMedia,
+                mediaFound: matchedMediaWithFormattedDates,
             };
             console.log('Response created.');
 
@@ -349,53 +388,7 @@ export class MediaService {
     }
 
 
-  
 
-
-    /*
-    @ApiOperation({ summary: 'Upload media file to Datastorage' })
-    @ApiCreatedResponse({
-        description: 'Media file has been successfully uploaded.',
-        type: UploadMediaResponseDto,
-    })
-    async uploadMediaFile(userEmail: string, file: any): Promise<UploadMediaResponseDto> {
-        try {
-            const mediaFileName = `${Date.now()}_${file.originalname}`;
-            const mediaPath = `users/${userEmail}/media/${mediaFileName}`;
-
-            console.log('Uploading file to:', mediaPath);
-
-            const fileBucket = admin.storage().bucket();
-            const uploadStream = fileBucket.file(mediaPath).createWriteStream({
-                metadata: {
-                    contentType: file.mimetype,
-                },
-            });
-
-            const readableStream = new Readable();
-            readableStream._read = () => { };
-            readableStream.push(file.buffer);
-            readableStream.push(null);
-
-            await new Promise<void>((resolve, reject) => {
-                readableStream.pipe(uploadStream)
-                    .on('error', (error) => {
-                        console.error('Error uploading the file:', error);
-                        reject(error);
-                    })
-                    .on('finish', () => {
-                        console.log('File uploaded successfully.');
-                        resolve();
-                    });
-            });
-
-            const responseDto = new UploadMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY');
-            return responseDto;
-        } catch (error) {
-            console.error('Error uploading the file:', error);
-            throw new Error(`Error uploading the file: ${error.message}`);
-        }
-    }*/
 
 
     @ApiOperation({ summary: 'Upload media file to Datastorage and register it on Firestore' })
@@ -411,9 +404,19 @@ export class MediaService {
             const newMediaId: string = uuidv4();
 
 
-            const { type, title, description, url, duration, publisher } = createNewMediaDto;
+            const { type, title, description, duration, publisher } = createNewMediaDto;
             const mediaFileName = `${Date.now()}_${file.originalname}`;
             const mediaPath = `assets/${newMediaId}/${mediaFileName}`;
+
+            //Upload media to Vimeo
+            let mediaLink;
+
+            if (type === 'video') {
+                mediaLink = await this.vimeoService.uploadVideo(file.buffer, title);
+            }
+
+
+
 
             console.log('Uploading file to:', mediaPath);
 
@@ -440,6 +443,11 @@ export class MediaService {
                         console.log('File uploaded successfully.');
                         resolve();
                     });
+            });
+
+            const [url] = await fileBucket.file(mediaPath).getSignedUrl({
+                action: 'read',
+                expires: '01-01-2100', 
             });
 
             const mediaRef = collection(this.firebaseService.fireStore, 'media');
@@ -465,15 +473,17 @@ export class MediaService {
                 type,
                 title,
                 description,
-                url: mediaPath,
+                url,
                 duration,
                 uploadDate: new Date(),
                 isActive: true,
-            };
-
+                vimeoVideo: type === 'video' ? mediaLink : '',            };
             const newMediaDocRef = await addDoc(mediaRef, newMedia);
 
             const responseDto = new UploadMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY');
+
+          
+
 
             // Update cache with the newly created media
             const cachedMedia = await this.firebaseService.getCollectionData('media');
@@ -487,6 +497,8 @@ export class MediaService {
                 duration,
                 uploadDate: new Date(),
                 isActive: true,
+                vimeoVideo: mediaLink,
+
             });
             this.firebaseService.setCollectionData('media', cachedMedia);
             console.log('Media added to the cache successfully.');

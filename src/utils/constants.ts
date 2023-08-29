@@ -2,7 +2,6 @@ import { doubleCsrf } from "csrf-csrf";
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-//export const credentials: string = process.env.FIREBASE_CREDENTIAL;
 
 //For Hashing
 export const saltOrRoundsNumber: number = Number(process.env.SALT_ROUNDS);
@@ -60,11 +59,10 @@ export const cookieSecret: string = process.env.COOKIE_SECRET;
 
 
 
-export const {/*invalidCsrfTokenError,*/ generateToken, validateRequest, doubleCsrfProtection } = doubleCsrf({
+export const {generateToken, validateRequest, doubleCsrfProtection } = doubleCsrf({
     getSecret: () => csrfSecret,
     cookieName: csrfCookieName,
     cookieOptions: {
-        //httpOnly: true,
         sameSite: "lax",
         path: "/",
         secure: true

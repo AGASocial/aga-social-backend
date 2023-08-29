@@ -4,7 +4,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { FirebaseService } from '../firebase/firebase.service';
 import { CreateEbookDto } from './dto/createEbook.dto';
 import { CreateEbookResponseDto } from './dto/createEbookResponse.dto';
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, Timestamp, updateDoc, where } from 'firebase/firestore';
 import { UpdateMediaDto } from '../media/dto/updateMedia.dto';
 import { UpdateMediaResponseDto } from '../media/dto/updateMediaResponse.dto';
 import { DeleteEbookResponseDto } from './dto/deleteEbookResponse.dto';
@@ -15,6 +15,7 @@ import { ApiBadRequestResponse, ApiInternalServerErrorResponse, ApiNotFoundRespo
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateEbookResponseDto } from './dto/updateEbookResponse.dto';
 import { UpdateEbookDto } from './dto/updateEbook.dto';
+import { convertFirestoreTimestamp } from '../utils/timeUtils.dto';
 
 
 @Injectable()
@@ -176,18 +177,25 @@ export class EbookService {
             const cachedEbooks = await this.firebaseService.getCollectionData('ebooks');
             if (cachedEbooks.length > 0) {
                 console.log('Using cached ebooks data.');
-                const activeEbooks = cachedEbooks.filter(ebook => ebook.isActive); 
+                const activeEbooks = cachedEbooks.filter(ebook => ebook.isActive);
+
+                // Convert releaseDate in cached ebooks using the imported function
+                const activeEbooksWithFormattedDates = activeEbooks.map(ebook => ({
+                    ...ebook,
+                    releaseDate: convertFirestoreTimestamp(ebook.releaseDate),
+                }));
+
                 const getEbooksDtoResponse: GetEbooksResponseDto = {
                     statusCode: 200,
                     message: "EBOOKSGOT",
-                    ebooksFound: activeEbooks,
+                    ebooksFound: activeEbooksWithFormattedDates,
                 };
                 return getEbooksDtoResponse;
             }
 
-            // If there is no data, it uses firestore instead
+            // If there is no data in cache, it uses firestore instead
             const ebooksRef = this.firebaseService.ebooksCollection;
-            const ebooksQuery = query(ebooksRef, where("isActive", "==", true), orderBy("title")); 
+            const ebooksQuery = query(ebooksRef, where("isActive", "==", true));
             console.log('Ebooks query created.');
 
             const ebooksQuerySnapshot = await getDocs(ebooksQuery);
@@ -196,6 +204,8 @@ export class EbookService {
             const queryResult = [];
             ebooksQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
+                const releaseTimestamp: Timestamp = data.releaseDate;
+                const releaseDate = convertFirestoreTimestamp(releaseTimestamp);
                 queryResult.push({
                     title: data.title,
                     publisher: data.publisher,
@@ -203,7 +213,7 @@ export class EbookService {
                     description: data.description,
                     titlePage: data.titlePage,
                     url: data.url,
-                    releaseDate: data.releaseDate,
+                    releaseDate: releaseDate,
                     price: data.price,
                     language: data.language,
                     pageCount: data.pageCount,
@@ -215,13 +225,18 @@ export class EbookService {
             });
             console.log('Ebook data collected.');
 
-            // the data is saved in cache for future queries
-            this.firebaseService.setCollectionData('ebooks', queryResult);
+            const queryResultWithFormattedDates = queryResult.map(ebook => ({
+                ...ebook,
+                releaseDate: convertFirestoreTimestamp(ebook.releaseDate),
+            }));
+
+            // Save the data in cache for future queries
+            await this.firebaseService.setCollectionData('ebooks', queryResult);
 
             const getEbooksDtoResponse: GetEbooksResponseDto = {
                 statusCode: 200,
                 message: "EBOOKSGOT",
-                ebooksFound: queryResult,
+                ebooksFound: queryResultWithFormattedDates,
             };
             console.log('Response created.');
 
@@ -231,6 +246,7 @@ export class EbookService {
             throw new Error('There was an error retrieving the ebooks.');
         }
     }
+
 
 
 
@@ -252,17 +268,23 @@ export class EbookService {
                     ebook.isActive && keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
                 );
 
+                // Convert releaseDate in cached ebooks using the imported function
+                const matchedEbooksWithFormattedDates = matchedEbooks.map(ebook => ({
+                    ...ebook,
+                    releaseDate: convertFirestoreTimestamp(ebook.releaseDate),
+                }));
+
                 const responseDto: GetEbooksResponseDto = {
                     statusCode: 200,
                     message: 'EBOOKSGOT',
-                    ebooksFound: matchedEbooks,
+                    ebooksFound: matchedEbooksWithFormattedDates,
                 };
                 return responseDto;
             }
 
             // If there is no data in cache, query Firestore
             const ebooksRef = this.firebaseService.ebooksCollection;
-            const ebooksQuery = query(ebooksRef, orderBy('title'));
+            const ebooksQuery = query(ebooksRef, where("isActive", "==", true));
             console.log('Ebooks query created.');
 
             const ebooksQuerySnapshot = await getDocs(ebooksQuery);
@@ -271,37 +293,44 @@ export class EbookService {
             const queryResult = [];
             ebooksQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
-                queryResult.push({
-                    title: data.title,
-                    publisher: data.publisher,
-                    author: data.author,
-                    description: data.description,
-                    titlePage: data.titlePage,
-                    url: data.url,
-                    releaseDate: data.releaseDate,
-                    price: data.price,
-                    language: data.language,
-                    pageCount: data.pageCount,
-                    genres: data.genres,
-                    format: data.format,
-                    salesCount: data.salesCount,
-                    isActive: data.isActive, 
-                });
+                if (data.isActive) {
+                    const releaseTimestamp: Timestamp = data.releaseDate;
+                    const releaseDate = convertFirestoreTimestamp(releaseTimestamp);
+                    queryResult.push({
+                        title: data.title,
+                        publisher: data.publisher,
+                        author: data.author,
+                        description: data.description,
+                        titlePage: data.titlePage,
+                        url: data.url,
+                        releaseDate: releaseDate,
+                        price: data.price,
+                        language: data.language,
+                        pageCount: data.pageCount,
+                        genres: data.genres,
+                        format: data.format,
+                        salesCount: data.salesCount,
+                        isActive: data.isActive,
+                    });
+                }
             });
             console.log('Ebook data collected.');
 
-            // Filter the eBooks by keywords and isActive
             const matchedEbooks = queryResult.filter(ebook =>
-                ebook.isActive && keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
+                keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
             );
 
-            // Save the data in cache for future queries
+            const matchedEbooksWithFormattedDates = matchedEbooks.map(ebook => ({
+                ...ebook,
+                releaseDate: convertFirestoreTimestamp(ebook.releaseDate),
+            }));
+
             await this.firebaseService.setCollectionData('ebooks', queryResult);
 
             const responseDto: GetEbooksResponseDto = {
                 statusCode: 200,
                 message: 'EBOOKSGOT',
-                ebooksFound: matchedEbooks,
+                ebooksFound: matchedEbooksWithFormattedDates,
             };
             console.log('Response created.');
 
@@ -311,6 +340,7 @@ export class EbookService {
             throw new Error('There was an error retrieving the ebooks.');
         }
     }
+
 
 
     @ApiOperation({ summary: 'Upload an ebook file to Datastorage' })

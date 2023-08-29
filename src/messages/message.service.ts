@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
-import { addDoc, collection, deleteDoc, doc, getDocs, query, QueryFieldFilterConstraint, Timestamp, updateDoc, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, QueryFieldFilterConstraint, Timestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
 import { CreateMessageDto, MessageType } from "./dto/createMessage.dto";
 import { CreateMessageResponseDto } from "./dto/createMessageResponse.dto";
@@ -17,6 +17,9 @@ import { UpdateMessageStatusResponseDto } from "./dto/updateMessageStatusRespons
 import * as admin from 'firebase-admin';
 import {GetMessagesFilteredDto } from "./dto/getMessagesFiltered.dto";
 import { DocResult } from "../utils/docResult.entity";
+import { v4 as uuidv4 } from 'uuid';
+import { AddTagsResponseDto } from "./dto/addTagsResponse.dto";
+import { Message } from "./entities/message.entity";
 
 
 
@@ -53,6 +56,7 @@ export class MessageService {
                         recipientEmail: message.recipientEmail,
                         content: message.content,
                         isRead: message.isRead,
+                        isHighlight: message.isHighlight,
                         attachmentUrls: message.attachmentUrls,
                         subject: message.subject,
                         type: message.type,
@@ -108,6 +112,7 @@ export class MessageService {
                 const message = doc.data();
                 if (message.isActive === true) {
                     readMessages.push({
+                        isHighlight: message.isHighlight,
                         senderEmail: message.senderEmail,
                         recipientEmail: message.recipientEmail,
                         content: message.content,
@@ -170,6 +175,7 @@ export class MessageService {
                         recipientEmail: message.recipientEmail,
                         content: message.content,
                         isArchived: message.isArchived,
+                        isHighlight: message.isHighlight,
                         attachmentUrls: message.attachmentUrls,
                         subject: message.subject,
                         type: message.type,
@@ -231,9 +237,12 @@ export class MessageService {
 
             const currentDate = new Date();
             const receivedDate = new Date(currentDate.getTime() + 30000); 
+            const newMessageId: string = uuidv4();
+
 
             const newMessage = {
                 senderEmail,
+                id: newMessageId,
                 recipientEmail,
                 content,
                 isRead: false,
@@ -245,11 +254,11 @@ export class MessageService {
                 receivedDate: receivedDate,
                 readDate: null,
                 isActive: true,
+                isHighlight: false,
             };
 
             console.log('Creating new message...');
             const newMessageDocRef = await addDoc(messageRef, newMessage);
-            const newMessageId = newMessageDocRef.id;
 
             // Update the cache
             const cachedMessages = await this.firebaseService.getCollectionData('messages');
@@ -266,6 +275,9 @@ export class MessageService {
                 receivedDate: currentDate,
                 readDate: null,
                 isActive: true,
+                isHighlight: false,
+
+
 
             });
             this.firebaseService.setCollectionData('messages', cachedMessages);
@@ -372,6 +384,7 @@ export class MessageService {
                     content: data.content,
                     isRead: data.isRead,
                     isArchived: data.isArchived,
+                    isHighlight: data.isHighlight,
                     attachmentUrls: data.attachmentUrls,
                     subject: data.subject,
                     type: data.type,
@@ -453,6 +466,7 @@ export class MessageService {
                     recipientEmail: data.recipientEmail,
                     content: data.content,
                     isRead: data.isRead,
+                    isHighlight: data.isHighlight,
                     isArchived: data.isArchived,
                     attachmentUrls: data.attachmentUrls,
                     subject: data.subject,
@@ -517,6 +531,7 @@ export class MessageService {
                     content: data.content,
                     isRead: data.isRead,
                     isArchived: data.isArchived,
+                    isHighlight: data.isHighlight,
                     attachmentUrls: data.attachmentUrls,
                     subject: data.subject,
                     type: data.type,
@@ -555,191 +570,6 @@ export class MessageService {
 
 
 
-    /*
-    @ApiOperation({ summary: 'Get inquiry messages for a user' })
-    @ApiOkResponse({ description: 'Inquiry messages retrieved successfully', type: GetMessagesByUserResponseDto })
-    @ApiNotFoundResponse({ description: 'Inquiry messages not found', type: GetMessagesByUserResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getInquiryMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        try {
-            const messageRef = collection(this.firebaseService.fireStore, 'messages');
-
-            // Query for senderEmail and isActive
-            const senderMessagesQuery = query(
-                messageRef,
-                where('senderEmail', '==', userEmail),
-                where('isActive', '==', true)
-            );
-            const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
-
-            // Query for recipientEmail and isActive
-            const recipientMessagesQuery = query(
-                messageRef,
-                where('recipientEmail', '==', userEmail),
-                where('isActive', '==', true)
-            );
-            const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
-
-            const userInquiryMessages = [];
-
-            // Add Inquiry messages from sender
-            senderMessagesQuerySnapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.type === MessageType.Inquiry) {
-                    userInquiryMessages.push({
-                        senderEmail: data.senderEmail,
-                        recipientEmail: data.recipientEmail,
-                        content: data.content,
-                        isRead: data.isRead,
-                        isArchived: data.isArchived,
-                        attachmentUrls: data.attachmentUrls,
-                        subject: data.subject,
-                        type: data.type,
-                        receivedDate: this.transformTimestamp(data.receivedDate),
-                        sentDate: this.transformTimestamp(data.sentDate),
-                        readDate: this.transformTimestamp(data.readDate),
-                    });
-                }
-            });
-
-            // Add Inquiry messages from recipient
-            recipientMessagesQuerySnapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.type === MessageType.Inquiry) {
-                    userInquiryMessages.push({
-                        senderEmail: data.senderEmail,
-                        recipientEmail: data.recipientEmail,
-                        content: data.content,
-                        isRead: data.isRead,
-                        isArchived: data.isArchived,
-                        attachmentUrls: data.attachmentUrls,
-                        subject: data.subject,
-                        type: data.type,
-                        receivedDate: this.transformTimestamp(data.receivedDate),
-                        sentDate: this.transformTimestamp(data.sentDate),
-                        readDate: this.transformTimestamp(data.readDate),
-                    });
-                }
-            });
-
-            if (userInquiryMessages.length === 0) {
-                const responseDto = new GetMessagesByUserResponseDto(
-                    404,
-                    'INQUIRYMESSAGESNOTFOUND',
-                    userInquiryMessages
-                );
-
-                console.log('No Inquiry messages found.');
-                return responseDto;
-            }
-
-            const responseDto = new GetMessagesByUserResponseDto(
-                200,
-                'INQUIRYMESSAGESRETRIEVEDSUCCESSFULLY',
-                userInquiryMessages
-            );
-
-            console.log('User Inquiry messages fetched successfully.');
-            return responseDto;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }*/
-
-
-    /*
-    @ApiOperation({ summary: 'Get complaint messages for a user' })
-    @ApiOkResponse({ description: 'Complaint messages retrieved successfully', type: GetMessagesByUserResponseDto })
-    @ApiNotFoundResponse({ description: 'Complaint messages not found', type: GetMessagesByUserResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getComplaintMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
-        try {
-            const messageRef = collection(this.firebaseService.fireStore, 'messages');
-
-            // Query for senderEmail and isActive
-            const senderMessagesQuery = query(
-                messageRef,
-                where('senderEmail', '==', userEmail),
-                where('isActive', '==', true)
-            );
-            const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
-
-            // Query for recipientEmail and isActive
-            const recipientMessagesQuery = query(
-                messageRef,
-                where('recipientEmail', '==', userEmail),
-                where('isActive', '==', true)
-            );
-            const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
-
-            const userComplaintMessages = [];
-
-            // Add Complaint messages from sender
-            senderMessagesQuerySnapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.type === MessageType.Complaint) {
-                    userComplaintMessages.push({
-                        senderEmail: data.senderEmail,
-                        recipientEmail: data.recipientEmail,
-                        content: data.content,
-                        isRead: data.isRead,
-                        isArchived: data.isArchived,
-                        attachmentUrls: data.attachmentUrls,
-                        subject: data.subject,
-                        type: data.type,
-                        receivedDate: this.transformTimestamp(data.receivedDate),
-                        sentDate: this.transformTimestamp(data.sentDate),
-                        readDate: this.transformTimestamp(data.readDate),
-                    });
-                }
-            });
-
-            // Add Complaint messages from recipient
-            recipientMessagesQuerySnapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.type === MessageType.Complaint) {
-                    userComplaintMessages.push({
-                        senderEmail: data.senderEmail,
-                        recipientEmail: data.recipientEmail,
-                        content: data.content,
-                        isRead: data.isRead,
-                        isArchived: data.isArchived,
-                        attachmentUrls: data.attachmentUrls,
-                        subject: data.subject,
-                        type: data.type,
-                        receivedDate: this.transformTimestamp(data.receivedDate),
-                        sentDate: this.transformTimestamp(data.sentDate),
-                        readDate: this.transformTimestamp(data.readDate),
-                    });
-                }
-            });
-
-            if (userComplaintMessages.length === 0) {
-                const responseDto = new GetMessagesByUserResponseDto(
-                    404,
-                    'COMPLAINTMESSAGESNOTFOUND',
-                    userComplaintMessages
-                );
-
-                console.log('No Complaint messages found.');
-                return responseDto;
-            }
-
-            const responseDto = new GetMessagesByUserResponseDto(
-                200,
-                'COMPLAINTMESSAGESRETRIEVEDSUCCESSFULLY',
-                userComplaintMessages
-            );
-
-            console.log('User Complaint messages fetched successfully.');
-            return responseDto;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
-    */
 
     @ApiOperation({ summary: 'Search messages by keywords for a user' })
     @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
@@ -797,6 +627,7 @@ export class MessageService {
                         content: message.content,
                         isRead: message.isRead,
                         isArchived: message.isArchived,
+                        isHighlight: message.isHighlight,
                         attachmentUrls: message.attachmentUrls,
                         subject: message.subject,
                         type: message.type,
@@ -845,46 +676,42 @@ export class MessageService {
 
 
 
-    async updateMessageStatus(dto: UpdateMessageStatusDto): Promise<UpdateMessageStatusResponseDto> {
+    async updateMessageStatus(id: string, dto: UpdateMessageStatusDto): Promise<UpdateMessageStatusResponseDto> {
         try {
-            const { senderEmail, recipientEmail, subject, isRead, type, isArchived, isActive, readDate } = dto;
+            const { isRead, type, isArchived, isActive, isHighlight } = dto;
+            const messagesCollectionRef = collection(this.firebaseService.fireStore, 'messages');
+            const messagesQuery = query(messagesCollectionRef, where('id', '==', id));
+            const messagesQuerySnapshot = await getDocs(messagesQuery);
 
-            const messagesCollectionRef = admin.firestore().collection('messages');
-            const querySnapshot = await messagesCollectionRef
-                .where('senderEmail', '==', senderEmail)
-                .where('recipientEmail', '==', recipientEmail)
-                .where('subject', '==', subject)
-                .get();
-
-            if (querySnapshot.empty) {
-                console.log('No messages found for the given criteria.');
-                throw new BadRequestException('MESSAGENOTFOUND');
+            if (messagesQuerySnapshot.empty) {
+                console.log('No messages found for the given ID.');
+                throw new NotFoundException('Message not found');
             }
+
+            const messageDocRef = messagesQuerySnapshot.docs[0].ref;
 
             const currentTimestamp = new Date();
 
-            const batch = admin.firestore().batch();
-            querySnapshot.forEach((doc) => {
-                const messageRef = doc.ref;
-                const updateData: any = {
-                    isRead: isRead !== undefined ? isRead : doc.data().isRead,
-                    type: type !== undefined ? type : doc.data().type,
-                    isArchived: isArchived !== undefined ? isArchived : doc.data().isArchived,
-                    isActive: isActive !== undefined ? isActive : doc.data().isActive,
-                };
+            const messageDocSnapshot = await getDoc(messageDocRef);
+            const messageData = messageDocSnapshot.data();
 
-                if (isRead) {
-                    updateData.readDate = currentTimestamp;
-                }
-                else {
-                    updateData.readDate = null; 
-                }
+            const updateData: any = {
+                isRead: isRead !== undefined ? isRead : messageData.isRead,
+                type: type !== undefined ? type : messageData.type,
+                isArchived: isArchived !== undefined ? isArchived : messageData.isArchived,
+                isActive: isActive !== undefined ? isActive : messageData.isActive,
+                isHighlight: isHighlight !== undefined ? isHighlight : messageData.isHighlight,
+            };
 
-                batch.update(messageRef, updateData);
-            });
+            if (isRead) {
+                updateData.readDate = currentTimestamp;
+            } else {
+                updateData.readDate = null;
+            }
 
-            await batch.commit();
-            console.log('Updated message status for the given criteria.');
+            await updateDoc(messageDocRef, updateData);
+
+            console.log('Updated message status for the given ID.');
 
             const response: UpdateMessageStatusResponseDto = {
                 statusCode: 200,
@@ -910,7 +737,11 @@ export class MessageService {
 
 
 
-
+    @ApiOperation({ summary: 'Get filtered messages for a user. Valid Filters: read, unread, archived, inquiry, sent, received, complaint, highlight, eliminated' })
+    @ApiOkResponse({ description: 'Filtered messages retrieved successfully', type: GetMessagesByUserResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiNotFoundResponse({ description: 'No messages found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getFilteredMessages(filter: string, email: string ): Promise<GetMessagesByUserResponseDto> {
         console.log('Filter:', filter);
         switch (filter) {
@@ -1335,10 +1166,292 @@ export class MessageService {
                     throw new InternalServerErrorException('INTERNALERROR');
                 }
 
+            case 'highlight':
+                try {
+                    const messageRef = collection(this.firebaseService.fireStore, 'messages');
+
+
+                    // Query for recipientEmail and isActive
+                    const recipientMessagesQuery = query(
+                        messageRef,
+                        where('recipientEmail', '==', email),
+                        where('isActive', '==', true)
+                    );
+                    const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
+
+                    const highlightedMessages = [];
+
+                   
+
+                    // Add Highlighted messages from recipient
+                    recipientMessagesQuerySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if (data.isHighlight === true) {
+                            highlightedMessages.push({
+                                senderEmail: data.senderEmail,
+                                recipientEmail: data.recipientEmail,
+                                content: data.content,
+                                isRead: data.isRead,
+                                isArchived: data.isArchived,
+                                attachmentUrls: data.attachmentUrls,
+                                subject: data.subject,
+                                type: data.type,
+                                receivedDate: this.transformTimestamp(data.receivedDate),
+                                sentDate: this.transformTimestamp(data.sentDate),
+                                readDate: this.transformTimestamp(data.readDate),
+                            });
+                        }
+                    });
+
+                    if (highlightedMessages.length === 0) {
+                        const responseDto = new GetMessagesByUserResponseDto(
+                            404,
+                            'HIGHLIGHTEDMESSAGESNOTFOUND',
+                            highlightedMessages
+                        );
+
+                        console.log('No Highlighted messages found.');
+                        return responseDto;
+                    }
+
+                    const responseDto = new GetMessagesByUserResponseDto(
+                        200,
+                        'HIGHLIGHTEDMESSAGESRETRIEVEDSUCCESSFULLY',
+                        highlightedMessages
+                    );
+
+                    console.log('Highlighted messages fetched successfully.');
+                    return responseDto;
+                } catch (error: unknown) {
+                    console.warn(`[ERROR]: ${error}`);
+                    throw new InternalServerErrorException('INTERNALERROR');
+                }
+
+            case 'eliminated':
+                try {
+                    console.log('User Email:', email);
+                    const messageRef = collection(this.firebaseService.fireStore, 'messages');
+
+                    // Query for senderEmail with isActive = false
+                    const senderMessagesQuery = query(
+                        messageRef,
+                        where('senderEmail', '==', email),
+                        where('isActive', '==', false)
+                    );
+                    const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
+
+                    // Query for recipientEmail with isActive = false
+                    const recipientMessagesQuery = query(
+                        messageRef,
+                        where('recipientEmail', '==', email),
+                        where('isActive', '==', false)
+                    );
+                    const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
+
+                    const userEliminatedMessages = [];
+
+                    // Add messages from sender
+                    senderMessagesQuerySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        userEliminatedMessages.push({
+                            senderEmail: data.senderEmail,
+                            recipientEmail: data.recipientEmail,
+                            content: data.content,
+                            isRead: data.isRead,
+                            isArchived: data.isArchived,
+                            isHighlight: data.isHighlight,
+                            attachmentUrls: data.attachmentUrls,
+                            subject: data.subject,
+                            type: data.type,
+                            receivedDate: this.transformTimestamp(data.receivedDate),
+                            sentDate: this.transformTimestamp(data.sentDate),
+                            readDate: this.transformTimestamp(data.readDate),
+                        });
+                    });
+
+                    // Add messages from recipient
+                    recipientMessagesQuerySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        userEliminatedMessages.push({
+                            senderEmail: data.senderEmail,
+                            recipientEmail: data.recipientEmail,
+                            content: data.content,
+                            isRead: data.isRead,
+                            isArchived: data.isArchived,
+                            attachmentUrls: data.attachmentUrls,
+                            subject: data.subject,
+                            type: data.type,
+                            receivedDate: this.transformTimestamp(data.receivedDate),
+                            sentDate: this.transformTimestamp(data.sentDate),
+                            readDate: this.transformTimestamp(data.readDate),
+                        });
+                    });
+
+                    if (userEliminatedMessages.length === 0) {
+                        const responseDto = new GetMessagesByUserResponseDto(
+                            404,
+                            'MESSAGESNOTFOUND',
+                            userEliminatedMessages
+                        );
+
+                        console.log('No eliminated messages found.');
+                        return responseDto;
+                    }
+
+                    const responseDto = new GetMessagesByUserResponseDto(
+                        200,
+                        'MESSAGESRETRIEVEDSUCCESSFULLY',
+                        userEliminatedMessages
+                    );
+
+                    console.log('Eliminated messages fetched successfully.');
+                    return responseDto;
+                } catch (error: unknown) {
+                    console.warn(`[ERROR]: ${error}`);
+                    throw new InternalServerErrorException('INTERNALERROR');
+                }
+        
+
+
               default:
                 return new GetMessagesByUserResponseDto(400, 'INVALIDFILTER', []);
         }
     }
+
+
+
+    @ApiBadRequestResponse({ description: 'Bad request or not found', type: NotFoundException })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async addOrRemoveTagsFromMessage(id: string, action: 'add' | 'eliminate', tagsNames: string[]): Promise<AddTagsResponseDto> {
+        try {
+            console.log(`Adding or removing tags from a message based on action: ${action}...`);
+
+            // Query the message collection with ID condition
+            const messagesCollectionRef = collection(this.firebaseService.fireStore, 'messages');
+            const messagesQuery = query(messagesCollectionRef, where('id', '==', id));
+            const messagesQuerySnapshot = await getDocs(messagesQuery);
+
+            if (messagesQuerySnapshot.empty) {
+                throw new NotFoundException('Message not found');
+            }
+
+            const messageDocRef = messagesQuerySnapshot.docs[0].ref;
+            const messageDocSnapshot = await getDoc(messageDocRef);
+            const currentTags = messageDocSnapshot.data()?.tags || [];
+
+            let updatedTags: string[] = [];
+
+            if (action === 'add') {
+                updatedTags = [...currentTags, ...tagsNames];
+            } else if (action === 'eliminate') {
+                updatedTags = currentTags.filter(tag => !tagsNames.includes(tag));
+            } else {
+                throw new Error('Invalid action. Supported actions: add, eliminate');
+            }
+
+            await updateDoc(messageDocRef, { tags: updatedTags });
+
+            console.log('Tags added or removed from the message.');
+
+            const responseDto: AddTagsResponseDto = {
+                statusCode: 200,
+                message: 'TAGSADDEDREMOVEDSUCCESSFULLY',
+            };
+            console.log('Tags added or removed from the message successfully.');
+
+            return responseDto;
+        } catch (error) {
+            console.error('Error:', error);
+            throw error;
+        }
+    }
+
+
+
+
+
+
+    @ApiOperation({ summary: 'Search messages by tags for a user' })
+    @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
+    @ApiNotFoundResponse({ description: 'No matching messages found', type: GetMessagesByUserResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async searchMessagesByTags(email: string, tags: string[]): Promise<GetMessagesByUserResponseDto> {
+        try {
+            const usersRef = collection(this.firebaseService.fireStore, 'users');
+            const userQuerySnapshot = await getDocs(query(usersRef, where('email', '==', email)));
+
+            if (userQuerySnapshot.empty) {
+                const responseDto = new GetMessagesByUserResponseDto(404, 'USERNOTFOUND', []);
+                return responseDto;
+            }
+
+            const userDoc = userQuerySnapshot.docs[0];
+            const userData = userDoc.data();
+            const userEmail = userData.email;
+
+            const messageRef = collection(this.firebaseService.fireStore, 'messages');
+            const messagesSnapshot = await getDocs(messageRef);
+
+            const matchedMessages = [];
+
+            messagesSnapshot.forEach((doc) => {
+                const message = doc.data();
+                const messageTags = message.tags || [];
+
+                const matchedTags = (Array.isArray(tags) ? tags : [tags]).filter(tag => messageTags.includes(tag));
+
+                if (
+                    matchedTags.length > 0 &&
+                    (message.senderEmail === userEmail || message.recipientEmail === userEmail) &&
+                    message.isActive === true
+                ) {
+                    matchedMessages.push({
+                        senderEmail: message.senderEmail,
+                        recipientEmail: message.recipientEmail,
+                        content: message.content,
+                        isRead: message.isRead,
+                        isArchived: message.isArchived,
+                        attachmentUrls: message.attachmentUrls,
+                        subject: message.subject,
+                        type: message.type,
+                        receivedDate: this.transformTimestamp(message.receivedDate),
+                        sentDate: this.transformTimestamp(message.sentDate),
+                        readDate: this.transformTimestamp(message.readDate),
+                    });
+                }
+            });
+
+            if (matchedMessages.length === 0) {
+                const responseDto = new GetMessagesByUserResponseDto(
+                    404,
+                    'MESSAGESNOTFOUND',
+                    matchedMessages
+                );
+                return responseDto;
+            }
+
+            const responseDto = new GetMessagesByUserResponseDto(
+                200,
+                'MESSAGESRETRIEVEDSUCCESSFULLY',
+                matchedMessages
+            );
+            return responseDto;
+        } catch (error: unknown) {
+            console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

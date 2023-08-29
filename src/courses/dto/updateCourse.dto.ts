@@ -8,9 +8,8 @@ export class UpdateCourseDto {
         example: 'Introduction to Web Development',
         type: String,
     })
-    @IsNotEmpty()
     @IsString()
-    public title: string;
+    public title?: string;
 
     @ApiProperty({
         description: 'Description of the course',
@@ -36,20 +35,12 @@ export class UpdateCourseDto {
     @IsNumber()
     public price?: number;
 
-    @ApiProperty({
-        description: 'Sections included in the course',
-        type: [Section],
-    })
-    @IsArray()
-    public sections?: Section[];
 
     @ApiProperty({
         description: 'Tags associated with the course',
         example: ['Web Development', 'HTML', 'CSS'],
         type: [String],
     })
-    @IsArray()
-    @IsString({ each: true })
     public tags?: string[];
 
     @ApiProperty({

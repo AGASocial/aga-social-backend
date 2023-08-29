@@ -92,4 +92,15 @@ export class Media {
         type: String
     })
     id?: string;
+
+
+    @ApiProperty({
+        description: "URL of the multimedia file on Vimeo",
+        example: "https://file_url.mp3",
+        type: String,
+    })
+    @IsUrl()
+    public vimeoVideo?: string;
+
+
 }

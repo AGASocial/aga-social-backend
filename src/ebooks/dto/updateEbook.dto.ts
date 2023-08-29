@@ -8,8 +8,6 @@ export class UpdateEbookDto {
         example: 'Introduction to Programming',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
     title?: string;
 
     @ApiProperty({
@@ -17,8 +15,6 @@ export class UpdateEbookDto {
         example: ['John Smith', 'John Doe'],
         type: String,
     })
-    @IsNotEmpty()
-    @IsString({ each: true })
     author?: string[];
 
     @ApiProperty({
@@ -26,9 +22,7 @@ export class UpdateEbookDto {
         example: 'https://example.com/ebook.pdf',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
-    url: string;
+    url?: string;
 
 
 
@@ -37,8 +31,6 @@ export class UpdateEbookDto {
         example: 'https://example.com/ebook.pdf',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
     public titlePage?: string;
 
     @ApiProperty({
@@ -46,8 +38,6 @@ export class UpdateEbookDto {
         example: 19.99,
         type: Number,
     })
-    @IsNotEmpty()
-    @IsNumber()
     price?: number;
 
     @ApiProperty({
@@ -55,8 +45,6 @@ export class UpdateEbookDto {
         example: 'A comprehensive guide to programming basics.',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
     description?: string;
 
     @ApiProperty({
@@ -64,7 +52,6 @@ export class UpdateEbookDto {
         example: '2023-08-01',
         type: Date,
     })
-    @IsNotEmpty()
     releaseDate?: Date;
 
     @ApiProperty({
@@ -72,9 +59,6 @@ export class UpdateEbookDto {
         example: ['English', 'Spanish'],
         type: [String],
     })
-    @IsNotEmpty()
-    @IsArray()
-    @IsString({ each: true })
     language?: string[];
 
     @ApiProperty({
@@ -82,7 +66,6 @@ export class UpdateEbookDto {
         example: 300,
         type: Number,
     })
-    @IsNotEmpty()
     @IsInt()
     pageCount?: number;
 
@@ -92,8 +75,6 @@ export class UpdateEbookDto {
         type: [String],
         enum: EbookGenre,
     })
-    @IsNotEmpty()
-    @IsArray()
     @IsEnum(EbookGenre, { each: true })
     genres?: EbookGenre[];
 
@@ -103,18 +84,10 @@ export class UpdateEbookDto {
         example: 'PDF',
         enum: EbookFormat,
     })
-    @IsNotEmpty()
     @IsEnum(EbookFormat)
     format?: EbookFormat;
 
 
-
-    @ApiProperty({
-        description: 'Firestore ID of the ebook',
-        example: 'abcdef123456',
-        type: String
-    })
-    id?: string;
 
 
 

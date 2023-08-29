@@ -21,15 +21,18 @@ import { CsrfProtectionMiddleware } from '../session/middleware/csrfProtection.m
 import { CsrfValidationMiddleware } from '../session/middleware/csrfValidation.middleware';
 
 @Module({
-  controllers: [AuthorizationController],
-  imports: [UsersModule, RolesModule, SessionModule,PassportModule.register({session: true}),ConfigModule.forRoot(), JwtModule.register({
-    secret: jwtSecret,
-    signOptions: {expiresIn: jwtTime}
-  }), HttpModule, UsersModule],
-  providers: [AuthorizationService, DataFiltererService, RolesGuard, HashService,SessionSerializer, JwtStrategy, FirebaseService, AuthService, JwtService, StageGuard],
-  exports: [AuthorizationService]
+    controllers: [AuthorizationController],
+    imports: [UsersModule, RolesModule, SessionModule, PassportModule.register({ session: true }), ConfigModule.forRoot(), JwtModule.register({
+        secret: jwtSecret,
+        signOptions: { expiresIn: jwtTime }
+    }), HttpModule, UsersModule],
+    providers: [AuthorizationService, DataFiltererService, RolesGuard, HashService, SessionSerializer, JwtStrategy, FirebaseService, AuthService, JwtService, StageGuard],
+    exports: [AuthorizationService]
 })
-export class AuthorizationModule implements NestModule {
+export class AuthorizationModule { }
+
+
+    /*implements NestModule {
 
     configure(consumer: MiddlewareConsumer) {
         consumer.apply(CsrfProtectionMiddleware).forRoutes('*');
@@ -37,4 +40,4 @@ export class AuthorizationModule implements NestModule {
         consumer.apply(CsrfValidationMiddleware).forRoutes('*');
     }
 
-}
+}*/

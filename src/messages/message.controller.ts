@@ -1,5 +1,6 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpException, HttpStatus, InternalServerErrorException, NotFoundException, Param, Post, Put, Query } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, HttpException, HttpStatus, InternalServerErrorException, NotFoundException, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { AddTagsResponseDto } from "./dto/addTagsResponse.dto";
 import { CreateMessageDto } from "./dto/createMessage.dto";
 import { CreateMessageResponseDto } from "./dto/createMessageResponse.dto";
 import { DeleteMessageDto } from "./dto/deleteMessage.dto";
@@ -60,18 +61,21 @@ export class MessageController {
 
 
 
-    @ApiOperation({ summary: 'Get messages by user email, keywords or filters' })
+    @ApiOperation({ summary: 'Get messages by user email, keywords, or filters' })
     @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
     @Get('messages')
     async getMessages(
         @Query('filter') filter: string,
         @Query('email') email: string,
-        @Query('keywords') keywords: string[] 
+        @Query('keywords') keywords: string[],
+        @Query('tags') tags: string[], 
     ): Promise<GetMessagesByUserResponseDto> {
         if (filter && email) {
             return await this.messageService.getFilteredMessages(filter, email);
         } else if (email && keywords && keywords.length > 0) {
             return await this.messageService.searchMessagesByKeywords(email, keywords);
+        } else if (email && tags && tags.length > 0) { 
+            return await this.messageService.searchMessagesByTags(email, tags);
         } else if (email) {
             return this.messageService.getUserMessages(email);
         } else {
@@ -81,17 +85,17 @@ export class MessageController {
 
 
 
-
-    @ApiOperation({ summary: 'Update message status to read, unread, inquiry, complaint, archived, unarchived, deactivated, activated' })
+    @ApiOperation({ summary: 'Update message status to read, unread, inquiry, complaint, archived, unarchived, deactivated, activated, highlighted' })
     @ApiOkResponse({ description: 'Message status updated successfully', type: UpdateMessageStatusResponseDto })
     @ApiBadRequestResponse({ description: 'Bad request' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @Put('messages')
     async updateMessageStatus(
+        @Query('id') id: string,
         @Body() dto: UpdateMessageStatusDto,
     ): Promise<UpdateMessageStatusResponseDto> {
         try {
-            return await this.messageService.updateMessageStatus(dto);
+            return await this.messageService.updateMessageStatus(id, dto);
         } catch (error) {
             console.error('An error occurred:', error);
             throw new Error('There was an error updating the message status.');
@@ -99,6 +103,34 @@ export class MessageController {
     }
 
 
+
+
+    @ApiOperation({ summary: 'Add or remove tags to/from a message based on user email and tag names' })
+    @ApiCreatedResponse({
+        description: 'Tags added or removed from the message successfully',
+        type: AddTagsResponseDto,
+    })
+    @ApiBadRequestResponse({ description: 'Bad request or missing parameters', type: HttpException })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Patch('messages/tags')
+    async addOrRemoveTagsToMessageByUserEmailAndTagNames(
+        @Body('id') id: string,
+        @Body('tagsNames') tagsNames: string[],
+        @Body('action') action: 'add' | 'eliminate',
+
+    ): Promise<AddTagsResponseDto> {
+        try {
+            if (!id || !tagsNames || !action) {
+                throw new HttpException('Missing required parameters', HttpStatus.BAD_REQUEST);
+            }
+
+            const response = await this.messageService.addOrRemoveTagsFromMessage(id, action, tagsNames);
+            return response;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new HttpException('Error adding tags to the message', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
    
 

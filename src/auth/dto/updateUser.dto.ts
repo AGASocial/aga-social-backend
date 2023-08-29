@@ -92,18 +92,6 @@ export class UpdateUserDto {
 
 
 
-    @ApiProperty({
-        description: 'Current email the user already has, it must be unique between users',
-        example: 'test@gmail.com',
-        type: String
-    })
-    @IsEmail()
-    @IsString()
-    id?: string; //Email
-
-
-
-
 }
 
 

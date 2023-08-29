@@ -17,9 +17,7 @@ export class AddMediaOrEbookDto {
         example: 'Introduction to Programming',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
-    sectionName: string;
+    sectionName?: string;
 
     @ApiProperty({
         description: 'Type of resource (Media or Ebook)',

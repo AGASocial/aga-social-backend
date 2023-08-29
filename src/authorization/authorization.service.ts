@@ -37,18 +37,16 @@ export class AuthorizationService {
 
 
 
-
-    @ApiOperation({ summary: 'Set role to user' })
-    @ApiOkResponse({ description: 'role set to user successfully' })
+    @ApiOkResponse({ description: 'Role set to user successfully' })
     @ApiBadRequestResponse({ description: 'Bad request' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async setRoleToUser(email: string, roleName: string): Promise<SetRoleToUserResponseDto> {
+    async setRoleToUser(userId: string, roleName: string): Promise<SetRoleToUserResponseDto> {
         try {
             const usersRef = collection(this.firebaseService.fireStore, 'users');
-            const querySnapshot = await getDocs(query(usersRef, where('email', '==', email)));
+            const querySnapshot = await getDocs(query(usersRef, where('id', '==', userId)));
 
             if (querySnapshot.empty) {
-                console.log(`User with the following email not found: ${email}`);
+                console.log(`User with the following id not found: ${userId}`);
                 throw new NotFoundException('USERNOTFOUND');
             }
 
@@ -86,6 +84,17 @@ export class AuthorizationService {
 
             console.log(`Updated User Roles`, updatedRoles);
 
+            // Update cache with the newly modified user data
+            const cachedUsers = await this.firebaseService.getCollectionData('users');
+            const updatedCachedUsers = cachedUsers.map((user) => {
+                if (user.id === userId) {
+                    return { ...user, role: updatedRoles };
+                }
+                return user;
+            });
+
+            await this.firebaseService.setCollectionData('users', updatedCachedUsers);
+
             return response;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
@@ -98,17 +107,21 @@ export class AuthorizationService {
 
 
 
+
+
+
+
     @ApiOperation({ summary: 'Delete role of user' })
-    @ApiOkResponse({ description: 'role deleted from user successfully' })
+    @ApiOkResponse({ description: 'Role deleted from user successfully' })
     @ApiBadRequestResponse({ description: 'Bad request' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async deleteRoleOfUser(email: string, roleName: string): Promise<SetRoleToUserResponseDto> {
+    async deleteRoleOfUser(userId: string, roleName: string): Promise<SetRoleToUserResponseDto> {
         try {
             const usersRef = collection(this.firebaseService.fireStore, 'users');
-            const querySnapshot = await getDocs(query(usersRef, where('email', '==', email)));
+            const querySnapshot = await getDocs(query(usersRef, where('id', '==', userId)));
 
             if (querySnapshot.empty) {
-                console.log(`User with the following email not found: ${email}`);
+                console.log(`User with the following id not found: ${userId}`);
                 throw new NotFoundException('USERNOTFOUND');
             }
 
@@ -135,12 +148,25 @@ export class AuthorizationService {
 
             console.log(`Updated User Roles`, currentRoles);
 
+            // Update cache with the newly modified user data
+            const cachedUsers = await this.firebaseService.getCollectionData('users');
+            const updatedCachedUsers = cachedUsers.map((user) => {
+                if (user.id === userId) {
+                    return { ...user, role: currentRoles };
+                }
+                return user;
+            });
+
+            await this.firebaseService.setCollectionData('users', updatedCachedUsers);
+
             return response;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
             throw new InternalServerErrorException('INTERNALERROR');
         }
     }
+
+
 
 
 
@@ -183,7 +209,7 @@ export class AuthorizationService {
    
 
     @ApiOperation({ summary: 'Create role firebase' })
-    @ApiOkResponse({ description: 'role created successfully' })
+    @ApiOkResponse({ description: 'Role created successfully' })
     @ApiBadRequestResponse({ description: 'Bad request' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async createNewRole(createNewRoleDto: CreateNewRoleDto): Promise<CreateNewRoleResponseDto> {
@@ -210,6 +236,10 @@ export class AuthorizationService {
                 let docReference: DocumentReference = doc(this.firebaseService.rolesCollection, newRole.id);
                 await setDoc(docReference, newRole);
                 console.log('New role saved successfully!');
+
+                const cachedRoles = await this.firebaseService.getCollectionData('roles');
+                cachedRoles.push(newRole);
+                await this.firebaseService.setCollectionData('roles', cachedRoles);
             } catch (error: unknown) {
                 console.warn(`[ERROR]: ${error}`);
                 throw new BadRequestException('UNABLETOCREATEROLE');
@@ -225,7 +255,7 @@ export class AuthorizationService {
 
 
     @ApiOperation({ summary: 'Update role from firebase' })
-    @ApiOkResponse({ description: 'role updated successfully' })
+    @ApiOkResponse({ description: 'Role updated successfully' })
     @ApiBadRequestResponse({ description: 'Bad request' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async updateRole(roleName: string, newData: Partial<UpdateRoleDto>): Promise<UpdateRoleResponseDto> {
@@ -252,6 +282,15 @@ export class AuthorizationService {
                 statusCode: 200,
                 message: 'ROLEUPDATED',
             };
+
+            const cachedRoles = await this.firebaseService.getCollectionData('roles');
+            const updatedCachedRoles = cachedRoles.map((role) => {
+                if (role.name === roleName) {
+                    return { ...role, ...newData };
+                }
+                return role;
+            });
+            await this.firebaseService.setCollectionData('roles', updatedCachedRoles);
 
             return response;
         } catch (error) {
@@ -291,9 +330,8 @@ export class AuthorizationService {
   
   
 
-
     @ApiOperation({ summary: 'Get roles from firebase' })
-    @ApiOkResponse({ description: 'roles retrieved successfully' })
+    @ApiOkResponse({ description: 'Roles retrieved successfully' })
     @ApiBadRequestResponse({ description: 'Bad request' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getAllRoles(): Promise<GetRolesResponseDto> {
@@ -302,6 +340,18 @@ export class AuthorizationService {
             const rolesRef = this.firebaseService.rolesCollection;
             const roleQuery = query(rolesRef, orderBy("name"));
             console.log('Role query created.');
+
+            // Tries to use data in cache if it exists
+            const cachedRoles = await this.firebaseService.getCollectionData('roles');
+            if (cachedRoles.length > 0) {
+                console.log('Using cached roles data.');
+                const getRolesDtoResponse: GetRolesResponseDto = {
+                    statusCode: 200,
+                    message: "ROLESGOT",
+                    rolesFound: cachedRoles,
+                };
+                return getRolesDtoResponse;
+            }
 
             const roleQuerySnapshot = await getDocs(roleQuery);
             console.log('Role query snapshot obtained.');
@@ -318,6 +368,9 @@ export class AuthorizationService {
             });
             console.log('Roles data collected.');
 
+            // Update cache with newly retrieved roles
+            await this.firebaseService.setCollectionData('roles', queryResult);
+
             const getRolesDtoResponse: GetRolesResponseDto = {
                 statusCode: 200,
                 message: "ROLESGOT",
@@ -331,6 +384,7 @@ export class AuthorizationService {
             throw new Error('Error al obtener los roles.');
         }
     }
+
 
    
 }

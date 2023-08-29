@@ -4,17 +4,7 @@ import { IsEmail, IsNotEmpty, IsString, Length, Matches, MaxLength } from "class
 
 export class ChangeSecurityAnswerDto {
 
-    @ApiProperty({
-        description: 'Email the user will use, it must be unique between users',
-        example: 'test@gmail.com',
-        type: String
-    })
-    @IsNotEmpty()
-    @IsString()
-    @IsEmail()
-    @MaxLength(50)
-    public email: string;
-
+   
 
     @IsNotEmpty()
     @IsString()

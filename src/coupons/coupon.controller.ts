@@ -56,8 +56,8 @@ export class CouponController {
     @ApiOkResponse({ description: 'Coupon redeemed successfully ' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
     @Post('coupons/ebooks/courses')
-    async redeemCoupon(@Body() redeemCouponDto: RedeemCouponDto): Promise<RedeemCouponResponseDto> {
-        const response = await this.couponService.redeemCoupon(redeemCouponDto);
+    async redeemCoupon(@Body() redeemCouponDto: RedeemCouponDto, @Query('id') id: string): Promise<RedeemCouponResponseDto> {
+        const response = await this.couponService.redeemCoupon(redeemCouponDto, id);
         return response;
     }
 
@@ -65,12 +65,15 @@ export class CouponController {
 
 
     @ApiOperation({ summary: 'Assign a coupon to a user' })
-    @ApiOkResponse({ description: 'Coupon assigned successfully ' })
+    @ApiOkResponse({ description: 'Coupon assigned successfully' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon/user not found' })
     @Post('coupons/users')
-    async assignCouponToUser(@Body() assignCouponDto: AssignCouponDto): Promise<AssignCouponResponseDto> {
-        return this.couponService.assignCouponToUser(assignCouponDto);
+    async assignCouponToUser(
+        @Body() body: { couponCode: string, id: string }
+    ): Promise<AssignCouponResponseDto> {
+        return this.couponService.assignCouponToUser(body.couponCode, body.id);
     }
+
 
 
 
@@ -97,12 +100,12 @@ export class CouponController {
     @Patch('coupons/users')
     async manageCouponStatusOfUser(
         @Query('code') code?: string,
-        @Query('email') email?: string,
+        @Query('id') id?: string,
     ) {
-        if (email && code) {
-            return this.couponService.deactivateCouponForUser(code, email);
-        } else if (email) {
-            return this.couponService.updateUserExpiredCouponsStatus(email);
+        if (id && code) {
+            return this.couponService.deactivateCouponForUser(code, id);
+        } else if (id) {
+            return this.couponService.updateUserExpiredCouponsStatus(id);
         } else {
             throw new BadRequestException('Invalid input');
         }
@@ -126,19 +129,19 @@ export class CouponController {
     async getCoupons(
         @Query('code') code: string,
         @Query('status') status: CouponStatus,
-        @Query('userEmail') userEmail: string
+        @Query('id') id: string
     ): Promise<GetCouponsResponseDto> {
 
-        if (!code && !status && !userEmail) {
+        if (!code && !status && !id) {
             return this.couponService.getCoupons();
         }
 
         else if (code) {
             return this.couponService.getCouponByCode(code);
-        } else if (status && userEmail) {
-            return this.couponService.filterCouponsByStatus(status, userEmail);
-        } else if (userEmail) {
-            return this.couponService.getCouponsByUser(userEmail);
+        } else if (status && id) {
+            return this.couponService.filterCouponsByStatus(status, id);
+        } else if (id) {
+            return this.couponService.getCouponsByUser(id);
         } else {
             throw new BadRequestException('Invalid parameters');
         }

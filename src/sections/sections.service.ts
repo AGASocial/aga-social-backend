@@ -22,6 +22,7 @@ import { Media } from "../media/entities/media.entity";
 import { Ebook } from "../ebooks/entities/ebooks.entity";
 import { ManageResourceStatusInSectionDto } from "./dto/manageResourceStatusInSection.dto";
 import { ManageResourceStatusInSectionResponseDto } from "./dto/manageResourceStatusInSectionResponse.dto";
+import { convertFirestoreTimestamp } from "../utils/timeUtils.dto";
 
 
 
@@ -414,14 +415,15 @@ export class SectionService {
 
 
 
-
-
     @ApiOperation({ summary: 'Get active sections and subsections with active content matching specified keywords on the title' })
     @ApiOkResponse({ description: 'Success', type: GetSectionsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getSectionsByKeywords(keywords: string[]): Promise<GetSectionsResponseDto> {
+    async getSectionsByKeywords(keywords: string | string[]): Promise<GetSectionsResponseDto> {
         try {
             console.log('Initializing getSectionsByKeywords...');
+
+            // Convert keywords to an array if it's not already
+            const lowercaseKeywords = Array.isArray(keywords) ? keywords.map(keyword => keyword.toLowerCase()) : [keywords.toLowerCase()];
 
             // Tries to use data in cache if it exists
             const cachedSections = await this.firebaseService.getCollectionData('sections');
@@ -429,31 +431,40 @@ export class SectionService {
                 console.log('Using cached sections data.');
                 const matchedSections = cachedSections.filter(section =>
                     section.isActive === true &&
-                    keywords.some(keyword => section.name.toLowerCase().includes(keyword.toLowerCase()))
+                    lowercaseKeywords.some(keyword => section.name.toLowerCase().includes(keyword))
                 );
 
-                const filteredSubsections = matchedSections.map(section => ({
-                    ...section,
-                    subsections: section.subsections.filter(subsection => subsection.isActive)
-                }));
+                if (matchedSections.length > 0) {
+                    // Create a copy of the matchedSections to avoid modifying cached data
+                    const sectionsCopy = JSON.parse(JSON.stringify(matchedSections));
 
-                const subsectionsWithActiveContent = filteredSubsections.map(section => ({
-                    ...section,
-                    subsections: section.subsections.map(subsection => ({
-                        ...subsection,
-                        content: subsection.content.filter(item => item.isActive)
-                    }))
-                }));
+                    // Format the dates in the copied sections
+                    const formattedSections = sectionsCopy.map(matchedSection => ({
+                        ...matchedSection,
+                        subsections: matchedSection.subsections.filter(subsection => subsection.isActive)
+                            .map(subsection => ({
+                                ...subsection,
+                                content: subsection.content.filter(item => item.isActive)
+                                    .map(item => ({
+                                        ...item,
+                                        uploadDate: convertFirestoreTimestamp(item.uploadDate),
+                                        releaseDate: convertFirestoreTimestamp(item.releaseDate),
+                                    }))
+                            }))
+                    }));
 
-                const responseDto: GetSectionsResponseDto = {
-                    statusCode: 200,
-                    message: 'SECTIONSGOT',
-                    sectionsFound: subsectionsWithActiveContent,
-                };
-                return responseDto;
+                    const responseDto: GetSectionsResponseDto = {
+                        statusCode: 200,
+                        message: 'SECTIONSGOT',
+                        sectionsFound: formattedSections,
+                    };
+                    console.log('Response created.');
+
+                    return responseDto;
+                }
             }
 
-            // If there is no data in cache, query Firestore
+            // If there is no data in cache or no matching section, query Firestore
             const sectionsRef = this.firebaseService.sectionsCollection;
             const sectionsQuery = query(sectionsRef, where('isActive', '==', true), orderBy('name'));
             console.log('Sections query created.');
@@ -475,35 +486,48 @@ export class SectionService {
             });
             console.log('Section data collected.');
 
-            // Filter the sections by keywords
             const matchedSections = queryResult.filter(section =>
-                keywords.some(keyword => section.name.toLowerCase().includes(keyword.toLowerCase()))
+                lowercaseKeywords.some(keyword => section.name.toLowerCase().includes(keyword))
             );
 
-            const filteredSubsections = matchedSections.map(section => ({
-                ...section,
-                subsections: section.subsections.filter(subsection => subsection.isActive)
-            }));
+            if (matchedSections.length > 0) {
+                // Create a copy of the matchedSections to avoid modifying cached data
+                const sectionsCopy = JSON.parse(JSON.stringify(matchedSections));
 
-            const subsectionsWithActiveContent = filteredSubsections.map(section => ({
-                ...section,
-                subsections: section.subsections.map(subsection => ({
-                    ...subsection,
-                    content: subsection.content.filter(item => item.isActive)
-                }))
-            }));
+                // Format the dates in the copied sections
+                const formattedSections = sectionsCopy.map(matchedSection => ({
+                    ...matchedSection,
+                    subsections: matchedSection.subsections.filter(subsection => subsection.isActive)
+                        .map(subsection => ({
+                            ...subsection,
+                            content: subsection.content.filter(item => item.isActive)
+                                .map(item => ({
+                                    ...item,
+                                    uploadDate: convertFirestoreTimestamp(item.uploadDate),
+                                    releaseDate: convertFirestoreTimestamp(item.releaseDate),
+                                }))
+                        }))
+                }));
 
-            // Save the data in cache for future queries
-            await this.firebaseService.setCollectionData('sections', queryResult);
+                const responseDto: GetSectionsResponseDto = {
+                    statusCode: 200,
+                    message: 'SECTIONSGOT',
+                    sectionsFound: formattedSections,
+                };
+                console.log('Response created.');
+
+                return responseDto;
+            }
 
             const responseDto: GetSectionsResponseDto = {
-                statusCode: 200,
-                message: 'SECTIONSGOT',
-                sectionsFound: subsectionsWithActiveContent,
+                statusCode: 404,
+                message: 'NOSECTIONFOUND',
+                sectionsFound: [],
             };
             console.log('Response created.');
 
             return responseDto;
+
         } catch (error) {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving the sections.');
@@ -512,15 +536,24 @@ export class SectionService {
 
 
 
+
+
+
+
+
+
+
     @ApiOperation({ summary: 'Add a media or ebook to a subsection within a section' })
     @ApiCreatedResponse({ description: 'Success', type: AddMediaOrEbookResponseDto })
     @ApiBadRequestResponse({ description: 'Bad request', type: BadRequestException })
     async addMediaOrEbookToSubsection(
-        mediaOrEbookData: CreateMediaDto | CreateEbookDto,
+        addMediaOrEbookDto: AddMediaOrEbookDto,
         parentSectionName: string,
         subsectionName: string
     ): Promise<AddMediaOrEbookResponseDto> {
         try {
+            const { typeOfResource, title } = addMediaOrEbookDto;
+
             const sectionsRef = collection(this.firebaseService.fireStore, 'sections');
             const sectionsQuery = query(sectionsRef, where('name', '==', parentSectionName));
             const sectionsQuerySnapshot = await getDocs(sectionsQuery);
@@ -534,20 +567,79 @@ export class SectionService {
             const { subsections } = parentSectionData;
 
             const findSubsectionAndUpdateContent = async (subsection: Section): Promise<boolean> => {
+                console.log('Checking subsection:', subsection.name);
+
                 if (subsection.name === subsectionName) {
+                    console.log('Found matching subsection:', subsectionName);
                     const updatedSubsectionContent = [...subsection.content];
 
-                    if ('duration' in mediaOrEbookData) { // This is a Media
-                        const mediaDto: CreateMediaDto = mediaOrEbookData;
-                        updatedSubsectionContent.push(mediaDto);
-                    } else if ('pageCount' in mediaOrEbookData) { // This is an Ebook
-                        const ebookDto: CreateEbookDto = mediaOrEbookData;
-                        updatedSubsectionContent.push(ebookDto);
-                    } else {
+                    const resourceQuery: Query<DocumentData> =
+                        typeOfResource === ResourceType.Media
+                            ? query(collection(this.firebaseService.fireStore, 'media'), where('title', '==', title))
+                            : typeOfResource === ResourceType.Ebook
+                                ? query(collection(this.firebaseService.fireStore, 'ebooks'), where('title', '==', title))
+                                : null;
+
+                    if (!resourceQuery) {
                         throw new BadRequestException('INVALID CONTENT TYPE');
                     }
 
-                    await updateDoc(parentSectionDoc.ref, { subsections });
+                    const resourceQuerySnapshot = await getDocs(resourceQuery);
+
+                    if (resourceQuerySnapshot.empty) {
+                        throw new BadRequestException(`${typeOfResource.toUpperCase()} NOT FOUND`);
+                    }
+
+                    const resourceDoc = resourceQuerySnapshot.docs[0];
+                    const resource = resourceDoc.data();
+
+                    if (typeOfResource === ResourceType.Media) {
+                        const mediaDto: CreateMediaDto = {
+                            publisher: resource.type,
+                            type: resource.type,
+                            title: resource.title,
+                            description: resource.description,
+                            url: resource.url,
+                            duration: resource.duration,
+                            uploadDate: resource.uploadDate,
+                        };
+                        updatedSubsectionContent.push(mediaDto);
+                    } else if (typeOfResource === ResourceType.Ebook) {
+                        const ebookDto: CreateEbookDto = {
+                            title: resource.title,
+                            publisher: resource.publisher,
+                            author: resource.author,
+                            description: resource.description,
+                            titlePage: resource.titlePage,
+                            url: resource.url,
+                            price: resource.price,
+                            releaseDate: resource.releaseDate,
+                            language: resource.language,
+                            pageCount: resource.pageCount,
+                            genres: resource.genres,
+                            format: resource.format,
+                            salesCount: resource.salesCount,
+                            isActive: resource.isActive,
+                        };
+                        updatedSubsectionContent.push(ebookDto);
+                    }
+
+                    // Update only the content of the subsection
+                    const updatedSubsection = {
+                        ...subsection,
+                        content: updatedSubsectionContent,
+                    };
+
+                    const updatedSubsections = subsections.map((subsec: any) =>
+                        subsec.name === subsectionName ? updatedSubsection : subsec
+                    );
+
+                    const updatedParentSection = {
+                        ...parentSectionData,
+                        subsections: updatedSubsections,
+                    };
+
+                    await updateDoc(parentSectionDoc.ref, updatedParentSection);
 
                     console.log('Media or Ebook added to subsection content successfully.');
 
@@ -557,7 +649,7 @@ export class SectionService {
                         if (cachedSection.name === parentSectionName) {
                             return {
                                 ...cachedSection,
-                                subsections,
+                                subsections: updatedSubsections,
                             };
                         }
                         return cachedSection;
@@ -590,6 +682,9 @@ export class SectionService {
             throw error;
         }
     }
+
+
+
 
 
 
@@ -699,38 +794,37 @@ export class SectionService {
     @ApiOperation({ summary: 'Get sections by tags' })
     @ApiOkResponse({ description: 'Success', type: GetSectionsResponseDto })
     @ApiBadRequestResponse({ description: 'Bad request', type: BadRequestException })
-    async getSectionsByTags(tags: string[]): Promise<GetSectionsResponseDto> {
+    async getSectionsByTags(tags: string | string[]): Promise<GetSectionsResponseDto> {
         try {
             console.log('Initializing getSectionsByTags...');
 
-            // Convert all tags to lowercase for case-insensitive comparison
-            const lowercaseTags = tags.map(tag => tag.toLowerCase());
+            // Convert tags to an array if it's not already
+            const lowercaseTags = Array.isArray(tags) ? tags.map(tag => tag.toLowerCase()) : [tags.toLowerCase()];
 
             // Tries to use data in cache if it exists
             const cachedSections = await this.firebaseService.getCollectionData('sections');
             if (cachedSections.length > 0) {
                 console.log('Using cached sections data.');
                 const matchedSections = cachedSections.filter(section =>
-                    section.isActive && section.tags.some(tag => lowercaseTags.includes(tag.toLowerCase()))
+                    section.isActive && lowercaseTags.every(tag => section.tags.includes(tag))
                 );
 
-                const filteredSubsections = matchedSections.map(section => ({
-                    ...section,
-                    subsections: section.subsections.filter(subsection => subsection.isActive)
-                }));
 
-                const subsectionsWithActiveContent = filteredSubsections.map(section => ({
-                    ...section,
-                    subsections: section.subsections.map(subsection => ({
-                        ...subsection,
-                        content: subsection.content.filter(item => item.isActive)
-                    }))
-                }));
+                const formattedSections = matchedSections.map(section => {
+                    return {
+                        ...section,
+                        subsections: section.subsections.filter(subsection => subsection.isActive)
+                            .map(subsection => ({
+                                ...subsection,
+                                content: subsection.content.filter(item => item.isActive)
+                            }))
+                    };
+                });
 
                 const responseDto: GetSectionsResponseDto = {
                     statusCode: 200,
                     message: 'SECTIONSGOT',
-                    sectionsFound: subsectionsWithActiveContent,
+                    sectionsFound: formattedSections,
                 };
                 return responseDto;
             }
@@ -759,21 +853,20 @@ export class SectionService {
 
             // Filter the sections by tags
             const matchedSections = queryResult.filter(section =>
-                section.isActive && section.tags.some(tag => lowercaseTags.includes(tag.toLowerCase()))
+                section.isActive && lowercaseTags.every(tag => section.tags.includes(tag))
             );
 
-            const filteredSubsections = matchedSections.map(section => ({
-                ...section,
-                subsections: section.subsections.filter(subsection => subsection.isActive)
-            }));
 
-            const subsectionsWithActiveContent = filteredSubsections.map(section => ({
-                ...section,
-                subsections: section.subsections.map(subsection => ({
-                    ...subsection,
-                    content: subsection.content.filter(item => item.isActive)
-                }))
-            }));
+            const formattedSections = matchedSections.map(section => {
+                return {
+                    ...section,
+                    subsections: section.subsections.filter(subsection => subsection.isActive)
+                        .map(subsection => ({
+                            ...subsection,
+                            content: subsection.content.filter(item => item.isActive)
+                        }))
+                };
+            });
 
             // Save the data in cache for future queries
             await this.firebaseService.setCollectionData('sections', queryResult);
@@ -781,7 +874,7 @@ export class SectionService {
             const responseDto: GetSectionsResponseDto = {
                 statusCode: 200,
                 message: 'SECTIONSGOT',
-                sectionsFound: subsectionsWithActiveContent,
+                sectionsFound: formattedSections,
             };
             console.log('Response created.');
 
@@ -791,6 +884,7 @@ export class SectionService {
             throw new Error('There was an error retrieving the sections.');
         }
     }
+
 
 
 
@@ -820,10 +914,20 @@ export class SectionService {
             const sectionDoc = sectionQuerySnapshot.docs[0];
             const sectionData = sectionDoc.data();
             const sectionContent = sectionData.content.filter(item => item.isActive === true);
-            //  const sectionSubsections = sectionData.subsections || []; // Get subsections or use an empty array if none
+
+            // Convert Firestore timestamps to formatted date strings
+            const formattedContent = sectionContent.map(item => {
+                if (item.uploadDate) {
+                    item.uploadDate = convertFirestoreTimestamp(item.uploadDate);
+                }
+                if (item.releaseDate) {
+                    item.releaseDate = convertFirestoreTimestamp(item.releaseDate);
+                }
+                return item;
+            });
 
             // Combine sectionContent and sectionSubsections into sectionsFound
-            const sectionsFound = [...sectionContent,/* ...sectionSubsections*/];
+            const sectionsFound = [...formattedContent/*, ...sectionSubsections*/];
 
             console.log('Active section content and subsections retrieved successfully.');
 
@@ -839,7 +943,6 @@ export class SectionService {
             throw new Error('There was an error retrieving the active section content.');
         }
     }
-
 
 
 
@@ -867,20 +970,26 @@ export class SectionService {
             const sectionData = sectionDoc.data();
             const sectionSubsections = sectionData.subsections || [];
 
-            // Filter active subsections and their content
-            const activeSubsectionsWithContent = sectionSubsections
-                .filter(subsection => subsection.isActive !== false)
-                .map(subsection => {
-                    const activeContent = subsection.content.filter(item => item.isActive !== false);
-                    return { ...subsection, content: activeContent };
+            // Convert Firestore timestamps to formatted date strings
+            const formattedSubsections = sectionSubsections.map(subsection => {
+                const formattedContent = subsection.content.map(item => {
+                    if (item.uploadDate) {
+                        item.uploadDate = convertFirestoreTimestamp(item.uploadDate);
+                    }
+                    if (item.releaseDate) {
+                        item.releaseDate = convertFirestoreTimestamp(item.releaseDate);
+                    }
+                    return item;
                 });
+                return { ...subsection, content: formattedContent };
+            });
 
             console.log('Active subsections with content retrieved successfully.');
 
             const getSectionsDtoResponse: GetSectionsResponseDto = {
                 statusCode: 200,
                 message: 'ACTIVE_SUBSECTIONS_WITH_CONTENT_RETRIEVED_SUCCESSFULLY',
-                sectionsFound: activeSubsectionsWithContent,
+                sectionsFound: formattedSubsections,
             };
 
             return getSectionsDtoResponse;
