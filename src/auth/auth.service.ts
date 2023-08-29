@@ -117,6 +117,7 @@ export class AuthService {
                 refreshCookieAge: refreshTime * cookieTimeMultiplier,
             };
 
+            console.log(`The user id is: ${user.id}`);
             return loginResponseDto;
         } else {
             console.log('firebaseLogin - User credential not found');
@@ -283,89 +284,31 @@ export class AuthService {
 
 
 
-    /*
-    @ApiOkResponse({ description: 'User successfully deactivated', type: DeleteUserResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad Request: User not found or deactivation failed' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async deactivateUser(email: string): Promise<DeleteUserResponseDto> {
-        try {
-            console.log('Initiating user deactivation...');
-
-            const userQuery = query(
-                this.firebaseService.usersCollection,
-                where('email', '==', email),
-                limit(1)
-            );
-
-            const querySnapshot = await getDocs(userQuery);
-
-            if (querySnapshot.empty) {
-                console.log('User not found.');
-                throw new BadRequestException('User not found.');
-            }
-
-            const userDoc = querySnapshot.docs[0];
-            const userID = userDoc.id;
-            const userReference = doc(this.firebaseService.usersCollection, userID);
-
-            try {
-                await updateDoc(userReference, {
-                    isActive: false,
-                });
-            } catch (error: unknown) {
-                console.warn(`[ERROR]: ${error}`);
-            }
-
-            console.log('User deactivated successfully.');
-
-            const response: DeleteUserResponseDto = {
-                statusCode: 200,
-                message: 'USERDEACTIVATED',
-            };
-
-            console.log('user deactivation completed successfully.');
-
-            return response;
-        } catch (error) {
-            console.error('Error: ', error);
-            throw new BadRequestException('An error occurred while trying to deactivate the user.');
-        }
-    }*/
-
-
-
 
 
 
     @ApiOkResponse({ description: 'Password successfully recovered', type: RecoverPasswordDtoResponse })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid user, wrong security answer, or password recovery failed' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async firebaseRecoverPassword(recoverPasswordDto: RecoverPasswordDto): Promise<RecoverPasswordDtoResponse> {
+    async firebaseRecoverPassword(recoverPasswordDto: RecoverPasswordDto, jwtToken: string): Promise<RecoverPasswordDtoResponse> {
         console.log('firebaseRecoverPassword - Start of function');
 
-        const { user, security_answer, new_password } = recoverPasswordDto;
+        const { security_answer, new_password } = recoverPasswordDto;
 
-        let userID: string;
-        if (user.match('([a-z0-9._-]+)@([a-z0-9]+).([a-z]{2,10})(.[.a-z]{3,})?')) {
-            console.log('firebaseRecoverPassword - Matching user as email');
-
-            const emailQuerySnapshot = await this.usersService.emailChecker(user, true);
-            const docSnapshot = emailQuerySnapshot.docs[0];
-            userID = docSnapshot.id;
-        } else if (user.match('^[A-Z](?=.{0}[a-z]+[-._]{1}[1-9]{1,4}$).{1,20}$')) {
-            console.log('firebaseRecoverPassword - Matching user as username');
-
-            userID = await this.usersService.searchUser(user);
-        } else {
-            throw new BadRequestException('INVALIDUSER');
-        }
-
+        const userID = this.usersService.extractID(jwtToken);
         const singleUserReference = doc(this.firebaseService.usersCollection, userID);
         const singleUserSnap = await getDoc(singleUserReference);
+
+        if (!singleUserSnap.exists()) {
+            console.log('firebaseRecoverPassword - User not found');
+            throw new BadRequestException('USERNOTFOUND');
+        }
+
         const doSecurityAnswersMatch = await this.hashService.compareHashedStrings(
             security_answer,
             singleUserSnap.get("security_answer")
         );
+
         if (!doSecurityAnswersMatch) {
             console.log('firebaseRecoverPassword - Security answers do not match');
             throw new BadRequestException('WRONGCREDENTIALS');
@@ -374,47 +317,51 @@ export class AuthService {
         const hashedPassword = singleUserSnap.get("password");
         const newHashedPassword = await this.hashService.hashString(new_password);
         const email: string = singleUserSnap.get("email");
-        const userCredential = await signInWithEmailAndPassword(this.firebaseService.auth, email, hashedPassword);
 
-        if (userCredential) {
-            console.log('firebaseRecoverPassword - User credential found');
+        try {
+            const userCredential = await signInWithEmailAndPassword(this.firebaseService.auth, email, hashedPassword);
 
-            try {
-                const userUpdated = await firebaseAdminAuth.getAuth().updateUser(userID, {
-                    password: newHashedPassword
-                });
+            if (userCredential) {
+                console.log('firebaseRecoverPassword - User credential found');
 
-                if (userUpdated) {
-                    await updateDoc(singleUserReference, {
+                try {
+                    const userUpdated = await firebaseAdminAuth.getAuth().updateUser(userID, {
                         password: newHashedPassword
                     });
-                } else {
-                    console.log('firebaseRecoverPassword - User not found during password update');
-                    throw new BadRequestException('USERNOTFOUND');
+
+                    if (userUpdated) {
+                        await updateDoc(singleUserReference, {
+                            password: newHashedPassword
+                        });
+                    } else {
+                        console.log('firebaseRecoverPassword - User not found during password update');
+                        throw new BadRequestException('USERNOTFOUND');
+                    }
+
+                } catch (error: unknown) {
+                    console.warn(`firebaseRecoverPassword - Error while updating user password: ${error}`);
                 }
 
-            } catch (error: unknown) {
-                console.warn(`firebaseRecoverPassword - Error while updating user password: ${error}`);
+                try {
+                    await this.firebaseService.auth.signOut();
+                } catch (error: unknown) {
+                    console.warn(`firebaseRecoverPassword - Error while signing out: ${error}`);
+                }
+
+                const recoverPasswordDtoResponse: RecoverPasswordDtoResponse = { statusCode: 201, message: 'NEWPASSWORDASSIGNED' }
+                console.log('firebaseRecoverPassword - New Password Assigned!');
+                return recoverPasswordDtoResponse;
+            } else {
+                console.log('firebaseRecoverPassword - User not found');
+                throw new BadRequestException('USERNOTFOUND');
             }
-
-            try {
-                await this.firebaseService.auth.signOut();
-            } catch (error: unknown) {
-                console.warn(`firebaseRecoverPassword - Error while signing out: ${error}`);
-            }
-            const recoverPasswordDtoResponse: RecoverPasswordDtoResponse = { statusCode: 201, message: 'NEWPASSWORDASSIGNED' }
-
-            await this.firebaseService.auth.signOut();
-            console.log('firebaseRecoverPassword - New Password Assigned!');
-
-            return recoverPasswordDtoResponse;
-        } else {
-            console.log('firebaseRecoverPassword - User not found');
-            throw new BadRequestException('USERNOTFOUND');
+        } catch (error: unknown) {
+            console.warn(`firebaseRecoverPassword - Error during user authentication: ${error}`);
+            throw new InternalServerErrorException('AUTHENTICATIONERROR');
         }
     }
 
-    
+
 
 
     @ApiOkResponse({ description: 'Password successfully changed', type: ChangePasswordDtoResponse })
@@ -478,6 +425,7 @@ export class AuthService {
             if (cachedUsers.length > 0) {
                 console.log('Using cached users data.');
                 const sanitizedCachedUsers = cachedUsers.map((user) => ({
+                    id: user.id,
                     name: user.name,
                     username: user.username,
                     role: user.role,
@@ -516,6 +464,7 @@ export class AuthService {
             usersQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 queryResult.push({
+                    id: data.id,
                     name: data.name,
                     username: data.username,
                     role: data.role,
@@ -559,45 +508,28 @@ export class AuthService {
     @ApiOkResponse({ description: 'User retrieved successfully', type: GetUsersResponseDto })
     @ApiNotFoundResponse({ description: 'User not found' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getSingleUser(email: string): Promise<GetUsersResponseDto> {
+    async getSingleUser(id: string): Promise<GetUsersResponseDto> {
         try {
             console.log('Initializing getSingleUser...');
 
             // Tries to use data in cache if it exists
             const cachedUsers = await this.firebaseService.getCollectionData('users');
-            if (cachedUsers.length > 0) {
-                console.log('Using cached users data.');
-                const user = cachedUsers.find(user => user.email === email);
-                if (user) {
-                    const filteredUser = {
-                        name: user.name,
-                        username: user.username,
-                        role: user.role,
-                        email: user.email,
-                        purchasedBooks: user.purchasedBooks,
-                        purchasedCourses: user.purchasedCourses,
-                        courseEarnings: user.courseEarnings,
-                        ebookEarnings: user.ebookEarnings,
-                        coupons: user.coupons,
-                        description: user.description,
-                        country: user.country,
-                        phoneNumber: user.phoneNumber,
-                        profilePicture: user.profilePicture,
+            const cachedUserIndex = cachedUsers.findIndex(user => user.id === id);
 
-
-                    };
-                    const getSingleUserDtoResponse: GetUsersResponseDto = {
-                        statusCode: 200,
-                        message: "USERSGOT",
-                        usersFound: [filteredUser],
-                    };
-                    return getSingleUserDtoResponse;
-                }
+            if (cachedUserIndex !== -1) {
+                console.log('Using cached user data.');
+                const filteredUser = cachedUsers[cachedUserIndex];
+                const getSingleUserDtoResponse: GetUsersResponseDto = {
+                    statusCode: 200,
+                    message: "USERSGOT",
+                    usersFound: [filteredUser],
+                };
+                return getSingleUserDtoResponse;
             }
 
-            // If there is no data in cache, query Firestore
+            // If there is no data in cache or user not found in cache, query Firestore
             const usersRef = this.firebaseService.usersCollection;
-            const usersQuery = query(usersRef, where("email", "==", email));
+            const usersQuery = query(usersRef, where("id", "==", id));
             console.log('User query created.');
 
             const usersQuerySnapshot = await getDocs(usersQuery);
@@ -606,6 +538,7 @@ export class AuthService {
             const queryResult = usersQuerySnapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
+                    id: data.id,
                     name: data.name,
                     username: data.username,
                     role: data.role,
@@ -619,9 +552,6 @@ export class AuthService {
                     country: data.country,
                     phoneNumber: data.phoneNumber,
                     profilePicture: data.profilePicture,
-
-
-
                 };
             });
             console.log('User data collected.');
@@ -633,12 +563,24 @@ export class AuthService {
             };
             console.log('Response created.');
 
+            // Update cache with newly retrieved user data
+            if (getSingleUserDtoResponse.statusCode === 200 && getSingleUserDtoResponse.usersFound.length > 0) {
+                cachedUsers.push(getSingleUserDtoResponse.usersFound[0]);
+                await this.firebaseService.setCollectionData('users', cachedUsers);
+            } else {
+                // If the user was not found, update cache with an empty array to avoid querying Firestore repeatedly
+                await this.firebaseService.setCollectionData('users', []);
+            }
+
             return getSingleUserDtoResponse;
         } catch (error) {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving the user.');
         }
     }
+
+
+
 
 
 
@@ -724,11 +666,16 @@ export class AuthService {
     @ApiOkResponse({ description: 'Security answer changed successfully', type: ChangeSecurityAnswerDtoResponse })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or incorrect credentials' })
     async changeSecurityAnswer(changeSecurityAnswerDto: ChangeSecurityAnswerDto, jwtToken: string): Promise<ChangeSecurityAnswerDtoResponse> {
-        const { email, password, new_security_answer } = changeSecurityAnswerDto;
+        const { password, new_security_answer } = changeSecurityAnswerDto;
 
         const userID = this.usersService.extractID(jwtToken);
         const singleUserReference = doc(this.firebaseService.usersCollection, userID);
         const singleUserSnap = await getDoc(singleUserReference);
+
+        if (!singleUserSnap.exists()) {
+            console.log('User not found.');
+            throw new BadRequestException('User not found.');
+        }
 
         const doPasswordsMatch = await this.hashService.compareHashedStrings(password, singleUserSnap.data().password);
 
@@ -745,6 +692,7 @@ export class AuthService {
             });
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
+            throw new InternalServerErrorException('UPDATEERROR');
         }
 
         console.log('Security Answer Changed Successfully!');
@@ -758,114 +706,6 @@ export class AuthService {
     }
 
 
-    /*
-    @ApiOkResponse({ description: 'Security answer changed successfully', type: ChangeSecurityAnswerDtoResponse })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or incorrect credentials' })
-    async getUserEbookEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
-        try {
-            const userResponse = await this.getSingleUser(email);
-
-            if (userResponse.statusCode === 200 && userResponse.usersFound.length > 0) {
-                const ebookEarnings = userResponse.usersFound[0].ebookEarnings;
-
-                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
-                    200,
-                    'USERSEARNINGSRETRIEVEDSUCCESSFULLY',
-                    [{ ebookEarnings }],
-                );
-
-                return usersEarningsResponse;
-            } else {
-                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
-                    404,
-                    'USERNOTFOUNDOREBOOKEARNINGSMISSING',
-                    [],
-                );
-
-                return usersEarningsResponse;
-            }
-        } catch (error) {
-            console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving ebook earnings.');
-        }
-    }*/
-
-
-
-    /*
-    @ApiOkResponse({ description: 'User courses earnings retrieved successfully', type: GetUsersEarningsResponseDto })
-    @ApiNotFoundResponse({ description: 'User not found or courses earnings missing' })
-    async getUserCoursesEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
-        try {
-            const userResponse = await this.getSingleUser(email);
-
-            if (userResponse.statusCode === 200 && userResponse.usersFound.length > 0) {
-                const courseEarnings = userResponse.usersFound[0].courseEarnings;
-
-                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
-                    200,
-                    'USERSEARNINGSRETRIEVEDSUCCESSFULLY',
-                    [{ courseEarnings }],
-                );
-
-                return usersEarningsResponse;
-            } else {
-                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
-                    404,
-                    'USERNOTFOUNDCOURSESEARNINGSMISSING',
-                    [],
-                );
-
-                return usersEarningsResponse;
-            }
-        } catch (error) {
-            console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving courses earnings.');
-        }
-    }*/
-
-/*
-    @ApiOkResponse({ description: 'User total earnings retrieved successfully', type: GetUsersEarningsResponseDto })
-    @ApiNotFoundResponse({ description: 'User not found or earnings missing' })
-    async getUserTotalEarnings(email: string): Promise<GetUsersEarningsResponseDto> {
-        try {
-            const userResponse = await this.getSingleUser(email);
-
-            if (userResponse.statusCode === 200 && userResponse.usersFound.length > 0) {
-                const ebookEarnings = userResponse.usersFound[0].ebookEarnings;
-                const courseEarnings = userResponse.usersFound[0].courseEarnings;
-
-                const totalEarnings = ebookEarnings + courseEarnings;
-
-                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
-                    200,
-                    'USERSEARNINGSRETRIEVEDSUCCESSFULLY',
-                    [
-                        {
-                            ebookEarnings: userResponse.usersFound[0].ebookEarnings,
-                            courseEarnings: userResponse.usersFound[0].courseEarnings,
-                            totalEarnings: totalEarnings
-                        }
-                    ],
-                );
-
-                return usersEarningsResponse;
-            } else {
-                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
-                    404,
-                    'USERNOTFOUNDORCOURSESEARNINGSMISSING',
-                    [],
-                );
-
-                return usersEarningsResponse;
-            }
-        } catch (error) {
-            console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving total earnings.');
-        }
-    }
-    */
-
 
 
 
@@ -878,7 +718,6 @@ export class AuthService {
             const {
                 username,
                 name,
-                security_answer,
                 description,
                 country,
                 phoneNumber,

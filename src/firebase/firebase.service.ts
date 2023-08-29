@@ -26,6 +26,8 @@ export class FirebaseService {
     public coursesCollection: CollectionReference;
     public messagesCollection: CollectionReference;
     public couponsCollection: CollectionReference;
+    public tagsCollection: CollectionReference;
+
 
 
 
@@ -40,6 +42,8 @@ export class FirebaseService {
         courses: [],
         messages: [],
         coupons: [],
+        tags: [],
+
     };
 
    
@@ -76,6 +80,8 @@ export class FirebaseService {
         this._createCoursesCollection();
         this._createMessagesCollection();
         this._createCouponsCollection();
+        this._createTagsCollection();
+
 
 
 
@@ -84,6 +90,14 @@ export class FirebaseService {
 
       
        
+    }
+
+
+
+
+    private _createTagsCollection() {
+        this.tagsCollection = collection(this.fireStore, 'tags');
+
     }
 
 
@@ -147,6 +161,8 @@ export class FirebaseService {
             this.coursesCollection,
             this.messagesCollection,
             this.couponsCollection,
+            this.tagsCollection,
+
 
 
         ];

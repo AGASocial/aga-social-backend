@@ -100,28 +100,35 @@ export class SectionController {
 
 
     @Get('sections')
-    @ApiOperation({ summary: 'Get all sections, or get sections by its tags or get a sections content by its name or get sections by keywords on their title' })
+    @ApiOperation({
+        summary: 'Get all sections, or get sections by its tags or get a sections content by its name'
+    })
     @ApiOkResponse({ description: 'Sections and media retrieved successfully', type: GetSectionsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getSections(
         @Req() req: Request,
-        @Query('keywords') keywords?: string[],
         @Query('tags') tags?: string[],
-        @Query('name') sectionName?: string
+        @Query('name') sectionName?: string,
+        @Query('keywords') keywords?: string[]
     ): Promise<GetSectionsResponseDto> {
         if (sectionName) {
             const response = await this.sectionService.getSectionContentByName(sectionName);
             return response;
-        } else if (keywords && Array.isArray(keywords) && keywords.length > 0) {
-            const response = await this.sectionService.getSectionsByKeywords(keywords);
-            return response;
-        } else if (tags && Array.isArray(tags) && tags.length > 0) {
+        }
+
+        if (tags) {
             const response = await this.sectionService.getSectionsByTags(tags);
             return response;
-        } else {
-            return this.sectionService.getSections();
         }
+
+        if (keywords) {
+            const response = await this.sectionService.getSectionsByKeywords(keywords);
+            return response;
+        }
+
+        return this.sectionService.getSections();
     }
+
 
 
 
@@ -147,7 +154,7 @@ export class SectionController {
     @ApiOperation({ summary: 'Add media or ebook to subsection' })
     @ApiOkResponse({ description: 'Media or ebook added to subsection successfully', type: AddMediaOrEbookResponseDto })
     async addMediaOrEbookToSubsection(
-        @Body() mediaOrEbookData: CreateMediaDto | CreateEbookDto,
+        @Body() mediaOrEbookData: AddMediaOrEbookDto,
         @Query('parentSectionName') parentSectionName: string,
         @Query('subsectionName') subsectionName: string
     ): Promise<AddMediaOrEbookResponseDto> {

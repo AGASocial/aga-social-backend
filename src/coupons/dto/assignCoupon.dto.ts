@@ -5,13 +5,12 @@ import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-v
 export class AssignCouponDto {
 
     @ApiProperty({
-        description: 'User email',
-        example: 'user@example.com',
-        type: String,
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
     })
-    @IsNotEmpty()
-    @IsString()
-    email: string;
+    id?: string;
+
 
     @ApiProperty({
         description: 'Coupon code to redeem',

@@ -8,16 +8,14 @@ export class UpdateRoleDto {
         description: 'Role name',
         example: 'Subscriber, Publisher or Admin',
     })
-    @IsNotEmpty()
     @IsString()
     @IsOptional()
-    public name: string;
+    public name?: string;
 
     @ApiProperty({
         description: 'Describes the role and its nature',
         example: 'Subscribers are user that can buy courses and e-books offered by Publishers',
     })
-    @IsNotEmpty()
     @IsString()
     @IsOptional()
     public description?: string;
@@ -26,7 +24,6 @@ export class UpdateRoleDto {
         description: 'Indicates if the role is the default for new users. Subscriber is, Publisher and Admin are not',
         example: true,
     })
-    @IsNotEmpty()
     @IsBoolean()
     @IsOptional()
     public isDefault?: boolean;
@@ -35,7 +32,6 @@ export class UpdateRoleDto {
         description: 'Indicates if the role is enabled or disabled',
         example: true,
     })
-    @IsNotEmpty()
     @IsBoolean()
     @IsOptional()
     public isActive?: boolean;

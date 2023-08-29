@@ -4,15 +4,16 @@ import { csrfCookieName } from "../../utils/constants";
 import { generateToken } from "../../utils/csrfUtils";
 
 export class CsrfProtectionMiddleware implements NestMiddleware {
-
     use(req: Request, res: Response, next: NextFunction) {
-        console.log('CsrfProtectionMiddleware executing...'); // Agregado console.log()
-        const csrfToken = generateToken(res, req);
+        console.log('CsrfProtectionMiddleware executing...');
 
-        console.log(`Generated CSRF token: ${csrfToken}`); // Agregado console.log()
-        res.cookie(csrfCookieName, csrfToken, { httpOnly: false });
+        if (req.path !== '/get-csrf-token') {
+            const csrfToken = generateToken(res, req);
+            console.log(`Generated CSRF token: ${csrfToken}`);
+            res.cookie(csrfCookieName, csrfToken, { httpOnly: false });
+            console.log(`CSRF token added to cookie: ${csrfCookieName}`);
+        }
 
-        console.log(`CSRF token added to cookie: ${csrfCookieName}`); // Agregado console.log()
         next();
     }
 }

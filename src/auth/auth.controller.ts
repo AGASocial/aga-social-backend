@@ -16,7 +16,7 @@ import { DeleteUserDto } from "./dto/deleteUser.dto";
 import { DeleteUserResponseDto } from "./dto/deleteUserResponse.dto";
 import { GetUsersResponseDto } from "./dto/getUsersResponse.dto";
 import { FreezedGuard } from "../session/freezed.guard";
-import { csrfCookieName } from "../utils/constants";
+import { csrfCookieName, generateToken } from "../utils/constants";
 import { ChangeSecurityAnswerDto } from "./dto/changeSecurityAnswer.dto";
 import { ChangeSecurityAnswerDtoResponse } from "./dto/changeSecurityAnswerResponse.dto";
 import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
@@ -24,6 +24,9 @@ import { UpdateUserResponseDto } from "./dto/updateUserResponse.dto";
 import { UpdateUserDto } from "./dto/updateUser.dto";
 import { GetUsersEarningsResponseDto } from "./dto/getUsersEarningsResponse.dto";
 import { ChangeCredentialsDtoResponse } from "./dto/changeCredentialsResponse.dto";
+import { CsrfGuard } from "../session/csrf.guard";
+import { CsrfProtectionMiddleware } from "../session/middleware/csrfProtection.middleware";
+import { CsrfValidationMiddleware } from "../session/middleware/csrfValidation.middleware";
 
 
 @Controller('auth')
@@ -63,15 +66,13 @@ export class AuthController {
         return this.authService.firebaseDeleteUser(deleteUserDto);
     }
 
-
     @UseGuards(FreezedGuard)
-
     @ApiOperation({ summary: 'User login' })
     @ApiOkResponse({ description: 'Login successful', type: LogInResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid credentials or user not found' })
+
     @Post('users/sessions')
     async firebaseLogin(@Body() logInDto: LogInDto, @Res() res: Response, @Req() req) {
-
 
         const loginResponseDto: LogInResponseDto = await this.authService.firebaseLogin(logInDto);
 
@@ -143,18 +144,15 @@ export class AuthController {
     }
 
 
-    @ApiOperation({ summary: 'Get user by id or get all users or get a users earnings' })
+    @ApiOperation({ summary: 'Get user by id or get all users' })
     @ApiParam({ name: 'id', description: 'Id of the user', type: String, required: false })
     @ApiOkResponse({ description: 'User(s) retrieved successfully', type: GetUsersResponseDto })
     @Get('users')
     async getUsersOrSingleUserById(@Query('id') id: string, @Query('email') email: string, @Req() req: Request): Promise<GetUsersResponseDto> {
         if (id) {
-            return this.authService.getUsersEarnings(id);
+            return this.authService.getSingleUser(id);
         }
 
-        else if (email) {
-            return this.authService.getSingleUser(email);
-        }
 
         else {
             return this.authService.getUsers();
@@ -175,7 +173,7 @@ export class AuthController {
     @Patch('users')
     async manageUserCredentials( 
         @Req() req: Request,
-        @Query('email') email: string,
+        @Query('id') id: string,
         @Query('password') password: string,
         @Query('new_security_answer') newSecurityAnswer: string,
         @Query('new_password') newPassword: string,
@@ -184,9 +182,8 @@ export class AuthController {
 
         const jwtToken = req.signedCookies.refresh_token;
 
-        if (email && password && newSecurityAnswer) {
+        if (password && newSecurityAnswer) {
             const changeSecurityAnswerDto = new ChangeSecurityAnswerDto();
-            changeSecurityAnswerDto.email = email;
             changeSecurityAnswerDto.password = password;
             changeSecurityAnswerDto.new_security_answer = newSecurityAnswer;
 
@@ -196,19 +193,15 @@ export class AuthController {
             changePasswordDto.password = password;
             changePasswordDto.new_password = newPassword;
             return this.authService.firebaseChangePassword(changePasswordDto, jwtToken);
-        } else if (email && securityAnswer && newPassword) {
+        } else if (securityAnswer && newPassword) {
             const recoverPasswordDto = new RecoverPasswordDto();
-            recoverPasswordDto.user = email;
             recoverPasswordDto.security_answer = securityAnswer;
             recoverPasswordDto.new_password = newPassword;
-            return this.authService.firebaseRecoverPassword(recoverPasswordDto);
+            return this.authService.firebaseRecoverPassword(recoverPasswordDto, jwtToken);
         } else {
             throw new HttpException('Invalid combination of query parameters', HttpStatus.BAD_REQUEST);
         }
     }
-
-
-
 
 
 

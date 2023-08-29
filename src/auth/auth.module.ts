@@ -35,24 +35,14 @@ import { CsrfProtectionMiddleware } from '../session/middleware/csrfProtection.m
         JwtStrategy,
         JwtRefreshStrategy,
         FirebaseService,
-        LocalAuthGuard, 
+        LocalAuthGuard,
     ],
     exports: [AuthService],
 })
 export class AuthModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
-        consumer.apply(CsrfProtectionMiddleware).forRoutes('auth/firebase/login');
-
         consumer
-            .apply(CsrfValidationMiddleware)
-            .exclude(
-                { path: 'auth/firebase/login', method: RequestMethod.POST },
-                { path: 'auth/firebase/signup', method: RequestMethod.POST },
-
-                { path: 'auth/firebase/credentials', method: RequestMethod.POST },
-                { path: 'auth/firebase/credentials/otp', method: RequestMethod.PUT }
-            )
-            .forRoutes({ path: '*', method: RequestMethod.ALL });
-
+            .apply(CsrfProtectionMiddleware)
+            .forRoutes({ path: 'auth/users/sessions', method: RequestMethod.POST });
     }
 }

@@ -1,41 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsEmail, IsString } from "class-validator";
+import { Tags } from "../../tags/entities/tags.entity";
 import { MessageType } from "./createMessage.dto";
 
 
 
 
 export class UpdateMessageStatusDto {
-
-
-
-    @ApiProperty({
-        description: 'Email of the sender',
-        example: 'sender@example.com',
-        type: String,
-    })
-    @IsEmail()
-    public senderEmail?: string;
-
-    @ApiProperty({
-        description: 'Email of the recipient',
-        example: 'recipient@example.com',
-        type: String,
-    })
-    @IsEmail()
-    public recipientEmail?: string;
-
-
-
-
-    @ApiProperty({
-        description: 'Subject of the message',
-        example: 'Regarding Your Recent Purchase',
-        type: String,
-    })
-    @IsString()
-    public subject?: string;
-
 
 
 
@@ -85,6 +56,20 @@ export class UpdateMessageStatusDto {
         type: Date,
     })
     public readDate?: Date;
+
+
+    @ApiProperty({
+        description: 'Tags associated with the message',
+    })
+    public tags?: Tags[];
+
+    @ApiProperty({
+        description: 'It states whether the message is highlighted or not (Destacado)',
+        example: true,
+        type: String
+    })
+    @IsBoolean()
+    isHighlight?: boolean;
 
 
 

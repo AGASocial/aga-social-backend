@@ -11,14 +11,8 @@ export enum ResourceType {
 
 
 export class RedeemCouponDto {
-    @ApiProperty({
-        description: 'User email',
-        example: 'user@example.com',
-        type: String,
-    })
-    @IsNotEmpty()
-    @IsString()
-    useremail: string;
+
+
 
     @ApiProperty({
         description: 'Coupon code to redeem',

@@ -13,8 +13,6 @@ export class UpdateCouponDto {
         example: 'SUMMER2023',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
     code?: string;
 
     @ApiProperty({
@@ -22,24 +20,18 @@ export class UpdateCouponDto {
         example: 'Summer Discount',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
     description?: string;
 
     @ApiProperty({
         description: 'Type of discount',
         enum: DiscountType,
     })
-    @IsNotEmpty()
-    @IsEnum(DiscountType)
-    discountType?: DiscountType;
 
     @ApiProperty({
         description: 'Discount amount',
         example: 15,
         type: Number,
     })
-    @IsNotEmpty()
     @IsNumber()
     discountAmount?: number;
 
@@ -57,7 +49,6 @@ export class UpdateCouponDto {
         example: 100,
         type: Number,
     })
-    @IsNotEmpty()
     @IsNumber()
     @Min(1)
     maxUses?: number;

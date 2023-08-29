@@ -7,10 +7,10 @@ export class CsrfGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const req: Request = context.switchToHttp().getRequest();
 
-        console.log('CsrfGuard executing...'); // Agregado console.log()
+        console.log('CsrfGuard executing...'); 
 
         if (req.cookies[csrfCookieName] !== undefined) {
-            console.log('CSRF cookie found...'); // Agregado console.log()
+            console.log('CSRF cookie found...'); 
 
             Object.defineProperties(req.params, {
                 [csrfParamName]: {
@@ -21,15 +21,15 @@ export class CsrfGuard implements CanActivate {
             });
 
             if (req.params[csrfParamName] !== req.cookies[csrfCookieName]) {
-                console.log('CSRF token mismatch...'); // Agregado console.log()
+                console.log('CSRF token mismatch...');
                 throw new UnauthorizedException();
             } else {
-                console.log('CSRF token matched and removed from params...'); // Agregado console.log()
+                console.log('CSRF token matched and removed from params...');
                 delete req.params[csrfParamName];
                 return true;
             }
         } else {
-            console.log('CSRF cookie not found...'); // Agregado console.log()
+            console.log('CSRF cookie not found...'); 
             throw new UnauthorizedException();
         }
     }

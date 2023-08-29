@@ -39,14 +39,18 @@ import { MessageController } from './messages/message.controller';
 import { CouponModule } from './coupons/coupon.module';
 import { CouponService } from './coupons/coupon.service';
 import { CouponController } from './coupons/coupon.controller';
+import { VimeoService } from './vimeo/vimeo.service';
+import { TagsModule } from './tags/tags.module';
+import { TagsService } from './tags/tags.service';
+import { TagsController } from './tags/tags.controller';
 
 
 @Module({
-    imports: [CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
     }), SessionModule, RolesModule],
-    controllers: [AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController],
+    controllers: [TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController],
     providers: [
         AppService,
         DataFiltererService,
@@ -60,6 +64,8 @@ import { CouponController } from './coupons/coupon.controller';
         CourseService,
         MessageService,
         CouponService,
+        VimeoService,
+        TagsService,
         
         {
             provide: APP_GUARD,
@@ -74,24 +80,23 @@ import { CouponController } from './coupons/coupon.controller';
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
-        consumer
+       /* consumer
             .apply(CsrfProtectionMiddleware)
-            .forRoutes({ path: '*', method: RequestMethod.ALL });
-
+            .forRoutes({ path: '*', method: RequestMethod.ALL });*/
+        /*
         consumer
             .apply(CsrfValidationMiddleware)
             .exclude(
-                { path: 'auth/firebase/login', method: RequestMethod.POST },
-                { path: 'auth/firebase/signup', method: RequestMethod.POST },
-                { path: 'auth/firebase/credentials', method: RequestMethod.POST },
-                { path: 'auth/firebase/credentials/otp', method: RequestMethod.PUT }
+                { path: 'auth/users/sessions', method: RequestMethod.POST },
+                { path: 'auth/users', method: RequestMethod.POST },
+                { path: 'auth/users', method: RequestMethod.PATCH },
             )
-            .forRoutes({ path: '*', method: RequestMethod.ALL });
+            .forRoutes({ path: '*', method: RequestMethod.ALL });*/
 
         consumer
             .apply(UnauthenticatedMiddleware)
-            .exclude({ path: 'auth/firebase/logout', method: RequestMethod.GET },
-                     { path: 'auth/firebase/signup', method: RequestMethod.POST },
+            .exclude({ path: 'auth/users/sessions', method: RequestMethod.GET },
+                     { path: 'auth/users', method: RequestMethod.POST },
         )
             .forRoutes({ path: '*', method: RequestMethod.ALL });
 
