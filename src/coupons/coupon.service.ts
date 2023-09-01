@@ -72,7 +72,7 @@ export class CouponService {
             cachedCoupons.push(newCoupon);
             this.firebaseService.setCollectionData('coupons', cachedCoupons);
 
-            const responseDto = new CreateCouponResponseDto(201, 'COUPONCREATEDSUCCESSFULLY');
+            const responseDto = new CreateCouponResponseDto(201, 'COUPONCREATEDSUCCESSFULLY', code);
             return responseDto;
         } catch (error) {
             console.error('Error:', error);
@@ -140,48 +140,6 @@ export class CouponService {
 
 
 
-    @ApiOperation({ summary: 'Delete a coupon from firebase' })
-    @ApiOkResponse({ description: 'Coupon deleted successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    //NOT IN USE
-    async deleteCoupon(code: string): Promise<DeleteCouponResponseDto> {
-        try {
-            const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
-            const couponQuerySnapshot = await getDocs(query(couponCollectionRef, where('code', '==', code)));
-
-            if (couponQuerySnapshot.empty) {
-                console.log(`Coupon with code "${code}" not found in the coupons collection.`);
-                throw new NotFoundException('COUPONNOTFOUND');
-            }
-            const couponDoc = couponQuerySnapshot.docs[0];
-
-            // Delete from Firestore
-            await deleteDoc(couponDoc.ref);
-
-            // Update the cache
-            const cachedCoupons = await this.firebaseService.getCollectionData('coupons');
-            const indexToDelete = cachedCoupons.findIndex((coupon) => coupon.code === code);
-
-            if (indexToDelete !== -1) {
-                cachedCoupons.splice(indexToDelete, 1);
-                this.firebaseService.setCollectionData('coupons', cachedCoupons);
-            }
-
-            const response: DeleteCouponResponseDto = {
-                statusCode: 200,
-                message: 'COUPONDELETEDSUCCESSFULLY',
-            };
-
-            console.log(`The coupon has been deleted successfully.`);
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
-
-
 
 
 
@@ -223,7 +181,7 @@ export class CouponService {
                 message: 'COUPONELIMINATEDSUCCESSFULLY',
             };
 
-            console.log(`The coupon has been marked as eliminated for user with email "${id}" successfully.`);
+            console.log(`The coupon has been marked as eliminated for user with id "${id}" successfully.`);
             return response;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);

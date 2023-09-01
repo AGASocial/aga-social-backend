@@ -28,17 +28,15 @@ export class CreateNewRoleDto {
         description: 'Indicates if the role is the defaukt for new users. Subscriber is, Publisher and Admin are not',
         example: true,
     })
-    @IsNotEmpty()
     @IsBoolean()
-    public isDefault: boolean;
+    public default?: boolean;
 
     @ApiProperty({
         description: 'Indicates if the role is enabled or disabled',
         example: true,
     })
-    @IsNotEmpty()
     @IsBoolean()
-    public isActive: boolean;
+    public active?: boolean;
  
 
 }

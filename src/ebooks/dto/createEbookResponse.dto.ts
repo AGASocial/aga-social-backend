@@ -25,8 +25,16 @@ export class CreateEbookResponseDto {
     public message: string;
 
 
-    constructor(statusCode: number, message: string) {
+    @ApiProperty({
+        description: 'ID of the created ebook',
+        type: String
+    })
+    public ebookId?: string;
+
+
+    constructor(statusCode: number, message: string, ebookId: string) {
         this.statusCode = statusCode;
         this.message = message;
+        this.ebookId = ebookId;
     }
 }

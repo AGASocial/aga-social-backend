@@ -37,32 +37,4 @@ export class SignUpDto {
     @Matches('^(?=.*[0-9]{1,})(?=.*[a-zA-Z]{1,})(?=.*[-+!@#$%^&*.;?]{1,}).{8,30}$','', {message: 'INVALIDPASSWORD'})
     public password: string;
 
-    @ApiProperty({
-        description: 'Real name of the user',
-        example: 'Juan Lopez',
-        type: String
-    })
-    @IsNotEmpty()
-    @IsString()
-    @Matches('^(?=.*[a-zA-Z ]{1,}).{1,60}$','',{message: 'Name must be a real name, no numbers nor special characters'})
-    public name: string;
-
-    @ApiProperty({
-        description: 'Security answer used by the user for recovering access when their current password has been lost',
-        example: 'perfect blue',
-        type: String
-    })
-    @IsNotEmpty()
-    @IsString()
-    public security_answer: string;
-
-
-
-
-    @ApiProperty({
-        description: 'Firestore ID of the user',
-        example: 'abcdef123456',
-        type: String
-    })
-    id?: string;
 }

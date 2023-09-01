@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { addDoc, collection, CollectionReference, deleteDoc, DocumentData, DocumentReference, getDocs, orderBy, Query, query, QueryFieldFilterConstraint, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, CollectionReference, deleteDoc, doc, DocumentData, DocumentReference, getDocs, orderBy, Query, query, QueryFieldFilterConstraint, setDoc, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
 import { CreateSectionDto } from "./dto/createSection.dto";
 import { CreateSectionResponseDto } from "./dto/createSectionResponse.dto";
@@ -11,7 +11,7 @@ import { DeleteSectionResponseDto } from "./dto/deleteSectionResponse.dto";
 import { GetSectionsResponseDto } from "./dto/getSectionResponse.dto";
 import { CreateEbookDto } from "../ebooks/dto/createEbook.dto";
 import { CreateMediaDto } from "../media/dto/createMedia.dto";
-import { AddMediaOrEbookDto, ResourceType } from "./dto/addMediaorEbook.dto";
+import { AddMediaOrEbookDto} from "./dto/addMediaorEbook.dto";
 import { AddMediaOrEbookResponseDto } from "./dto/addMediaorEbookResponse.dto";
 import { DocResult } from "../utils/docResult.entity";
 import { DeactivateMediaOrEbookFromSectionDto, TypeOfResource } from "./dto/deactivateMediaOrEbookFromSection.dto";
@@ -23,6 +23,7 @@ import { Ebook } from "../ebooks/entities/ebooks.entity";
 import { ManageResourceStatusInSectionDto } from "./dto/manageResourceStatusInSection.dto";
 import { ManageResourceStatusInSectionResponseDto } from "./dto/manageResourceStatusInSectionResponse.dto";
 import { convertFirestoreTimestamp } from "../utils/timeUtils.dto";
+import { ManageResourceStatusInSubsectionDto } from "./dto/manageResourceStatusInSubsection.dto";
 
 
 
@@ -36,48 +37,42 @@ export class SectionService {
 
     @ApiOperation({ summary: 'Create a new section' })
     @ApiCreatedResponse({ description: 'Section created successfully', type: CreateSectionResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request', type: Error }) 
+    @ApiBadRequestResponse({ description: 'Bad request', type: Error })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async createNewSection(createNewSectionDto: CreateSectionDto): Promise<CreateSectionResponseDto> {
         try {
             console.log('Creating a new section...');
 
-            const { name, description, assetsTitles, tags } = createNewSectionDto;
+            const { name, description, assetsIds, tags } = createNewSectionDto;
 
             const sectionRef = collection(this.firebaseService.fireStore, 'sections');
 
-            const customSectionWhere: QueryFieldFilterConstraint = where('name', '==', name);
-            const sectionQuery = query(sectionRef, customSectionWhere);
-            const sectionQuerySnapshot = await getDocs(sectionQuery);
 
-            if (!sectionQuerySnapshot.empty) {
-                throw new BadRequestException('NAME OF SECTION ALREADY EXISTS');
-            }
 
-            const updatedContent = []; // To store content with additional attributes
+            const updatedContent = []; 
 
-            for (const title of assetsTitles) {
+            for (const id of assetsIds) {
                 const mediaRef = collection(this.firebaseService.fireStore, 'media');
-                const mediaQuery = query(mediaRef, where('title', '==', title));
+                const mediaQuery = query(mediaRef, where('id', '==', id)); 
                 const mediaQuerySnapshot = await getDocs(mediaQuery);
 
                 if (!mediaQuerySnapshot.empty) {
-                    const mediaData = mediaQuerySnapshot.docs[0].data(); // Assuming only one match
+                    const mediaData = mediaQuerySnapshot.docs[0].data();
                     updatedContent.push(mediaData);
-                    continue; // Skip to the next title in assetsTitles
+                    continue; // Skip to the next id in assetsIds
                 }
 
                 const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
-                const ebookQuery = query(ebookRef, where('title', '==', title));
+                const ebookQuery = query(ebookRef, where('id', '==', id)); 
                 const ebookQuerySnapshot = await getDocs(ebookQuery);
 
                 if (!ebookQuerySnapshot.empty) {
-                    const ebookData = ebookQuerySnapshot.docs[0].data(); // Assuming only one match
+                    const ebookData = ebookQuerySnapshot.docs[0].data();
                     updatedContent.push(ebookData);
-                    continue; // Skip to the next title in assetsTitles
+                    continue; // Skip to the next id in assetsIds
                 }
 
-                throw new BadRequestException('TITLE NOT FOUND in MEDIA or EBOOKS: ' + title);
+                throw new BadRequestException('ID NOT FOUND in MEDIA or EBOOKS: ' + id);
             }
 
             const newSectionId: string = uuidv4();
@@ -86,9 +81,9 @@ export class SectionService {
                 id: newSectionId,
                 name: name,
                 description: description,
-                content: updatedContent, // Use updated content with additional attributes
+                content: updatedContent,
                 tags: tags,
-                isActive: true,
+                active: true,
                 subsections: [],
             };
 
@@ -99,16 +94,16 @@ export class SectionService {
                 id: newSectionId,
                 name,
                 description,
-                content: updatedContent, // Use updated content with additional attributes
+                content: updatedContent, 
                 tags,
-                isActive: true,
+                active: true,
                 subsections: [],
             });
 
             this.firebaseService.setCollectionData('sections', cachedCourses);
             console.log('Section added to the cache successfully.');
 
-            const responseDto = new CreateSectionResponseDto(201, 'SECTIONCREATEDSUCCESSFULLY');
+            const responseDto = new CreateSectionResponseDto(201, 'SECTIONCREATEDSUCCESSFULLY', newSectionId);
             return responseDto;
         } catch (error) {
             console.error('Error creating section:', error);
@@ -123,21 +118,22 @@ export class SectionService {
 
 
 
+
     @ApiOperation({ summary: 'Create and add a new subsection to a section' })
     @ApiCreatedResponse({ description: 'Subsection created and added successfully', type: CreateSectionResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request', type: Error }) 
+    @ApiBadRequestResponse({ description: 'Bad request', type: Error })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async createAndAddSubsectionToSection(
-        parentSectionName: string,
+        parentSectionId: string,
         createSectionDto: CreateSectionDto
     ): Promise<CreateSectionResponseDto> {
         try {
             console.log('Creating and adding a new subsection...');
 
-            const { name, description, assetsTitles, tags } = createSectionDto;
+            const { name, description, assetsIds, tags } = createSectionDto;
 
             const parentSectionRef = collection(this.firebaseService.fireStore, 'sections');
-            const parentSectionQuery = query(parentSectionRef, where('name', '==', parentSectionName));
+            const parentSectionQuery = query(parentSectionRef, where('id', '==', parentSectionId));
             const parentSectionQuerySnapshot = await getDocs(parentSectionQuery);
 
             if (parentSectionQuerySnapshot.empty) {
@@ -147,30 +143,30 @@ export class SectionService {
             const parentSectionDoc = parentSectionQuerySnapshot.docs[0];
             const parentSectionData = parentSectionDoc.data();
 
-            const updatedContent = []; // To store content with additional attributes
+            const updatedContent = [];
 
-            for (const title of assetsTitles) {
+            for (const id of assetsIds) {
                 const mediaRef = collection(this.firebaseService.fireStore, 'media');
-                const mediaQuery = query(mediaRef, where('title', '==', title));
+                const mediaQuery = query(mediaRef, where('id', '==', id));
                 const mediaQuerySnapshot = await getDocs(mediaQuery);
 
                 if (!mediaQuerySnapshot.empty) {
-                    const mediaData = mediaQuerySnapshot.docs[0].data(); // Assuming only one match
+                    const mediaData = mediaQuerySnapshot.docs[0].data();
                     updatedContent.push(mediaData);
-                    continue; // Skip to the next title in assetsTitles
+                    continue; // Skip to the next id in assetsIds
                 }
 
                 const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
-                const ebookQuery = query(ebookRef, where('title', '==', title));
+                const ebookQuery = query(ebookRef, where('id', '==', id));
                 const ebookQuerySnapshot = await getDocs(ebookQuery);
 
                 if (!ebookQuerySnapshot.empty) {
-                    const ebookData = ebookQuerySnapshot.docs[0].data(); // Assuming only one match
+                    const ebookData = ebookQuerySnapshot.docs[0].data();
                     updatedContent.push(ebookData);
-                    continue; // Skip to the next title in assetsTitles
+                    continue; // Skip to the next id in assetsIds
                 }
 
-                throw new BadRequestException('TITLE NOT FOUND in MEDIA or EBOOKS: ' + title);
+                throw new BadRequestException('ID NOT FOUND in MEDIA or EBOOKS: ' + id);
             }
 
             const newSubsectionId: string = uuidv4();
@@ -179,9 +175,9 @@ export class SectionService {
                 id: newSubsectionId,
                 name: name,
                 description: description,
-                content: updatedContent, // Use updated content with additional attributes
+                content: updatedContent,
                 tags: tags,
-                isActive: true,
+                active: true,
             };
 
             if (!parentSectionData.subsections) {
@@ -191,20 +187,16 @@ export class SectionService {
             parentSectionData.subsections.push(newSubsection);
             await updateDoc(parentSectionDoc.ref, parentSectionData);
 
-
-
             // Update cached data
             const cachedSections = await this.firebaseService.getCollectionData('sections');
-            const updatedParentSection = cachedSections.find(section => section.name === parentSectionName);
+            const updatedParentSection = cachedSections.find(section => section.id === parentSectionId);
             if (updatedParentSection) {
                 updatedParentSection.subsections.push(newSubsection);
                 this.firebaseService.setCollectionData('sections', cachedSections);
                 console.log('Subsection added to the cache successfully.');
             }
 
-
-
-            const responseDto = new CreateSectionResponseDto(201, 'SUBSECTION_CREATED_AND_ADDED_SUCCESSFULLY');
+            const responseDto = new CreateSectionResponseDto(201, 'SUBSECTION_CREATED_AND_ADDED_SUCCESSFULLY', newSubsectionId);
             return responseDto;
         } catch (error) {
             console.error('Error creating and adding subsection to section:', error);
@@ -215,16 +207,17 @@ export class SectionService {
 
 
 
-    @ApiOperation({ summary: 'Update section by name' })
+
+
+    @ApiOperation({ summary: 'Update section by ID' })
     @ApiOkResponse({ description: 'Section updated successfully', type: UpdateSectionResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async updateSection(name: string, newData: Partial<UpdateSectionDto>): Promise<UpdateSectionResponseDto> {
+    async updateSection(id: string, newData: Partial<UpdateSectionDto>): Promise<UpdateSectionResponseDto> {
         try {
             console.log('Initializing updateSection...');
             const sectionsCollectionRef = admin.firestore().collection('sections');
 
-            // First, search in main sections
-            const mainSectionsQuerySnapshot = await sectionsCollectionRef.where('name', '==', name).get();
+            const mainSectionsQuerySnapshot = await sectionsCollectionRef.where('id', '==', id).get();
 
             if (!mainSectionsQuerySnapshot.empty) {
                 const batch = admin.firestore().batch();
@@ -233,7 +226,7 @@ export class SectionService {
                 });
 
                 await batch.commit();
-                console.log(`Updated info for main section with name "${name}"`);
+                console.log(`Updated info for main section with ID "${id}"`);
             } else {
                 // If not found in main sections, search in subsections
                 const sectionsQuerySnapshot = await sectionsCollectionRef.get();
@@ -242,7 +235,7 @@ export class SectionService {
                 sectionsQuerySnapshot.forEach((doc) => {
                     const subsections = doc.data().subsections || [];
                     const updatedSubsections = subsections.map((sub: any) => {
-                        if (sub.name === name) {
+                        if (sub.id === id) {
                             return { ...sub, ...newData };
                         }
                         return sub;
@@ -253,12 +246,12 @@ export class SectionService {
                 });
 
                 await batch.commit();
-                console.log(`Updated info for subsection with name "${name}"`);
+                console.log(`Updated info for subsection with ID "${id}"`);
             }
 
             // Update cached sections
             const cachedSections = await this.firebaseService.getCollectionData('sections');
-            const updatedSectionIndex = cachedSections.findIndex((section) => section.name === name);
+            const updatedSectionIndex = cachedSections.findIndex((section) => section.id === id);
             if (updatedSectionIndex !== -1) {
                 cachedSections[updatedSectionIndex] = { ...cachedSections[updatedSectionIndex], ...newData };
                 this.firebaseService.setCollectionData('sections', cachedSections);
@@ -279,60 +272,6 @@ export class SectionService {
 
 
 
-    //NOT IN USE
-    @ApiOperation({ summary: 'Update section by name' })
-    @ApiOkResponse({ description: 'Section updated successfully'})
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async deleteSection(name: string, description: string): Promise<DeleteSectionResponseDto> {
-        try {
-
-            const sectionCollectionRef = collection(this.firebaseService.fireStore, 'sections');
-            const sectionQuerySnapshot = await getDocs(query(sectionCollectionRef, where('name', '==', name)));
-
-            if (sectionQuerySnapshot.empty) {
-                console.log(`Section with name "${name}" not found in the sections collection.`);
-                throw new NotFoundException('SECTIONNOTFOUND');
-            }
-            const sectionsDoc = sectionQuerySnapshot.docs[0];
-
-            const sectionData = sectionsDoc.data() as Section;
-
-
-
-            if (sectionData.description == description) {
-                await deleteDoc(sectionsDoc.ref);
-            } else {
-                console.log(`Section with name "${name}" and description "${description}" not found in the sections collection.`);
-                throw new NotFoundException('SECTIONNOTFOUND');
-
-
-            }
-
-
-            const cachedCourses = await this.firebaseService.getCollectionData('sections');
-            const indexToDelete = cachedCourses.findIndex((section) => section.name === name);
-
-            if (indexToDelete !== -1) {
-                cachedCourses.splice(indexToDelete, 1);
-                this.firebaseService.setCollectionData('sections', cachedCourses);
-            }
-
-
-            const response: DeleteSectionResponseDto = {
-                statusCode: 200,
-                message: 'SECTIONDELETEDSUCCESSFULLY',
-            };
-
-            console.log(`The section has been deleted successfully.`);
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
-
-
-
     @ApiOperation({ summary: 'Get active sections and subsections with active content' })
     @ApiOkResponse({ description: 'Success', type: GetSectionsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
@@ -343,17 +282,17 @@ export class SectionService {
             const cachedSections = await this.firebaseService.getCollectionData('sections');
             if (cachedSections.length > 0) {
                 console.log('Using cached sections data.');
-                const activeSections = cachedSections.filter(section => section.isActive);
+                const activeSections = cachedSections.filter(section => section.active);
                 const activeSectionsWithSubsections = activeSections.map(section => ({
                     ...section,
-                    subsections: section.subsections.filter(subsection => subsection.isActive),
+                    subsections: section.subsections.filter(subsection => subsection.active),
                 }));
 
                 const activeSubsectionsWithActiveContent = activeSectionsWithSubsections.map(section => ({
                     ...section,
                     subsections: section.subsections.map(subsection => ({
                         ...subsection,
-                        content: subsection.content.filter(item => item.isActive),
+                        content: subsection.content.filter(item => item.active),
                     })),
                 }));
 
@@ -367,7 +306,7 @@ export class SectionService {
 
             // If there is no data, it uses firestore instead
             const sectionsRef = this.firebaseService.sectionsCollection;
-            const sectionsQuery = query(sectionsRef, where('isActive', '==', true), orderBy('name'));
+            const sectionsQuery = query(sectionsRef, where('active', '==', true), orderBy('name'));
 
             const sectionsQuerySnapshot = await getDocs(sectionsQuery);
             console.log('Sections query snapshot obtained.');
@@ -384,17 +323,17 @@ export class SectionService {
             // Save the data in cache for future queries
             await this.firebaseService.setCollectionData('sections', queryResult);
 
-            const activeSections = queryResult.filter(section => section.isActive);
+            const activeSections = queryResult.filter(section => section.active);
             const activeSectionsWithSubsections = activeSections.map(section => ({
                 ...section,
-                subsections: section.subsections.filter(subsection => subsection.isActive),
+                subsections: section.subsections.filter(subsection => subsection.active),
             }));
 
             const activeSubsectionsWithActiveContent = activeSectionsWithSubsections.map(section => ({
                 ...section,
                 subsections: section.subsections.map(subsection => ({
                     ...subsection,
-                    content: subsection.content.filter(item => item.isActive),
+                    content: subsection.content.filter(item => item.active),
                 })),
             }));
 
@@ -425,82 +364,35 @@ export class SectionService {
             // Convert keywords to an array if it's not already
             const lowercaseKeywords = Array.isArray(keywords) ? keywords.map(keyword => keyword.toLowerCase()) : [keywords.toLowerCase()];
 
-            // Tries to use data in cache if it exists
-            const cachedSections = await this.firebaseService.getCollectionData('sections');
-            if (cachedSections.length > 0) {
-                console.log('Using cached sections data.');
-                const matchedSections = cachedSections.filter(section =>
-                    section.isActive === true &&
-                    lowercaseKeywords.some(keyword => section.name.toLowerCase().includes(keyword))
-                );
-
-                if (matchedSections.length > 0) {
-                    // Create a copy of the matchedSections to avoid modifying cached data
-                    const sectionsCopy = JSON.parse(JSON.stringify(matchedSections));
-
-                    // Format the dates in the copied sections
-                    const formattedSections = sectionsCopy.map(matchedSection => ({
-                        ...matchedSection,
-                        subsections: matchedSection.subsections.filter(subsection => subsection.isActive)
-                            .map(subsection => ({
-                                ...subsection,
-                                content: subsection.content.filter(item => item.isActive)
-                                    .map(item => ({
-                                        ...item,
-                                        uploadDate: convertFirestoreTimestamp(item.uploadDate),
-                                        releaseDate: convertFirestoreTimestamp(item.releaseDate),
-                                    }))
-                            }))
-                    }));
-
-                    const responseDto: GetSectionsResponseDto = {
-                        statusCode: 200,
-                        message: 'SECTIONSGOT',
-                        sectionsFound: formattedSections,
-                    };
-                    console.log('Response created.');
-
-                    return responseDto;
-                }
-            }
-
-            // If there is no data in cache or no matching section, query Firestore
             const sectionsRef = this.firebaseService.sectionsCollection;
-            const sectionsQuery = query(sectionsRef, where('isActive', '==', true), orderBy('name'));
-            console.log('Sections query created.');
 
-            const sectionsQuerySnapshot = await getDocs(sectionsQuery);
+            const sectionsQuerySnapshot = await getDocs(sectionsRef);
             console.log('Sections query snapshot obtained.');
 
             const queryResult = [];
             sectionsQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
-                queryResult.push({
-                    name: data.name,
-                    description: data.description,
-                    tags: data.tags,
-                    content: data.content,
-                    isActive: data.isActive,
-                    subsections: data.subsections,
-                });
+                if (data.active && lowercaseKeywords.some(keyword => data.name.toLowerCase().includes(keyword))) {
+                    queryResult.push({
+                        name: data.name,
+                        description: data.description,
+                        tags: data.tags,
+                        content: data.content,
+                        active: data.active,
+                        subsections: data.subsections,
+                    });
+                }
             });
             console.log('Section data collected.');
 
-            const matchedSections = queryResult.filter(section =>
-                lowercaseKeywords.some(keyword => section.name.toLowerCase().includes(keyword))
-            );
-
-            if (matchedSections.length > 0) {
-                // Create a copy of the matchedSections to avoid modifying cached data
-                const sectionsCopy = JSON.parse(JSON.stringify(matchedSections));
-
-                // Format the dates in the copied sections
-                const formattedSections = sectionsCopy.map(matchedSection => ({
+            if (queryResult.length > 0) {
+                // Format the dates
+                const formattedSections = queryResult.map(matchedSection => ({
                     ...matchedSection,
-                    subsections: matchedSection.subsections.filter(subsection => subsection.isActive)
+                    subsections: matchedSection.subsections.filter(subsection => subsection.active)
                         .map(subsection => ({
                             ...subsection,
-                            content: subsection.content.filter(item => item.isActive)
+                            content: subsection.content.filter(item => item.active)
                                 .map(item => ({
                                     ...item,
                                     uploadDate: convertFirestoreTimestamp(item.uploadDate),
@@ -543,85 +435,59 @@ export class SectionService {
 
 
 
+
     @ApiOperation({ summary: 'Add a media or ebook to a subsection within a section' })
     @ApiCreatedResponse({ description: 'Success', type: AddMediaOrEbookResponseDto })
     @ApiBadRequestResponse({ description: 'Bad request', type: BadRequestException })
     async addMediaOrEbookToSubsection(
-        addMediaOrEbookDto: AddMediaOrEbookDto,
-        parentSectionName: string,
-        subsectionName: string
+        sectionId: string,
+        subsectionId: string,
+        resourceId: string
     ): Promise<AddMediaOrEbookResponseDto> {
         try {
-            const { typeOfResource, title } = addMediaOrEbookDto;
+
+
+            console.log('sectionId:', sectionId);
+            console.log('subsectionId:', subsectionId);
+            console.log('resourceId:', resourceId);
+
+
 
             const sectionsRef = collection(this.firebaseService.fireStore, 'sections');
-            const sectionsQuery = query(sectionsRef, where('name', '==', parentSectionName));
+            const sectionsQuery = query(sectionsRef, where('id', '==', sectionId));
             const sectionsQuerySnapshot = await getDocs(sectionsQuery);
 
             if (sectionsQuerySnapshot.empty) {
-                throw new BadRequestException('PARENT SECTION NOT FOUND');
+                throw new BadRequestException('SECTION NOT FOUND');
             }
 
-            const parentSectionDoc = sectionsQuerySnapshot.docs[0];
-            const parentSectionData = parentSectionDoc.data();
-            const { subsections } = parentSectionData;
+            const sectionDoc = sectionsQuerySnapshot.docs[0];
+            const sectionData = sectionDoc.data();
+            const { subsections } = sectionData;
 
             const findSubsectionAndUpdateContent = async (subsection: Section): Promise<boolean> => {
-                console.log('Checking subsection:', subsection.name);
+                console.log('Checking subsection:', subsection.id);
 
-                if (subsection.name === subsectionName) {
-                    console.log('Found matching subsection:', subsectionName);
+                if (subsection.id === subsectionId) {
+                    console.log('Found matching subsection:', subsectionId);
                     const updatedSubsectionContent = [...subsection.content];
 
-                    const resourceQuery: Query<DocumentData> =
-                        typeOfResource === ResourceType.Media
-                            ? query(collection(this.firebaseService.fireStore, 'media'), where('title', '==', title))
-                            : typeOfResource === ResourceType.Ebook
-                                ? query(collection(this.firebaseService.fireStore, 'ebooks'), where('title', '==', title))
-                                : null;
+                    const mediaQuery = query(collection(this.firebaseService.fireStore, 'media'), where('id', '==', resourceId));
+                    const mediaQuerySnapshot = await getDocs(mediaQuery);
 
-                    if (!resourceQuery) {
-                        throw new BadRequestException('INVALID CONTENT TYPE');
-                    }
+                    if (!mediaQuerySnapshot.empty) {
+                        const mediaData = mediaQuerySnapshot.docs[0].data();
+                        updatedSubsectionContent.push(mediaData);
+                    } else {
+                        const ebookQuery = query(collection(this.firebaseService.fireStore, 'ebooks'), where('id', '==', resourceId));
+                        const ebookQuerySnapshot = await getDocs(ebookQuery);
 
-                    const resourceQuerySnapshot = await getDocs(resourceQuery);
-
-                    if (resourceQuerySnapshot.empty) {
-                        throw new BadRequestException(`${typeOfResource.toUpperCase()} NOT FOUND`);
-                    }
-
-                    const resourceDoc = resourceQuerySnapshot.docs[0];
-                    const resource = resourceDoc.data();
-
-                    if (typeOfResource === ResourceType.Media) {
-                        const mediaDto: CreateMediaDto = {
-                            publisher: resource.type,
-                            type: resource.type,
-                            title: resource.title,
-                            description: resource.description,
-                            url: resource.url,
-                            duration: resource.duration,
-                            uploadDate: resource.uploadDate,
-                        };
-                        updatedSubsectionContent.push(mediaDto);
-                    } else if (typeOfResource === ResourceType.Ebook) {
-                        const ebookDto: CreateEbookDto = {
-                            title: resource.title,
-                            publisher: resource.publisher,
-                            author: resource.author,
-                            description: resource.description,
-                            titlePage: resource.titlePage,
-                            url: resource.url,
-                            price: resource.price,
-                            releaseDate: resource.releaseDate,
-                            language: resource.language,
-                            pageCount: resource.pageCount,
-                            genres: resource.genres,
-                            format: resource.format,
-                            salesCount: resource.salesCount,
-                            isActive: resource.isActive,
-                        };
-                        updatedSubsectionContent.push(ebookDto);
+                        if (!ebookQuerySnapshot.empty) {
+                            const ebookData = ebookQuerySnapshot.docs[0].data();
+                            updatedSubsectionContent.push(ebookData);
+                        } else {
+                            throw new BadRequestException('MEDIA OR EBOOK NOT FOUND');
+                        }
                     }
 
                     // Update only the content of the subsection
@@ -631,22 +497,22 @@ export class SectionService {
                     };
 
                     const updatedSubsections = subsections.map((subsec: any) =>
-                        subsec.name === subsectionName ? updatedSubsection : subsec
+                        subsec.id === subsectionId ? updatedSubsection : subsec
                     );
 
-                    const updatedParentSection = {
-                        ...parentSectionData,
+                    const updatedSection = {
+                        ...sectionData,
                         subsections: updatedSubsections,
                     };
 
-                    await updateDoc(parentSectionDoc.ref, updatedParentSection);
+                    await updateDoc(sectionDoc.ref, updatedSection);
 
                     console.log('Media or Ebook added to subsection content successfully.');
 
                     // Update cached sections data
                     const cachedSections = await this.firebaseService.getCollectionData('sections');
                     const updatedCachedSections = cachedSections.map(cachedSection => {
-                        if (cachedSection.name === parentSectionName) {
+                        if (cachedSection.id === sectionId) {
                             return {
                                 ...cachedSection,
                                 subsections: updatedSubsections,
@@ -691,18 +557,16 @@ export class SectionService {
 
 
 
-
     @ApiOperation({ summary: 'Add a media or ebook to a section' })
     @ApiCreatedResponse({ description: 'Success', type: AddMediaOrEbookResponseDto })
     @ApiBadRequestResponse({ description: 'Bad request', type: BadRequestException })
     async addMediaOrEbookToSection(
-        addMediaOrEbookDto: AddMediaOrEbookDto,
+        sectionId: string, assetId: string
     ): Promise<AddMediaOrEbookResponseDto> {
         try {
-            const { sectionName, typeOfResource, title } = addMediaOrEbookDto;
 
             const sectionRef = collection(this.firebaseService.fireStore, 'sections');
-            const sectionQuery = query(sectionRef, where('name', '==', sectionName));
+            const sectionQuery = query(sectionRef, where('id', '==', sectionId));
             const sectionQuerySnapshot = await getDocs(sectionQuery);
 
             if (sectionQuerySnapshot.empty) {
@@ -713,80 +577,82 @@ export class SectionService {
             const sectionData = sectionDoc.data();
             const { content } = sectionData;
 
-            let resourceQuery: Query<DocumentData>;
+            const mediaRef = collection(this.firebaseService.fireStore, 'media');
+            const mediaQuery = query(mediaRef, where('id', '==', assetId));
+            const mediaQuerySnapshot = await getDocs(mediaQuery);
 
-            if (typeOfResource === ResourceType.Media) {
-                resourceQuery = query(
-                    collection(this.firebaseService.fireStore, 'media'),
-                    where('title', '==', title)
-                );
-            } else if (typeOfResource === ResourceType.Ebook) {
-                resourceQuery = query(
-                    collection(this.firebaseService.fireStore, 'ebooks'),
-                    where('title', '==', title)
-                );
-            } else {
-                throw new BadRequestException('INVALID CONTENT TYPE');
+            const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
+            const ebookQuery = query(ebookRef, where('id', '==', assetId));
+            const ebookQuerySnapshot = await getDocs(ebookQuery);
+
+
+            if (mediaQuerySnapshot.empty && ebookQuerySnapshot.empty) {
+                throw new BadRequestException('ASSET NOT FOUND');
             }
-
-            const resourceQuerySnapshot = await getDocs(resourceQuery);
-
-            if (resourceQuerySnapshot.empty) {
-                throw new BadRequestException(`${typeOfResource.toUpperCase()} NOT FOUND`);
-            }
-
-            const resourceDoc = resourceQuerySnapshot.docs[0];
-            const resource = resourceDoc.data();
 
             const updatedContent = [...content];
 
-            if (typeOfResource === ResourceType.Media) {
+            if (!mediaQuerySnapshot.empty) {
+                const mediaDoc = mediaQuerySnapshot.docs[0];
+                const media = mediaDoc.data();
+
+
                 const mediaDto: Media = {
-                    publisher: resource.type,
-                    type: resource.type,
-                    title: resource.title,
-                    description: resource.description,
-                    url: resource.url,
-                    duration: resource.duration,
-                    uploadDate: resource.uploadDate,
+                    publisher: media.publisher,
+                    type: media.type,
+                    title: media.title,
+                    description: media.description,
+                    url: media.url,
+                    duration: media.duration,
+                    uploadDate: media.uploadDate,
+                    active: media.active !== undefined ? media.active : true, 
                 };
 
                 updatedContent.push(mediaDto);
-            } else if (typeOfResource === ResourceType.Ebook) {
+            } else if (!ebookQuerySnapshot.empty) {
+                const ebookDoc = ebookQuerySnapshot.docs[0];
+                const ebook = ebookDoc.data();
+
+
                 const ebookDto: Ebook = {
-                    title: resource.title,
-                    publisher: resource.publisher,
-                    author: resource.author,
-                    description: resource.description,
-                    titlePage: resource.titlePage,
-                    url: resource.url,
-                    price: resource.price,
-                    releaseDate: resource.releaseDate,
-                    language: resource.language,
-                    pageCount: resource.pageCount,
-                    genres: resource.genres,
-                    format: resource.format,
-                    salesCount: resource.salesCount,
-                    isActive: resource.isActive,
+                    title: ebook.title,
+                    publisher: ebook.publisher,
+                    author: ebook.author,
+                    description: ebook.description,
+                    titlePage: ebook.titlePage,
+                    url: ebook.url,
+                    price: ebook.price,
+                    releaseDate: ebook.releaseDate,
+                    language: ebook.language,
+                    pageCount: ebook.pageCount,
+                    genres: ebook.genres,
+                    format: ebook.format,
+                    salesCount: ebook.salesCount,
+                    active: ebook.active !== undefined ? ebook.active : true, 
                 };
 
                 updatedContent.push(ebookDto);
             }
 
-            await updateDoc(sectionDoc.ref, { content: updatedContent });
+
+            const updatedSectionData = { ...sectionData, content: updatedContent };
+
+
+            const sectionRefToUpdate = doc(this.firebaseService.fireStore, 'sections', sectionId);
+
+            await setDoc(sectionRefToUpdate, updatedSectionData, { merge: true });
 
             console.log('Media or Ebook added to section content successfully.');
 
-            // Update cached sections data directly for efficiency
-            const updatedSectionData = { ...sectionData, content: updatedContent };
-            await updateDoc(sectionDoc.ref, updatedSectionData);
-
-            return new AddMediaOrEbookResponseDto(201, 'MEDIAOREBOOKADDEDSUCCESSFULLY');
+            return new AddMediaOrEbookResponseDto(201, 'MEDIAANDEBOOKADDEDSUCCESSFULLY');
         } catch (error) {
             console.error('Error adding Media or Ebook to section:', error);
             throw error;
         }
     }
+
+
+
 
 
 
@@ -813,10 +679,10 @@ export class SectionService {
                 const formattedSections = matchedSections.map(section => {
                     return {
                         ...section,
-                        subsections: section.subsections.filter(subsection => subsection.isActive)
+                        subsections: section.subsections.filter(subsection => subsection.active)
                             .map(subsection => ({
                                 ...subsection,
-                                content: subsection.content.filter(item => item.isActive)
+                                content: subsection.content.filter(item => item.active)
                             }))
                     };
                 });
@@ -831,7 +697,7 @@ export class SectionService {
 
             // If there is no data in cache, query Firestore
             const sectionsRef = this.firebaseService.sectionsCollection;
-            const sectionsQuery = query(sectionsRef, where('isActive', '==', true));
+            const sectionsQuery = query(sectionsRef, where('active', '==', true));
             console.log('Sections query created.');
 
             const sectionsQuerySnapshot = await getDocs(sectionsQuery);
@@ -845,7 +711,7 @@ export class SectionService {
                     description: data.description,
                     tags: data.tags,
                     content: data.content,
-                    isActive: data.isActive,
+                    active: data.active,
                     subsections: data.subsections,
                 });
             });
@@ -853,17 +719,17 @@ export class SectionService {
 
             // Filter the sections by tags
             const matchedSections = queryResult.filter(section =>
-                section.isActive && lowercaseTags.every(tag => section.tags.includes(tag))
+                section.active && lowercaseTags.every(tag => section.tags.includes(tag))
             );
 
 
             const formattedSections = matchedSections.map(section => {
                 return {
                     ...section,
-                    subsections: section.subsections.filter(subsection => subsection.isActive)
+                    subsections: section.subsections.filter(subsection => subsection.active)
                         .map(subsection => ({
                             ...subsection,
-                            content: subsection.content.filter(item => item.isActive)
+                            content: subsection.content.filter(item => item.active)
                         }))
                 };
             });
@@ -892,16 +758,16 @@ export class SectionService {
 
 
 
-    @ApiOperation({ summary: 'Get active section content by name' })
+    @ApiOperation({ summary: 'Get active section content by section ID' })
     @ApiOkResponse({ description: 'Success', type: GetSectionsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getSectionContentByName(sectionName: string): Promise<GetSectionsResponseDto> {
+    async getSectionContentById(sectionId: string): Promise<GetSectionsResponseDto> {
         try {
-            console.log(`Initializing getSectionContentByName for section: ${sectionName}...`);
+            console.log(`Initializing getSectionContentById for section ID: ${sectionId}...`);
 
-            // Query the Firestore to get the section by name and ensure it's active
+            // Query the Firestore to get the section by ID and ensure it's active
             const sectionsRef = this.firebaseService.sectionsCollection;
-            const sectionQuery = query(sectionsRef, where('name', '==', sectionName), where('isActive', '==', true));
+            const sectionQuery = query(sectionsRef, where('id', '==', sectionId), where('active', '==', true));
             console.log('Section query created.');
 
             const sectionQuerySnapshot = await getDocs(sectionQuery);
@@ -913,7 +779,7 @@ export class SectionService {
 
             const sectionDoc = sectionQuerySnapshot.docs[0];
             const sectionData = sectionDoc.data();
-            const sectionContent = sectionData.content.filter(item => item.isActive === true);
+            const sectionContent = sectionData.content.filter(item => item.active === true);
 
             // Convert Firestore timestamps to formatted date strings
             const formattedContent = sectionContent.map(item => {
@@ -947,16 +813,17 @@ export class SectionService {
 
 
 
-    @ApiOperation({ summary: 'Get active subsections with content by section name' })
-    @ApiOkResponse({ description: 'Got subsections using a sections name', type: GetSectionsResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getSubsectionsBySectionName(sectionName: string): Promise<GetSectionsResponseDto> {
-        try {
-            console.log(`Initializing getSubsectionsBySectionName for section: ${sectionName}...`);
 
-            // Query the Firestore to get the section by name and ensure it's active
+    @ApiOperation({ summary: 'Get active subsections with content by section ID' })
+    @ApiOkResponse({ description: 'Got subsections using a section ID', type: GetSectionsResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async getSubsectionsBySectionId(sectionId: string): Promise<GetSectionsResponseDto> {
+        try {
+            console.log(`Initializing getSubsectionsBySectionId for section: ${sectionId}...`);
+
+            // Query the Firestore to get the section by ID and ensure it's active
             const sectionsRef = this.firebaseService.sectionsCollection;
-            const sectionQuery = query(sectionsRef, where('name', '==', sectionName), where('isActive', '==', true));
+            const sectionQuery = query(sectionsRef, where('id', '==', sectionId), where('active', '==', true));
             console.log('Section query created.');
 
             const sectionQuerySnapshot = await getDocs(sectionQuery);
@@ -1004,6 +871,7 @@ export class SectionService {
 
 
 
+
     @ApiOperation({ summary: 'Deactivate media or ebook from section' })
     @ApiOkResponse({ description: 'Success', type: DeleteSectionResponseDto })
     @ApiNotFoundResponse({ description: 'Section or resource not found' })
@@ -1029,7 +897,7 @@ export class SectionService {
             // Update isActive attribute for the deactivated media or ebook based on title and type
             const updatedContent = content.map(item => {
                 if (item.title === title && (item.type === type || type === TypeOfResource.Ebook)) {
-                    return { ...item, isActive: false };
+                    return { ...item, active: false };
                 }
                 return item;
             });
@@ -1093,7 +961,7 @@ export class SectionService {
             // Update isActive attribute for the activated media or ebook based on title and type
             const updatedContent = content.map(item => {
                 if (item.title === title && (item.type === type || type === TypeOfResource.Ebook)) {
-                    return { ...item, isActive: true };
+                    return { ...item, active: true };
                 }
                 return item;
             });
@@ -1156,7 +1024,7 @@ export class SectionService {
                 if (subsection.name === subSectionName) {
                     const updatedSubsectionContent = subsection.content.map(item => {
                         if (item.title === title) {
-                            return { ...item, isActive: false };
+                            return { ...item, active: false };
                         }
                         return item;
                     });
@@ -1241,7 +1109,7 @@ export class SectionService {
                 if (subsection.name === subSectionName) {
                     const updatedSubsectionContent = subsection.content.map(item => {
                         if (item.title === title) {
-                            return { ...item, isActive: true };
+                            return { ...item, active: true };
                         }
                         return item;
                     });
@@ -1304,7 +1172,7 @@ export class SectionService {
     async manageResourceStatus(
         manageResourceStatusDto: ManageResourceStatusInSectionDto
     ): Promise<ManageResourceStatusInSectionResponseDto> {
-        const { sectionName, isActive, assetTitles } = manageResourceStatusDto;
+        const { id, active, assetIds } = manageResourceStatusDto;
         const sectionsRef = collection(this.firebaseService.fireStore, 'sections');
 
         console.log('Fetching sections...');
@@ -1315,13 +1183,13 @@ export class SectionService {
         for (const sectionSnapshot of sectionsQuerySnapshot.docs) {
             const sectionData = sectionSnapshot.data() as Section;
 
-            if (sectionData.name === sectionName) {
-                console.log(`Found matching section: ${sectionName}`);
+            if (sectionData.id === id) {
+                console.log(`Found matching section: ${id}`);
                 if (sectionData.content) {
                     for (const contentItem of sectionData.content) {
-                        if ('title' in contentItem && assetTitles.some(title => contentItem.title === title)) {
-                            console.log(`Updating content item: ${contentItem.title}`);
-                            contentItem.isActive = isActive;
+                        if ('title' in contentItem && assetIds.some(id => contentItem.id === id)) {
+                            console.log(`Updating content item: ${contentItem.id}`);
+                            contentItem.active = active;
                             updated = true;
                             await updateDoc(sectionSnapshot.ref, { content: sectionData.content });
 
@@ -1329,8 +1197,8 @@ export class SectionService {
                     }
                 }
             } else if (sectionData.subsections) {
-                console.log(`Checking subsections of section: ${sectionData.name}`);
-                updated = await this.searchInSectionsWithSubsections(sectionData.subsections, sectionName, assetTitles, isActive, updated, sectionSnapshot.ref, sectionData.content);
+                console.log(`Checking subsections of section: ${sectionData.id}`);
+                updated = await this.searchInSectionsWithSubsections(sectionData.subsections, id, assetIds, active, updated, sectionSnapshot.ref, sectionData.content);
             }
         }
 
@@ -1353,7 +1221,7 @@ export class SectionService {
         sections: Section[],
         targetSectionName: string,
         assetTitles: string[],
-        isActive: boolean,
+        active: boolean,
         updated: boolean,
         sectionRef: DocumentReference,
         updatedContent: any
@@ -1364,13 +1232,13 @@ export class SectionService {
                     for (const contentItem of section.content) {
                         if ('title' in contentItem && assetTitles.includes(contentItem.title)) {
                             console.log(`Updating content item: ${contentItem.title}`);
-                            contentItem.isActive = isActive;
+                            contentItem.active = active;
                             updated = true;
                         }
                     }
                 }
             } else if (section.subsections) {
-                updated = await this.searchInSectionsWithSubsections(section.subsections, targetSectionName, assetTitles, isActive, updated, sectionRef, updatedContent);
+                updated = await this.searchInSectionsWithSubsections(section.subsections, targetSectionName, assetTitles, active, updated, sectionRef, updatedContent);
             }
         }
 
@@ -1389,9 +1257,9 @@ export class SectionService {
 
 
     async manageResourceStatusInSubsections(
-        manageResourceStatusDto: ManageResourceStatusInSectionDto
+        manageResourceStatusDto: ManageResourceStatusInSubsectionDto
     ): Promise<ManageResourceStatusInSectionResponseDto> {
-        const { sectionName, isActive, assetTitles } = manageResourceStatusDto;
+        const { SectionId, SubsectionId, active, assetIds } = manageResourceStatusDto; 
         const sectionsRef = collection(this.firebaseService.fireStore, 'sections');
 
         console.log('Fetching sections...');
@@ -1402,13 +1270,13 @@ export class SectionService {
         for (const sectionSnapshot of sectionsQuerySnapshot.docs) {
             const sectionData = sectionSnapshot.data() as Section;
 
-            if (sectionData.subsections) {
-                console.log(`Checking subsections of section: ${sectionData.name}`);
+            if (sectionData.id === SectionId && sectionData.subsections) { 
+                console.log(`Checking subsections of section: ${sectionData.id}`);
                 updated = await this.searchInSubsections(
                     sectionData.subsections,
-                    sectionName,
-                    assetTitles,
-                    isActive,
+                    SubsectionId,
+                    assetIds,
+                    active,
                     updated,
                     sectionSnapshot.ref
                 );
@@ -1426,18 +1294,18 @@ export class SectionService {
 
     private async searchInSubsections(
         subsections: Section[],
-        targetSectionName: string,
-        assetTitles: string[],
-        isActive: boolean,
+        targetSubsectionId: string, 
+        assetIds: string[], 
+        active: boolean,
         updated: boolean,
         sectionRef: DocumentReference
     ): Promise<boolean> {
         for (const subsection of subsections) {
-            if (subsection.name === targetSectionName && subsection.content) {
+            if (subsection.id === targetSubsectionId && subsection.content) {
                 for (const contentItem of subsection.content) {
-                    if ('title' in contentItem && assetTitles.some(title => contentItem.title === title)) {
-                        console.log(`Updating content item in subsection: ${contentItem.title}`);
-                        contentItem.isActive = isActive;
+                    if ('id' in contentItem && assetIds.includes(contentItem.id)) {
+                        console.log(`Updating content item in subsection: ${contentItem.id}`);
+                        contentItem.active = active;
                         updated = true;
                         await updateDoc(sectionRef, { subsections });
                     }
@@ -1446,9 +1314,9 @@ export class SectionService {
             if (subsection.subsections) {
                 updated = await this.searchInSubsections(
                     subsection.subsections,
-                    targetSectionName,
-                    assetTitles,
-                    isActive,
+                    targetSubsectionId,
+                    assetIds,
+                    active,
                     updated,
                     sectionRef
                 );
@@ -1456,6 +1324,8 @@ export class SectionService {
         }
         return updated;
     }
+
+
 
 
 

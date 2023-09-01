@@ -10,7 +10,7 @@ import { EbookService } from './ebooks.service';
 import { EbookFormat, EbookGenre } from './entities/ebooks.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadEbookResponseDto } from './dto/uploadEbookResponse.dto';
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 
 
@@ -90,12 +90,17 @@ export class EbookController {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @Get('assets/ebooks')
     async getEbooks(
-        @Query('keywords') keywords?: string[]
+        @Query('keywords') keywords?: string[],
+        @Query('userId') userId?: string,
+        @Query('ebookId') ebookId?: string
     ): Promise<GetEbooksResponseDto> {
-        if (keywords && Array.isArray(keywords) && keywords.length > 0) {
+        if (keywords) {
             const response = await this.ebookService.getEbooksByKeywords(keywords);
             return response;
-        } else {
+        }
+
+
+        else {
             const response =  await this.ebookService.getEbooks();
             return response;
         }
@@ -103,6 +108,30 @@ export class EbookController {
 
 
 
-
-
+    @Get('assets/ebooks/users')
+    @ApiOperation({ summary: 'Personalizes a PDF file by putting a message with the actual date and name and email of the user' })
+    @ApiQuery({ name: 'userId', type: String, description: 'User ID' })
+    @ApiQuery({ name: 'ebookId', type: String, description: 'Ebook ID' })
+    @ApiResponse({ status: 200, description: 'Ebook purchased successfully' })
+    @ApiResponse({ status: 400, description: 'Bad Request' })
+    @ApiResponse({ status: 500, description: 'Internal Server Error' })
+    async purchasePdf(
+        @Query('userId') userId: string,
+        @Query('ebookId') ebookId: string,
+    ): Promise<any> {
+        try {
+            const response = await this.ebookService.purchasePdf(userId, ebookId);
+            return response;
+        } catch (error) {
+            console.error('Error:', error);
+            throw error;
+        }
+    }
+     
 }
+
+
+
+
+
+

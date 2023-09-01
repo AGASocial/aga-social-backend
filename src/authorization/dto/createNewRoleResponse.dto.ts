@@ -22,4 +22,11 @@ export class CreateNewRoleResponseDto {
     @IsAlpha()
     @IsUppercase()
     public message: string;
+
+    @ApiProperty({
+        description: 'ID of the created role',
+        type: String
+    })
+    public roleId?: string;
+
 }

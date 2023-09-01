@@ -25,8 +25,16 @@ export class UploadMediaResponseDto {
     public message: string;
 
 
-    constructor(statusCode: number, message: string) {
+    @ApiProperty({
+        description: 'ID of the created media',
+        type: String
+    })
+    public mediaId?: string;
+
+    constructor(statusCode: number, message: string, mediaId: string) {
         this.statusCode = statusCode;
         this.message = message;
+        this.mediaId = mediaId;
     }
 }
+

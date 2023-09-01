@@ -99,13 +99,15 @@ export class CouponController {
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon/user not found' })
     @Patch('coupons/users')
     async manageCouponStatusOfUser(
-        @Query('code') code?: string,
-        @Query('id') id?: string,
+        @Body() request: {
+            code?: string,
+            id?: string,
+        }
     ) {
-        if (id && code) {
-            return this.couponService.deactivateCouponForUser(code, id);
-        } else if (id) {
-            return this.couponService.updateUserExpiredCouponsStatus(id);
+        if (request.id && request.code) {
+            return this.couponService.deactivateCouponForUser(request.code, request.id);
+        } else if (request.id) {
+            return this.couponService.updateUserExpiredCouponsStatus(request.id);
         } else {
             throw new BadRequestException('Invalid input');
         }

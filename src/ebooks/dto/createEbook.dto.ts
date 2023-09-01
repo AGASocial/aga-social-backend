@@ -149,7 +149,16 @@ export class CreateEbookDto {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
+
+
+
+    @ApiProperty({
+        description: 'bucket url for the ebook',
+        example: 'assets/abcdef123456/fileName',
+        type: String
+    })
+    bucketReference?: string;
 
 
 

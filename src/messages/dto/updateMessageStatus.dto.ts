@@ -16,7 +16,7 @@ export class UpdateMessageStatusDto {
         type: Boolean,
     })
     @IsBoolean()
-    public isRead?: boolean;
+    public read?: boolean;
 
 
     @ApiProperty({
@@ -36,7 +36,7 @@ export class UpdateMessageStatusDto {
         default: false,
     })
     @IsBoolean()
-    public isArchived?: boolean = false;
+    public archived?: boolean = false;
 
 
 
@@ -47,7 +47,7 @@ export class UpdateMessageStatusDto {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
 
     @ApiProperty({
@@ -69,7 +69,7 @@ export class UpdateMessageStatusDto {
         type: String
     })
     @IsBoolean()
-    isHighlight?: boolean;
+    highlighted?: boolean;
 
 
 

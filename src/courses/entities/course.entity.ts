@@ -111,7 +111,7 @@ export class Course {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
 
     @ApiProperty({

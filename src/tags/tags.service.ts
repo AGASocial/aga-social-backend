@@ -60,7 +60,7 @@ export class TagsService {
             id: newTagId,
             name,
             username,
-            isActive: true,
+            active: true,
         };
 
         await addDoc(tagRef, newTag);
@@ -72,13 +72,13 @@ export class TagsService {
             id: newTagId,
             name,
             username,
-            isActive: true,
+            active: true,
 
         });
         this.firebaseService.setCollectionData('tags', cachedTags);
         console.log('Tag added to the cache successfully.');
 
-        const responseDto = new CreateTagResponseDto(201, 'TAGCREATEDSUCCESSFULLY');
+        const responseDto = new CreateTagResponseDto(201, 'TAGCREATEDSUCCESSFULLY', newTagId);
         return responseDto;
     }
 
@@ -137,15 +137,29 @@ export class TagsService {
     @ApiOperation({ summary: 'Get tags associated with a user' })
     @ApiOkResponse({ description: 'Tags retrieved successfully', type: GetTagsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getTagsByUsername(username: string): Promise<GetTagsResponseDto> {
+    async getTagsByUsername(userId: string): Promise<GetTagsResponseDto> {
         try {
             console.log('Initializing getTagsByUsername...');
+
+            const userRef = this.firebaseService.usersCollection;
+            const userQuery = query(userRef, where('id', '==', userId));
+            const userQuerySnapshot = await getDocs(userQuery);
+
+            let username: string | undefined;
+            userQuerySnapshot.forEach((doc) => {
+                const userData = doc.data();
+                username = userData.username;
+            });
+
+            if (!username) {
+                throw new Error('User not found');
+            }
 
             // Tries to use data in cache if it exists
             const cachedTags = await this.firebaseService.getCollectionData('tags');
             if (cachedTags.length > 0) {
                 console.log('Using cached tags data.');
-                const activeTags = cachedTags.filter(tag => tag.isActive);
+                const activeTags = cachedTags.filter(tag => tag.active);
 
                 const getTagsDtoResponse: GetTagsResponseDto = {
                     statusCode: 200,
@@ -166,11 +180,11 @@ export class TagsService {
             const activeTags = [];
             tagQuerySnapshot.forEach((doc) => {
                 const tagData = doc.data();
-                if (tagData.isActive) {
+                if (tagData.active) {
                     activeTags.push({
                         id: doc.id,
                         name: tagData.name,
-                        isActive: tagData.isActive,
+                        active: tagData.active,
                     });
                 }
             });

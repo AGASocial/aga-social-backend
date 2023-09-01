@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"code\": \"TEST\",\r\n  \"status\": \"available\",\r\n  \"description\": \"Sale 10$ Off\",\r\n  \"discountType\": \"nominal\",\r\n  \"discountAmount\": 10,\r\n  \"expiryDate\": \"2023-10-10\",\r\n  \"maxUses\": 60,\r\n  \"maxUsesPerUser\": 1\r\n}\r\n",
+					"raw": "{\r\n  \"code\": \"VERO222\",\r\n  \"status\": \"available\",\r\n  \"description\": \"Sale 10$ Off\",\r\n  \"discountType\": \"nominal\",\r\n  \"discountAmount\": 10,\r\n  \"expiryDate\": \"2023-12-12\",\r\n  \"maxUses\": 60,\r\n  \"maxUsesPerUser\": 1\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,7 +37,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"code\": \"SUMMER10\", \r\n  \"description\": \"New Description\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-08-15\",\r\n  \"maxUses\": 200,\r\n  \"maxUsesPerUser\": 2\r\n}\r\n",
+					"raw": "{\r\n  \"code\": \"SUMMER10\", \r\n  \"description\": \"New Description\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-08-15\",\r\n  \"maxUses\": 200,\r\n  \"maxUsesPerUser\": 2,\r\n  \"status\": \"eliminated\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,39 +45,15 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons/SUMMER10",
+					"raw": "{{server}}coupons?code=SUMMER10",
 					"host": [
 						"{{server}}coupons"
 					],
-					"path": [
-						"SUMMER10"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Redimir Coupon",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"useremail\": \"amanda111@gmail.com\",\r\n  \"couponCode\": \"SUMMER50\",\r\n  \"resourceType\": \"Course\",\r\n  \"resourceTitle\": \"a\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
+					"query": [
+						{
+							"key": "code",
+							"value": "SUMMER10"
 						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}coupons/ebooks/courses",
-					"host": [
-						"{{server}}coupons"
-					],
-					"path": [
-						"ebooks",
-						"courses"
 					]
 				}
 			},
@@ -90,7 +66,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"fernanda333@gmail.com\",\r\n  \"couponCode\": \"WINTER25\"\r\n}\r\n",
+					"raw": "{\r\n  \"id\": \"5sXP5IJENVTrCUECYOICe3Gl0VK2\",\r\n  \"couponCode\": \"WINTER25\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -104,6 +80,40 @@
 					],
 					"path": [
 						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Redimir Coupon",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"couponCode\": \"WINTER25\",\r\n  \"resourceType\": \"Ebook\",\r\n  \"resourceTitle\": \"Pruebita\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}coupons/ebooks/courses/?id=5sXP5IJENVTrCUECYOICe3Gl0VK2",
+					"host": [
+						"{{server}}coupons"
+					],
+					"path": [
+						"ebooks",
+						"courses",
+						""
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "5sXP5IJENVTrCUECYOICe3Gl0VK2"
+						}
 					]
 				}
 			},
@@ -153,14 +163,14 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons?userEmail=fernanda333@gmail.com",
+					"raw": "{{server}}coupons?id=5sXP5IJENVTrCUECYOICe3Gl0VK2",
 					"host": [
 						"{{server}}coupons"
 					],
 					"query": [
 						{
-							"key": "userEmail",
-							"value": "fernanda333@gmail.com"
+							"key": "id",
+							"value": "5sXP5IJENVTrCUECYOICe3Gl0VK2"
 						}
 					]
 				}
@@ -200,18 +210,18 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{server}}coupons?status=available&userEmail=fernanda333@gmail.com",
+					"raw": "{{server}}coupons?status=used&id=5sXP5IJENVTrCUECYOICe3Gl0VK2",
 					"host": [
 						"{{server}}coupons"
 					],
 					"query": [
 						{
 							"key": "status",
-							"value": "available"
+							"value": "used"
 						},
 						{
-							"key": "userEmail",
-							"value": "fernanda333@gmail.com"
+							"key": "id",
+							"value": "5sXP5IJENVTrCUECYOICe3Gl0VK2"
 						}
 					]
 				}
@@ -219,13 +229,13 @@
 			"response": []
 		},
 		{
-			"name": "Desactivar Coupon a User",
+			"name": "Desactivar/Eliminar Coupon a User",
 			"request": {
 				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "",
+					"raw": "{\r\n    \"code\": \"WINTER25\",\r\n    \"id\": \"5sXP5IJENVTrCUECYOICe3Gl0VK2\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -233,22 +243,38 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons/users?code=SUMMER50&email=fernanda333@gmail.com",
+					"raw": "{{server}}coupons/users",
 					"host": [
 						"{{server}}coupons"
 					],
 					"path": [
 						"users"
-					],
-					"query": [
-						{
-							"key": "code",
-							"value": "SUMMER50"
-						},
-						{
-							"key": "email",
-							"value": "fernanda333@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Colocar Coupon Como Expirado para un User",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": \"5sXP5IJENVTrCUECYOICe3Gl0VK2\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
 						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}coupons/users",
+					"host": [
+						"{{server}}coupons"
+					],
+					"path": [
+						"users"
 					]
 				}
 			},
@@ -263,43 +289,6 @@
 					"mode": "raw",
 					"raw": ""
 				},
-				"url": {
-					"raw": "{{server}}coupons",
-					"host": [
-						"{{server}}coupons"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Colocar Coupon Como Expirado para un User",
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"url": {
-					"raw": "{{server}}coupons/users?email=fernanda333@gmail.com",
-					"host": [
-						"{{server}}coupons"
-					],
-					"path": [
-						"users"
-					],
-					"query": [
-						{
-							"key": "email",
-							"value": "fernanda333@gmail.com"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Eliminar Coupons Expirados de Firebase",
-			"request": {
-				"method": "DELETE",
-				"header": [],
 				"url": {
 					"raw": "{{server}}coupons",
 					"host": [

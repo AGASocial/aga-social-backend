@@ -5,9 +5,6 @@ import { FirebaseService } from '../firebase/firebase.service';
 import { CreateEbookDto } from './dto/createEbook.dto';
 import { CreateEbookResponseDto } from './dto/createEbookResponse.dto';
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, Timestamp, updateDoc, where } from 'firebase/firestore';
-import { UpdateMediaDto } from '../media/dto/updateMedia.dto';
-import { UpdateMediaResponseDto } from '../media/dto/updateMediaResponse.dto';
-import { DeleteEbookResponseDto } from './dto/deleteEbookResponse.dto';
 import { GetEbooksResponseDto } from './dto/getEbooksResponse.dto';
 import { UploadEbookResponseDto } from './dto/uploadEbookResponse.dto';
 import { Readable } from 'stream';
@@ -16,6 +13,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { UpdateEbookResponseDto } from './dto/updateEbookResponse.dto';
 import { UpdateEbookDto } from './dto/updateEbook.dto';
 import { convertFirestoreTimestamp } from '../utils/timeUtils.dto';
+import { PDFDocument, rgb } from 'pdf-lib';
+import { PersonalizeEbookResponseDto } from './dto/personalizeEbookResponse.dto';
+
 
 
 @Injectable()
@@ -23,95 +23,6 @@ export class EbookService {
 
     constructor(private firebaseService: FirebaseService) { }
 
-
-
-    @ApiOperation({ summary: 'Create an ebook on firestore' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async createNewEbook(createNewEbookDto: CreateEbookDto): Promise<CreateEbookResponseDto> {
-    
-
-        const { title, description, url, titlePage, author, releaseDate, price, language, pageCount, genres, format, publisher } = createNewEbookDto;
-        const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
-
-        const customEbookWhere: QueryFieldFilterConstraint = where('url', '==', url);
-        const ebookQuery = query(ebookRef, customEbookWhere);
-        const ebookQuerySnapshot = await getDocs(ebookQuery);
-
-        if (!ebookQuerySnapshot.empty) {
-            throw new BadRequestException('URL ALREADY EXISTS');
-        }
-
-
-        // Check if the title already exists in the collection
-        const titleQuery = query(ebookRef, where('title', '==', title));
-        const titleQuerySnapshot = await getDocs(titleQuery);
-
-        if (!titleQuerySnapshot.empty) {
-            throw new BadRequestException('TITLE ALREADY EXISTS');
-        }
-
-
-
-        const userRef = collection(this.firebaseService.fireStore, 'users');
-        const userQuery = query(userRef, where('username', '==', publisher));
-        const userQuerySnapshot = await getDocs(userQuery);
-
-        if (userQuerySnapshot.empty) {
-            throw new BadRequestException('PUBLISHER NOT FOUND. ENTER THE USERNAME OF A REGISTERED USER');
-        }
-
-        const newEbookId: string = uuidv4();
-
-        const newEbook: Ebook = {
-            id: newEbookId,
-            title: title,
-            publisher: publisher,
-            description: description,
-            url: url,
-            titlePage: titlePage,
-            author: author,
-            releaseDate: releaseDate,
-            price: price,
-            language: language,
-            pageCount: pageCount,
-            genres: genres,
-            format: format,
-            salesCount: 0,
-            isActive: true,
-
-        };
-
-        const newEbookDocRef = await addDoc(ebookRef, newEbook);
-        const newEbookId2 = newEbookDocRef.id;
-
-
-        const cachedCourses = await this.firebaseService.getCollectionData('ebooks');
-        cachedCourses.push({
-            id: newEbookId,
-            title,
-            publisher,
-            description,
-            url,
-            author,
-            releaseDate,
-            price,
-            language,
-            pageCount,
-            genres,
-            format,
-            salesCount: 0,
-            isActive: true,
-            titlePage,
-
-        });
-        this.firebaseService.setCollectionData('ebooks', cachedCourses);
-        console.log('Ebook added to the cache successfully.');
-
-
-
-        const responseDto = new CreateEbookResponseDto(201, 'EBOOKCREATEDSUCCESSFULLY');
-        return responseDto;
-    }
 
 
 
@@ -177,7 +88,7 @@ export class EbookService {
             const cachedEbooks = await this.firebaseService.getCollectionData('ebooks');
             if (cachedEbooks.length > 0) {
                 console.log('Using cached ebooks data.');
-                const activeEbooks = cachedEbooks.filter(ebook => ebook.isActive);
+                const activeEbooks = cachedEbooks.filter(ebook => ebook.active);
 
                 // Convert releaseDate in cached ebooks using the imported function
                 const activeEbooksWithFormattedDates = activeEbooks.map(ebook => ({
@@ -195,7 +106,7 @@ export class EbookService {
 
             // If there is no data in cache, it uses firestore instead
             const ebooksRef = this.firebaseService.ebooksCollection;
-            const ebooksQuery = query(ebooksRef, where("isActive", "==", true));
+            const ebooksQuery = query(ebooksRef, where("active", "==", true));
             console.log('Ebooks query created.');
 
             const ebooksQuerySnapshot = await getDocs(ebooksQuery);
@@ -220,7 +131,7 @@ export class EbookService {
                     genres: data.genres,
                     format: data.format,
                     salesCount: data.salesCount,
-                    isActive: data.isActive,
+                    active: data.active,
                 });
             });
             console.log('Ebook data collected.');
@@ -256,19 +167,22 @@ export class EbookService {
     @ApiParam({ name: 'keywords', description: 'Keywords for filtering ebooks' })
     @ApiOkResponse({ description: 'Ebooks retrieved successfully', type: GetEbooksResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getEbooksByKeywords(keywords: string[]): Promise<GetEbooksResponseDto> {
+    async getEbooksByKeywords(keywords: string[] | string): Promise<GetEbooksResponseDto> {
         try {
             console.log('Initializing getEbooksByKeywords...');
+
+            if (typeof keywords === 'string') {
+                keywords = [keywords];
+            }
 
             // Tries to use data in cache if it exists
             const cachedEbooks = await this.firebaseService.getCollectionData('ebooks');
             if (cachedEbooks.length > 0) {
                 console.log('Using cached ebooks data.');
                 const matchedEbooks = cachedEbooks.filter(ebook =>
-                    ebook.isActive && keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
+                    ebook.active && this.ebookMatchesKeywords(ebook, keywords)
                 );
 
-                // Convert releaseDate in cached ebooks using the imported function
                 const matchedEbooksWithFormattedDates = matchedEbooks.map(ebook => ({
                     ...ebook,
                     releaseDate: convertFirestoreTimestamp(ebook.releaseDate),
@@ -284,7 +198,7 @@ export class EbookService {
 
             // If there is no data in cache, query Firestore
             const ebooksRef = this.firebaseService.ebooksCollection;
-            const ebooksQuery = query(ebooksRef, where("isActive", "==", true));
+            const ebooksQuery = query(ebooksRef, where("active", "==", true));
             console.log('Ebooks query created.');
 
             const ebooksQuerySnapshot = await getDocs(ebooksQuery);
@@ -293,7 +207,7 @@ export class EbookService {
             const queryResult = [];
             ebooksQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
-                if (data.isActive) {
+                if (data.active) {
                     const releaseTimestamp: Timestamp = data.releaseDate;
                     const releaseDate = convertFirestoreTimestamp(releaseTimestamp);
                     queryResult.push({
@@ -310,14 +224,14 @@ export class EbookService {
                         genres: data.genres,
                         format: data.format,
                         salesCount: data.salesCount,
-                        isActive: data.isActive,
+                        active: data.active,
                     });
                 }
             });
             console.log('Ebook data collected.');
 
             const matchedEbooks = queryResult.filter(ebook =>
-                keywords.some(keyword => ebook.title.toLowerCase().includes(keyword.toLowerCase()))
+                this.ebookMatchesKeywords(ebook, keywords)
             );
 
             const matchedEbooksWithFormattedDates = matchedEbooks.map(ebook => ({
@@ -341,50 +255,16 @@ export class EbookService {
         }
     }
 
-
-
-    @ApiOperation({ summary: 'Upload an ebook file to Datastorage' })
-    @ApiParam({ name: 'userEmail', description: 'User email. Must be from a registered user' })
-    @ApiOkResponse({ description: 'Ebook file uploaded successfully', type: UploadEbookResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async uploadEbookFile(userEmail: string, file: any): Promise<UploadEbookResponseDto> {
-        try {
-            const mediaFileName = `${Date.now()}_${file.originalname}`;
-            const mediaPath = `users/${userEmail}/ebooks/${mediaFileName}`;
-
-            console.log('Uploading file to:', mediaPath);
-
-            const fileBucket = admin.storage().bucket();
-            const uploadStream = fileBucket.file(mediaPath).createWriteStream({
-                metadata: {
-                    contentType: file.mimetype,
-                },
-            });
-
-            const readableStream = new Readable();
-            readableStream._read = () => { };
-            readableStream.push(file.buffer);
-            readableStream.push(null);
-
-            await new Promise<void>((resolve, reject) => {
-                readableStream.pipe(uploadStream)
-                    .on('error', (error) => {
-                        console.error('Error uploading the file:', error);
-                        reject(error);
-                    })
-                    .on('finish', () => {
-                        console.log('File uploaded successfully.');
-                        resolve();
-                    });
-            });
-
-            const responseDto = new UploadEbookResponseDto(201, 'EBOOKUPLOADEDSUCCESSFULLY');
-            return responseDto;
-        } catch (error) {
-            console.error('Error uploading the file:', error);
-            throw new Error(`Error uploading the file: ${error.message}`);
+    private ebookMatchesKeywords(ebook: Ebook, keywords: string[] | string): boolean {
+        if (typeof keywords === 'string') {
+            keywords = [keywords];
         }
+
+        const lowerCaseTitle = ebook.title.toLowerCase();
+        return keywords.every(keyword => lowerCaseTitle.includes(keyword.toLowerCase()));
     }
+
+
 
 
 
@@ -400,21 +280,23 @@ export class EbookService {
         createNewEbookDto: CreateEbookDto
     ): Promise<UploadEbookResponseDto> {
         try {
-            
+
+
+            const maxFileSize = 60 * 1024 * 1024; // 60 MB
+
+            if (file.size > maxFileSize) {
+                return {
+                    statusCode: 400,
+                    message: 'Max size for the file exceeded',
+                };
+            }
+
 
             const { title, description, author, releaseDate, price, language, pageCount, genres, format, publisher, titlePage } = createNewEbookDto;
 
             const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
             const ebookQuery = query(ebookRef);
             const ebookQuerySnapshot = await getDocs(ebookQuery);
-
-            // Check if the title already exists in the collection
-            const titleQuery = query(ebookRef, where('title', '==', title));
-            const titleQuerySnapshot = await getDocs(titleQuery);
-
-            if (!titleQuerySnapshot.empty) {
-                throw new BadRequestException('TITLE ALREADY EXISTS');
-            }
 
 
             const userRef = collection(this.firebaseService.fireStore, 'users');
@@ -434,50 +316,8 @@ export class EbookService {
             const mediaFileName = `${Date.now()}_${file.originalname}`;
             const mediaPath = `assets/${newEbookId}/${mediaFileName}`;
 
+          
 
-            const newEbook: Ebook = {
-                id: newEbookId,
-                title: title,
-                publisher: publisher,
-                description: description,
-                url: mediaPath,
-                titlePage: titlePage,
-                author: author,
-                releaseDate: releaseDate,
-                price: price,
-                language: language,
-                pageCount: pageCount,
-                genres: genres,
-                format: format,
-                salesCount: 0,
-                isActive: true,
-            };
-
-            const newEbookDocRef = await addDoc(ebookRef, newEbook);
-
-            const cachedCourses = await this.firebaseService.getCollectionData('ebooks');
-            cachedCourses.push({
-                id: newEbookId,
-                title,
-                publisher,
-                description,
-                author,
-                releaseDate,
-                price,
-                language,
-                pageCount,
-                genres,
-                format,
-                salesCount: 0,
-                isActive: true,
-                titlePage,
-                url: mediaPath,
-
-            });
-
-
-
-           
 
             console.log('Uploading file to:', mediaPath);
 
@@ -487,6 +327,8 @@ export class EbookService {
                     contentType: file.mimetype,
                 },
             });
+
+
 
             const readableStream = new Readable();
             readableStream._read = () => { };
@@ -505,12 +347,67 @@ export class EbookService {
                     });
             });
 
+            const [url] = await fileBucket.file(mediaPath).getSignedUrl({
+                action: 'read',
+                expires: '01-01-2100',
+            });
+
+
+            const newEbook: Ebook = {
+                id: newEbookId,
+                title: title,
+                publisher: publisher,
+                description: description,
+                url,
+                bucketReference: mediaPath,
+                titlePage: titlePage,
+                author: author,
+                releaseDate: releaseDate,
+                price: price,
+                language: language,
+                pageCount: pageCount,
+                genres: genres,
+                format: format,
+                salesCount: 0,
+                active: true,
+            };
+
+            const newEbookDocRef = await addDoc(ebookRef, newEbook);
+
+            const cachedCourses = await this.firebaseService.getCollectionData('ebooks');
+            cachedCourses.push({
+                id: newEbookId,
+                title,
+                publisher,
+                description,
+                author,
+                releaseDate,
+                price,
+                language,
+                pageCount,
+                genres,
+                format,
+                salesCount: 0,
+                active: true,
+                titlePage,
+                url,
+                bucketReference: mediaPath,
+
+
+            });
+
+
+
+           
+
+           
+
            
 
             this.firebaseService.setCollectionData('ebooks', cachedCourses);
             console.log('Ebook added to the cache successfully.');
 
-            const responseDto = new UploadEbookResponseDto(201, 'EBOOKUPLOADEDSUCCESSFULLY');
+            const responseDto = new UploadEbookResponseDto(201, 'EBOOKUPLOADEDSUCCESSFULLY', newEbookId);
             return responseDto;
         } catch (error) {
             console.error('Error uploading the file or creating ebook:', error);
@@ -523,6 +420,111 @@ export class EbookService {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //PDF
+
+    async purchasePdf(userId: string, ebookId: string): Promise<PersonalizeEbookResponseDto> {
+        try {
+            const userCollectionRef = admin.firestore().collection('users');
+            const userQuerySnapshot = await userCollectionRef.where('id', '==', userId).get();
+
+            let userInfo = null;
+            if (!userQuerySnapshot.empty) {
+                const userData = userQuerySnapshot.docs[0].data();
+                userInfo = {
+                    email: userData.email,
+                    username: userData.username,
+                    name: userData.name,
+                };
+            } else {
+                throw new Error(`NO USER FOUND WITH ID ${userId}`);
+            }
+
+            const ebookCollectionRef = admin.firestore().collection('ebooks');
+            const ebookQuerySnapshot = await ebookCollectionRef.where('id', '==', ebookId).get();
+
+            if (!ebookQuerySnapshot.empty) {
+                const ebookData = ebookQuerySnapshot.docs[0].data();
+                const ebookUrl = ebookData.url;
+                const ebookBucketReference = ebookData.bucketReference
+                const actualDate = new Date();
+                const day = actualDate.getDate().toString().padStart(2, '0');
+                const month = (actualDate.getMonth() + 1).toString().padStart(2, '0');
+                const year = actualDate.getFullYear();
+
+                const formattedDate = `${day}/${month}/${year}`;
+
+                const addedText = `This ebook was purchased on ${formattedDate} by: \n${userInfo.name} and email: ${userInfo.email} through AGA SOCIAL LLC`;
+                const response = await this.personalizePdf(addedText, ebookId, ebookBucketReference);
+
+                return response            } else {
+                throw new Error(`NO EBOOK FOUND FOR ID ${ebookId}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            throw error;
+        }
+    }
+
+
+    private async personalizePdf(newText, ebookId, ebookBucketReference): Promise<PersonalizeEbookResponseDto> {
+        try {
+            const fileBucket = admin.storage().bucket();
+
+
+            console.log('Downloading original PDF...');
+            const originalEbookFile = fileBucket.file(ebookBucketReference);
+            const [originalEbookBuffer] = await originalEbookFile.download();
+
+            console.log('Creating modified PDF...');
+            const pdfDoc = await PDFDocument.load(originalEbookBuffer);
+            const page = pdfDoc.addPage();
+            const font = await pdfDoc.embedFont('Helvetica');
+            page.drawText(newText, { x: 50, y: 350, font, color: rgb(0, 0, 0), size: 12 });
+            const modifiedEbookBytes = await pdfDoc.save();
+
+            console.log('Saving modified PDF...');
+            const copyId: string = uuidv4();
+            const mediaPath = `assets/${ebookId}/${copyId}.pdf`;
+
+            const modifiedEbookBuffer = Buffer.from(modifiedEbookBytes);
+            const modifiedEbookFile = fileBucket.file(mediaPath);
+            await modifiedEbookFile.save(modifiedEbookBuffer);
+
+            console.log('Generating signed URL...');
+            const [signedUrl] = await modifiedEbookFile.getSignedUrl({
+                action: 'read',
+                expires: '09-30-2100',
+            });
+
+            console.log('Process completed successfully.');
+            return new PersonalizeEbookResponseDto(200, 'EBOOKPERSONALIZEDSUCCESSFULLY', signedUrl);
+        } catch (error) {
+            console.error('Error:', error);
+            throw error;
+        }
+    }
+
+
+
+
+
+
+
+   
 
 
 }

@@ -18,7 +18,7 @@ export class UpdateTagDto {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
 
 

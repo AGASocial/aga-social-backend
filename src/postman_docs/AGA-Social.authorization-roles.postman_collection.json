@@ -40,7 +40,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Subscriber\",\r\n  \"isDefault\": true,\r\n  \"isActive\": true\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Subscriber\",\r\n  \"description\":\"holaaaa\",\r\n  \"isDefault\": true,\r\n  \"isActive\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -104,7 +104,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/users/roles?email=armando222@gmail.com&roleName=Publisher",
+					"raw": "{{server}}authorization/users/roles?id=5sXP5IJENVTrCUECYOICe3Gl0VK2&roleName=Publisher",
 					"host": [
 						"{{server}}authorization"
 					],
@@ -114,8 +114,8 @@
 					],
 					"query": [
 						{
-							"key": "email",
-							"value": "armando222@gmail.com"
+							"key": "id",
+							"value": "5sXP5IJENVTrCUECYOICe3Gl0VK2"
 						},
 						{
 							"key": "roleName",
@@ -157,38 +157,6 @@
 						{
 							"key": "roleName",
 							"value": "Publisher"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Eliminar Role de Firebase",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}authorization/roles?roleName=Test",
-					"host": [
-						"{{server}}authorization"
-					],
-					"path": [
-						"roles"
-					],
-					"query": [
-						{
-							"key": "roleName",
-							"value": "Test"
 						}
 					]
 				}

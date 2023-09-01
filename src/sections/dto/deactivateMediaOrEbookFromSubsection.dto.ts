@@ -47,7 +47,7 @@ export class DeactivateMediaOrEbookFromSubsectionDto {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
     
 }

@@ -104,19 +104,7 @@ import { TodoController } from './Pluggins/todo/todo.controller';
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
-       /* consumer
-            .apply(CsrfProtectionMiddleware)
-            .forRoutes({ path: '*', method: RequestMethod.ALL });*/
-        /*
-        consumer
-            .apply(CsrfValidationMiddleware)
-            .exclude(
-                { path: 'auth/users/sessions', method: RequestMethod.POST },
-                { path: 'auth/users', method: RequestMethod.POST },
-                { path: 'auth/users', method: RequestMethod.PATCH },
-            )
-            .forRoutes({ path: '*', method: RequestMethod.ALL });*/
-
+      
         consumer
             .apply(UnauthenticatedMiddleware)
             .exclude({ path: 'auth/users/sessions', method: RequestMethod.GET },

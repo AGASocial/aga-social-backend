@@ -30,15 +30,6 @@ export class LogInDto {
     @Length(8,30, {message: 'Password needs to be of 8 characters and up to 30'})
     @Matches('^(?=.*[0-9]{1,})(?=.*[a-zA-Z]{1,})(?=.*[-+!@#$%^&*.;?]{1,}).{8,30}$','', {message: 'INVALIDPASSWORD'})
     password: string;
-/*
-    @ApiProperty({
-        description: 'Time based otp',
-        example: '225202',
-        type: String
-    })
-    @IsNumberString()
-    @MaxLength(6)
-    @MinLength(6)
-    otp: string;*/
+
     
 }

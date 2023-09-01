@@ -25,8 +25,17 @@ export class CreateMessageResponseDto {
     public message: string;
 
 
-    constructor(statusCode: number, message: string) {
+    @ApiProperty({
+        description: 'ID of the created role',
+        type: String
+    })
+    public messageId?: string;
+
+
+
+    constructor(statusCode: number, message: string, messageId: string) {
         this.statusCode = statusCode;
         this.message = message;
+        this.messageId = messageId;
     }
 }

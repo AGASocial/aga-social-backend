@@ -23,6 +23,15 @@ export class LogInResponseDto {
     @IsUppercase()
     public message: string;
 
+
+
+    @ApiProperty({
+        description: 'ID of the logged user',
+        type: String
+    })
+    public userId?: string;
+
+
     @ApiProperty({
         description: 'Bearer token, used for login validation. The payload is user email and user id',
         type: String

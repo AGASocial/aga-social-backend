@@ -9,7 +9,7 @@ export class AddSectionToCourseDto {
     })
     @IsNotEmpty()
     @IsString()
-    courseName: string;
+    courseId: string;
 
     @ApiProperty({
         description: 'Name of the section to be added to the course.',
@@ -18,5 +18,5 @@ export class AddSectionToCourseDto {
     })
     @IsNotEmpty()
     @IsString()
-    sectionName: string;
+    sectionId: string;
 }
