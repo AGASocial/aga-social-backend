@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { addDoc, collection, deleteDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, QueryFieldFilterConstraint, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
 import { CreateCourseDto } from "./dto/createCourse.dto";
 import { CreateCourseResponseDto } from "./dto/createCourseResponse.dto";
@@ -22,7 +22,7 @@ export class CourseService {
     constructor(private firebaseService: FirebaseService) { }
 
 
-
+    /*
     @ApiOperation({ summary: 'Create a new course' })
     @ApiOkResponse({ description: 'Course created successfully', type: CreateCourseResponseDto })
     @ApiBadRequestResponse({ description: 'Bad request' })
@@ -31,18 +31,12 @@ export class CourseService {
         try {
             console.log('Creating a new course...');
 
-            const { title, description, publisher, releaseDate, price, language, tags, instructorList, offersCertificate, titlePage, sectionsNames } = createNewCourseDto;
+            const { title, description, publisher, releaseDate, price, language, tags, instructorList, offersCertificate, titlePage, sectionsIds } = createNewCourseDto;
             const courseRef = collection(this.firebaseService.fireStore, 'courses');
 
-            console.log('Checking if course with title already exists...');
             const customCourseWhere: QueryFieldFilterConstraint = where('title', '==', title);
             const courseQuery = query(courseRef, customCourseWhere);
             const courseQuerySnapshot = await getDocs(courseQuery);
-
-            if (!courseQuerySnapshot.empty) {
-                console.log('Course with that title already exists.');
-                throw new BadRequestException('COURSE WITH THAT TITLE ALREADY EXISTS');
-            }
 
             console.log('Checking if publisher exists...');
             const userRef = collection(this.firebaseService.fireStore, 'users');
@@ -57,20 +51,20 @@ export class CourseService {
             const newCourseId: string = uuidv4();
             const newSections = [];
 
-            for (const sectionName of sectionsNames) {
+            for (const sectionId of sectionsIds) {
                 console.log('Checking if the section exists...');
 
                 const sectionRef = collection(this.firebaseService.fireStore, 'sections');
-                const sectionQuery = query(sectionRef, where('name', '==', sectionName));
+                const sectionQuery = query(sectionRef, where('id', '==', sectionId));
                 const sectionQuerySnapshot = await getDocs(sectionQuery);
 
                 if (!sectionQuerySnapshot.empty) {
-                    console.log('Section found for name:', sectionName);
+                    console.log('Section found for ID:', sectionId);
                     const sectionData = sectionQuerySnapshot.docs[0].data();
                     newSections.push(sectionData);
                 } else {
-                    console.log('Section not found for name:', sectionName);
-                    throw new BadRequestException('NAME NOT FOUND in REGISTERED SECTIONS: ' + sectionName);
+                    console.log('Section not found for ID:', sectionId);
+                    throw new BadRequestException('ID NOT FOUND in REGISTERED SECTIONS: ' + sectionId);
                 }
             }
 
@@ -87,7 +81,7 @@ export class CourseService {
                 instructorList: instructorList,
                 offersCertificate: offersCertificate,
                 salesCount: 0,
-                isActive: true,
+                active: true,
                 titlePage: titlePage,
             };
 
@@ -109,7 +103,7 @@ export class CourseService {
                 language,
                 offersCertificate,
                 salesCount: 0,
-                isActive: true,
+                active: true,
                 titlePage,
             });
             this.firebaseService.setCollectionData('courses', cachedCourses);
@@ -122,7 +116,7 @@ export class CourseService {
             console.error('Error:', error);
             throw error;
         }
-    }
+    }*/
 
 
 
@@ -184,53 +178,6 @@ export class CourseService {
 
 
 
-    /*
-    //NOT IN USE
-    @ApiOperation({ summary: 'Delete a course' })
-    @ApiOkResponse({ description: 'Course deleted successfully', type: DeleteCourseResponseDto })
-    @ApiNotFoundResponse({ description: 'Course not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async deleteCourse(title: string): Promise<DeleteCourseResponseDto> {
-        try {
-            const courseCollectionRef = collection(this.firebaseService.fireStore, 'courses');
-            const courseQuerySnapshot = await getDocs(query(courseCollectionRef, where('title', '==', title)));
-
-            if (courseQuerySnapshot.empty) {
-                console.log(`Course with title "${title}" not found in the courses collection.`);
-                throw new NotFoundException('COURSESNOTFOUND');
-            }
-            const coursesDoc = courseQuerySnapshot.docs[0];
-
-            // Delete from Firestore
-            await deleteDoc(coursesDoc.ref);
-
-            // Update the cache
-            
-            const cachedCourses = await this.firebaseService.getCollectionData('courses');
-            const indexToDelete = cachedCourses.findIndex((course) => course.title === title);
-
-            if (indexToDelete !== -1) {
-                cachedCourses.splice(indexToDelete, 1);
-                this.firebaseService.setCollectionData('courses', cachedCourses);
-            }
-
-
-            const response: DeleteCourseResponseDto = {
-                statusCode: 200,
-                message: 'COURSEDELETEDSUCCESSFULLY',
-            };
-
-            console.log(`The course has been deleted successfully.`);
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }*/
-
-
-
-
 
 
     @ApiOperation({ summary: 'Get all active courses' })
@@ -242,7 +189,7 @@ export class CourseService {
 
             // If there is cached data and all courses are active, return cached data
             const cachedCourses = await this.firebaseService.getCollectionData('courses');
-            if (cachedCourses.length > 0 && cachedCourses.every(course => course.isActive)) {
+            if (cachedCourses.length > 0 && cachedCourses.every(course => course.active)) {
                 console.log('Using cached courses data.');
                 const getCoursesDtoResponse: GetCoursesResponseDto = {
                     statusCode: 200,
@@ -263,7 +210,7 @@ export class CourseService {
             let queryResult = [];
             coursesQuerySnapshot.forEach(doc => {
                 const data = doc.data();
-                if (data.isActive) {
+                if (data.active) {
                     queryResult.push({
                         title: data.title,
                         description: data.description,
@@ -276,7 +223,7 @@ export class CourseService {
                         language: data.language,
                         offersCertificate: data.offersCertificate,
                         salesCount: data.salesCount,
-                        isActive: data.isActive,
+                        active: data.active,
                         titlePage: data.titlePage,
                     });
                 }
@@ -303,25 +250,29 @@ export class CourseService {
 
 
 
-
-    @ApiOperation({ summary: 'Get active courses by keywords' })
     @ApiOkResponse({ description: 'Active courses retrieved successfully', type: GetCoursesResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @ApiBadRequestResponse({ description: 'Invalid input data' })
     @ApiBody({ type: GetCoursesResponseDto })
-    async getCoursesByKeywords(keywords: string[]): Promise<GetCoursesResponseDto> {
+    async getCoursesByKeywords(keywords: string | string[]): Promise<GetCoursesResponseDto> {
         try {
             console.log('Initializing getCoursesByKeywords...');
+
+            if (!Array.isArray(keywords)) {
+                keywords = [keywords];
+            }
+
+            console.log('Keywords:', keywords);
 
             // Tries to use data in cache if it exists
             const cachedCourses = await this.firebaseService.getCollectionData('courses');
             if (cachedCourses.length > 0) {
                 console.log('Using cached courses data.');
-                const matchedCourses = cachedCourses
-                    .filter(course => course.isActive) // Filter only active courses
-                    .filter(course =>
-                        keywords.some(keyword => course.title.toLowerCase().includes(keyword.toLowerCase()))
-                    );
+
+                const matchedCourses = cachedCourses.filter(course =>
+                    course.active && this.courseMatchesKeywords(course, keywords)
+                );
+
 
                 const responseDto: GetCoursesResponseDto = {
                     statusCode: 200,
@@ -333,10 +284,9 @@ export class CourseService {
 
             // If there is no data in cache, query Firestore
             const coursesRef = this.firebaseService.coursesCollection;
-            const coursesQuery = query(coursesRef, orderBy('title'));
             console.log('Courses query created.');
 
-            const coursesQuerySnapshot = await getDocs(coursesQuery);
+            const coursesQuerySnapshot = await getDocs(coursesRef);
             console.log('Courses query snapshot obtained.');
 
             const queryResult = [];
@@ -354,19 +304,17 @@ export class CourseService {
                     language: data.language,
                     offersCertificate: data.offersCertificate,
                     salesCount: data.salesCount,
-                    isActive: data.isActive,
+                    active: data.active,
                     titlePage: data.titlePage,
-
                 });
             });
             console.log('Course data collected.');
 
             // Filter the courses by keywords
-            const matchedCourses = queryResult
-                .filter(course => course.isActive) // Filter only active courses
-                .filter(course =>
-                    keywords.some(keyword => course.title.toLowerCase().includes(keyword.toLowerCase()))
-                );
+            const matchedCourses = queryResult.filter(course =>
+                course.active && this.courseMatchesKeywords(course, keywords)
+            );
+
 
             // Save the active courses data in cache for future queries
             await this.firebaseService.setCollectionData('courses', queryResult);
@@ -384,6 +332,28 @@ export class CourseService {
             throw new Error('There was an error retrieving the courses.');
         }
     }
+
+    private courseMatchesKeywords(course: Course, keywords: string[] | string): boolean {
+        const lowerCaseTitle = course.title.toLowerCase();
+
+        if (typeof keywords === 'string') {
+            keywords = [keywords];
+        }
+
+        return keywords.every(keyword => {
+            const keywordLowerCase = keyword.toLowerCase();
+            console.log(`Checking keyword "${keywordLowerCase}" in title "${lowerCaseTitle}"`);
+            return lowerCaseTitle.includes(keywordLowerCase);
+        });
+    }
+
+
+
+
+
+
+
+
 
 
 
@@ -392,19 +362,21 @@ export class CourseService {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @ApiBadRequestResponse({ description: 'Invalid input data' })
     @ApiBody({ type: GetCoursesResponseDto })
-    async getCoursesByTags(tags: string[]): Promise<GetCoursesResponseDto> {
+    async getCoursesByTags(tags: string[] | string): Promise<GetCoursesResponseDto> {
         try {
             console.log('Initializing getCoursesByTags...');
+
+            if (typeof tags === 'string') {
+                tags = [tags];
+            }
 
             // Tries to use data in cache if it exists
             const cachedCourses = await this.firebaseService.getCollectionData('courses');
             if (cachedCourses.length > 0) {
                 console.log('Using cached courses data.');
                 const matchedCourses = cachedCourses
-                    .filter(course => course.isActive) // Filter only active courses
-                    .filter(course =>
-                        tags.some(tag => course.tags.includes(tag))
-                    );
+                    .filter(course => course.active) // Filter only active courses
+                    .filter(course => this.courseHasAnyTag(course, tags));
 
                 const responseDto: GetCoursesResponseDto = {
                     statusCode: 200,
@@ -416,10 +388,9 @@ export class CourseService {
 
             // If there is no data in cache, query Firestore
             const coursesRef = this.firebaseService.coursesCollection;
-            const coursesQuery = query(coursesRef, orderBy('title'));
             console.log('Courses query created.');
 
-            const coursesQuerySnapshot = await getDocs(coursesQuery);
+            const coursesQuerySnapshot = await getDocs(coursesRef);
             console.log('Courses query snapshot obtained.');
 
             const queryResult = [];
@@ -437,19 +408,16 @@ export class CourseService {
                     language: data.language,
                     offersCertificate: data.offersCertificate,
                     salesCount: data.salesCount,
-                    isActive: data.isActive,
+                    active: data.active,
                     titlePage: data.titlePage,
-
                 });
             });
             console.log('Course data collected.');
 
             // Filter the courses by tags
             const matchedCourses = queryResult
-                .filter(course => course.isActive) // Filter only active courses
-                .filter(course =>
-                    tags.some(tag => course.tags.includes(tag))
-                );
+                .filter(course => course.active) // Filter only active courses
+                .filter(course => this.courseHasAnyTag(course, tags));
 
             // Save the active courses data in cache for future queries
             await this.firebaseService.setCollectionData('courses', queryResult);
@@ -467,6 +435,15 @@ export class CourseService {
             throw new Error('There was an error retrieving the courses.');
         }
     }
+
+    private courseHasAnyTag(course: Course, tags: string[] | string): boolean {
+        if (typeof tags === 'string') {
+            tags = [tags];
+        }
+
+        return tags.some(tag => course.tags.includes(tag));
+    }
+
 
 
 
@@ -478,28 +455,28 @@ export class CourseService {
     @ApiBody({ type: AddSectionToCourseDto })
     async addSectionToCourse(addSectionToCourseDto: AddSectionToCourseDto): Promise<AddSectionToCourseResponseDto> {
         try {
-            const { courseName, sectionName } = addSectionToCourseDto;
+            const { courseId, sectionId } = addSectionToCourseDto;
 
-            console.log(`Adding section "${sectionName}" to course "${courseName}"...`);
+            console.log(`Adding section with ID "${sectionId}" to course with ID "${courseId}"...`);
 
-            // Find the section by name
+            // Find the section by ID
             const sectionCollectionRef = collection(this.firebaseService.fireStore, 'sections');
-            const sectionQuerySnapshot = await getDocs(query(sectionCollectionRef, where('name', '==', sectionName)));
+            const sectionQuerySnapshot = await getDocs(query(sectionCollectionRef, where('id', '==', sectionId)));
 
             if (sectionQuerySnapshot.empty) {
-                console.log(`Section "${sectionName}" not found.`);
+                console.log(`Section with ID "${sectionId}" not found.`);
                 throw new NotFoundException('SECTION_NOT_FOUND');
             }
 
             const sectionDoc = sectionQuerySnapshot.docs[0];
             const sectionData = sectionDoc.data() as Section;
 
-            // Find the course by name
+            // Find the course by ID
             const courseCollectionRef = collection(this.firebaseService.fireStore, 'courses');
-            const courseQuerySnapshot = await getDocs(query(courseCollectionRef, where('title', '==', courseName)));
+            const courseQuerySnapshot = await getDocs(query(courseCollectionRef, where('id', '==', courseId)));
 
             if (courseQuerySnapshot.empty) {
-                console.log(`Course "${courseName}" not found.`);
+                console.log(`Course with ID "${courseId}" not found.`);
                 throw new NotFoundException('COURSE_NOT_FOUND');
             }
 
@@ -523,7 +500,7 @@ export class CourseService {
             // Update cached courses data
             const cachedCourses = await this.firebaseService.getCollectionData('courses');
             const updatedCachedCourses = cachedCourses.map(course => {
-                if (course.title === courseName) {
+                if (course.id === courseId) {
                     return {
                         ...course,
                         sections: [...course.sections, newSection],
@@ -533,7 +510,7 @@ export class CourseService {
             });
             await this.firebaseService.setCollectionData('courses', updatedCachedCourses);
 
-            console.log(`Section "${sectionName}" added to course "${courseName}" successfully.`);
+            console.log(`Section with ID "${sectionId}" added to course with ID "${courseId}" successfully.`);
 
             const responseDto: AddSectionToCourseResponseDto = {
                 statusCode: 201,
@@ -551,38 +528,33 @@ export class CourseService {
 
 
 
+
+
     async createAndUploadCourse(createNewCourseDto: CreateCourseDto): Promise<CreateCourseResponseDto> {
         try {
             console.log('Creating a new course...');
 
-            const { title, description, publisher, releaseDate, price, language, sectionsNames, tags, instructorList, offersCertificate, titlePage } = createNewCourseDto;
+            const { title, description, publisher, releaseDate, price, language, sectionsIds, tags, instructorList, offersCertificate, titlePage } = createNewCourseDto;
             const courseRef = collection(this.firebaseService.fireStore, 'courses');
 
-            const customCourseWhere: QueryFieldFilterConstraint = where('title', '==', title);
-            const courseQuery = query(courseRef, customCourseWhere);
-            const courseQuerySnapshot = await getDocs(courseQuery);
-
-            if (!courseQuerySnapshot.empty) {
-                throw new BadRequestException('COURSE WITH THAT TITLE ALREADY EXISTS');
-            }
 
             const newCourseId: string = uuidv4();
             const newSections = [];
 
-            for (const sectionName of sectionsNames) {
+            for (const sectionId of sectionsIds) {
                 console.log('Checking if the section exists...');
 
                 const sectionRef = collection(this.firebaseService.fireStore, 'sections');
-                const sectionQuery = query(sectionRef, where('name', '==', sectionName));
+                const sectionQuery = query(sectionRef, where('id', '==', sectionId));
                 const sectionQuerySnapshot = await getDocs(sectionQuery);
 
                 if (!sectionQuerySnapshot.empty) {
-                    console.log('Section found for name:', sectionName);
+                    console.log('Section found for ID:', sectionId);
                     const sectionData = sectionQuerySnapshot.docs[0].data();
                     newSections.push(sectionData);
                 } else {
-                    console.log('Section not found for name:', sectionName);
-                    throw new BadRequestException('NAME NOT FOUND in REGISTERED SECTIONS: ' + sectionName);
+                    console.log('Section not found for ID:', sectionId);
+                    throw new BadRequestException('SECTION NOT FOUND: ' + sectionId);
                 }
             }
 
@@ -633,7 +605,7 @@ export class CourseService {
                 instructorList: instructorList,
                 offersCertificate: offersCertificate,
                 salesCount: 0,
-                isActive: true,
+                active: true,
                 titlePage: titlePage,
             };
 
@@ -654,7 +626,7 @@ export class CourseService {
                 language,
                 offersCertificate,
                 salesCount: 0,
-                isActive: true,
+                active: true,
                 titlePage,
             });
 
@@ -662,13 +634,14 @@ export class CourseService {
             console.log('Course added to the cache successfully.');
 
             console.log('Course created successfully.');
-            const responseDto = new CreateCourseResponseDto(201, 'COURSECREATEDSUCCESSFULLY');
+            const responseDto = new CreateCourseResponseDto(201, 'COURSECREATEDSUCCESSFULLY', newCourseId);
             return responseDto;
         } catch (error) {
             console.error('Error:', error);
             throw error;
         }
     }
+
 
 
 

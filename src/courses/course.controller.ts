@@ -17,7 +17,7 @@ export class CourseController {
 
 
 
-
+    /*
     @ApiOperation({ summary: 'Create a new course on Firestore' })
     @ApiCreatedResponse({ description: 'Course created successfully', type: CreateCourseResponseDto })
     @ApiBadRequestResponse({ description: 'Invalid input' })
@@ -25,7 +25,7 @@ export class CourseController {
     @Post('assets/courses')
     async createNewCourse(@Body() createNewCourseDto: CreateCourseDto): Promise<CreateCourseResponseDto> {
         return this.courseService.createNewCourse(createNewCourseDto);
-    }
+    }*/
 
 
 
@@ -51,10 +51,10 @@ export class CourseController {
         @Query('keywords') keywords?: string[],
         @Query('tags') tags?: string[]
     ): Promise<GetCoursesResponseDto> {
-        if (keywords && Array.isArray(keywords) && keywords.length > 0) {
+        if (keywords) {
             const response = await this.courseService.getCoursesByKeywords(keywords);
             return response;
-        } else if (tags && Array.isArray(tags) && tags.length > 0) {
+        } else if (tags) {
             return await this.courseService.getCoursesByTags(tags);
         } else {
             return this.courseService.getCourses();
@@ -84,7 +84,7 @@ export class CourseController {
     @ApiOkResponse({ description: 'Course created and uploaded successfully' })
     @ApiBadRequestResponse({ description: 'Bad request' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @Post('assets/courses/media/ebooks')
+    @Post('assets/courses')
     async createAndUploadCourse(@Body() createNewCourseDto: CreateCourseDto) {
         try {
             const response = await this.courseService.createAndUploadCourse(createNewCourseDto);

@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
 
-export class CreateCouponResponseDto {
+export class PersonalizeEbookResponseDto {
 
     @ApiProperty({
         description: 'HTTP response status code',
@@ -14,8 +14,8 @@ export class CreateCouponResponseDto {
     public statusCode: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "COUPONCREATEDSUCCESSFULLY"',
-        default: 'COUPONCREATEDSUCCESSFULLY',
+        description: 'Descriptive response message, should return "EBOOKPERSONALIZEDSUCCESSFULLY"',
+        default: 'EBOOKPERSONALIZEDSUCCESSFULLY',
         type: String,
     })
     @IsString()
@@ -26,16 +26,15 @@ export class CreateCouponResponseDto {
 
 
     @ApiProperty({
-        description: 'Code of the created coupon',
+        description: 'Url to download the ebook',
         type: String
     })
-    public code?: string;
+    public downloadUrl?: string;
 
 
-
-    constructor(statusCode: number, message: string, code: string) {
+    constructor(statusCode: number, message: string, downloadUrl: string) {
         this.statusCode = statusCode;
         this.message = message;
-        this.code= code;
+        this.downloadUrl = downloadUrl;
     }
 }

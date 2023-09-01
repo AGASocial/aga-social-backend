@@ -18,36 +18,31 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "/C:/Users/veron/Downloads/tap.jpg"
+							"src": "/C:/Users/veron/Downloads/Vine Boom Sound.mp3"
 						},
 						{
 							"key": "publisher",
-							"value": "Joel.123",
+							"value": "Mary.123",
 							"type": "text"
 						},
 						{
 							"key": "type",
-							"value": "video",
+							"value": "audio",
 							"type": "text"
 						},
 						{
 							"key": "title",
-							"value": "Pruebita 5",
+							"value": "Pruebita789",
 							"type": "text"
 						},
 						{
 							"key": "description",
-							"value": "Descripcion",
+							"value": "Datastorage",
 							"type": "text"
 						},
 						{
 							"key": "duration",
-							"value": "00:10:52",
-							"type": "text"
-						},
-						{
-							"key": "uploadDate",
-							"value": "2020-09-11",
+							"value": "00:00:04",
 							"type": "text"
 						}
 					]
@@ -71,7 +66,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n\"isActive\": true\r\n\r\n}",
+					"raw": "{\r\n\r\n\"isActive\": true,\r\n\"title\": \"Updated\",\r\n\"description\": \"hello\"\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -131,7 +126,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/media?keywords=test",
+					"raw": "{{server}}assets/media?keywords=updated",
 					"host": [
 						"{{server}}assets"
 					],
@@ -141,7 +136,7 @@
 					"query": [
 						{
 							"key": "keywords",
-							"value": "test"
+							"value": "updated"
 						}
 					]
 				}

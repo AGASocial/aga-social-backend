@@ -3,14 +3,11 @@ import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerEr
 import { AddTagsResponseDto } from "./dto/addTagsResponse.dto";
 import { CreateMessageDto } from "./dto/createMessage.dto";
 import { CreateMessageResponseDto } from "./dto/createMessageResponse.dto";
-import { DeleteMessageDto } from "./dto/deleteMessage.dto";
 import { DeleteMessageResponseDto } from "./dto/deleteMessageResponse.dto";
 import { GetMessagesByKeywordsDto } from "./dto/getMessagesByKeywords.dto";
 import { GetMessagesByUserResponseDto } from "./dto/getMessagesByUserResponse.dto";
 import {GetMessagesFilteredDto } from "./dto/getMessagesFiltered.dto";
-import { MarkAsArchivedDto } from "./dto/markAsArchived.dto";
 import { MarkAsArchivedResponseDto } from "./dto/markAsArchivedResponse.dto";
-import { MarkAsReadDto } from "./dto/markAsRead.dto";
 import { MarkAsReadResponseDto } from "./dto/markAsReadResponse.dto";
 import { UpdateMessageStatusDto } from "./dto/updateMessageStatus.dto";
 import { UpdateMessageStatusResponseDto } from "./dto/updateMessageStatusResponse.dto";
@@ -66,18 +63,18 @@ export class MessageController {
     @Get('messages')
     async getMessages(
         @Query('filter') filter: string,
-        @Query('email') email: string,
+        @Query('id') id: string,
         @Query('keywords') keywords: string[],
         @Query('tags') tags: string[], 
     ): Promise<GetMessagesByUserResponseDto> {
-        if (filter && email) {
-            return await this.messageService.getFilteredMessages(filter, email);
-        } else if (email && keywords && keywords.length > 0) {
-            return await this.messageService.searchMessagesByKeywords(email, keywords);
-        } else if (email && tags && tags.length > 0) { 
-            return await this.messageService.searchMessagesByTags(email, tags);
-        } else if (email) {
-            return this.messageService.getUserMessages(email);
+        if (filter && id) {
+            return await this.messageService.getFilteredMessages(filter, id);
+        } else if (id && keywords) {
+            return await this.messageService.searchMessagesByKeywords(id, keywords);
+        } else if (id && tags) { 
+            return await this.messageService.searchMessagesByTags(id, tags);
+        } else if (id) {
+            return this.messageService.getUserMessages(id);
         } else {
             throw new BadRequestException('Invalid parameters');
         }
@@ -115,16 +112,16 @@ export class MessageController {
     @Patch('messages/tags')
     async addOrRemoveTagsToMessageByUserEmailAndTagNames(
         @Body('id') id: string,
-        @Body('tagsNames') tagsNames: string[],
-        @Body('action') action: 'add' | 'eliminate',
+        @Body('tagsIds') tagsIds: string[],
+        @Body('action') action: 'add' | 'delete',
 
     ): Promise<AddTagsResponseDto> {
         try {
-            if (!id || !tagsNames || !action) {
+            if (!id || !tagsIds || !action) {
                 throw new HttpException('Missing required parameters', HttpStatus.BAD_REQUEST);
             }
 
-            const response = await this.messageService.addOrRemoveTagsFromMessage(id, action, tagsNames);
+            const response = await this.messageService.addOrRemoveTagsFromMessage(id, action, tagsIds);
             return response;
         } catch (error) {
             console.error('An error occurred:', error);

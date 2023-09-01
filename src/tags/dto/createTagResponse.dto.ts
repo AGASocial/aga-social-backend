@@ -25,8 +25,20 @@ export class CreateTagResponseDto {
     public message: string;
 
 
-    constructor(statusCode: number, message: string) {
+
+
+    @ApiProperty({
+        description: 'ID of the created tag',
+        type: String
+    })
+    public tagId?: string;
+
+
+    constructor(statusCode: number, message: string, tagId: string) {
         this.statusCode = statusCode;
         this.message = message;
+        this.tagId = tagId;
     }
+
+
 }

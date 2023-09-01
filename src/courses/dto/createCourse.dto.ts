@@ -127,7 +127,7 @@ export class CreateCourseDto {
         type: [String],
     })
     @IsString({ each: true })
-    public sectionsNames?: string[];
+    public sectionsIds?: string[];
 
 
 

@@ -18,16 +18,16 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "/C:/Users/veron/Downloads/plus (2).jpg"
+							"src": "/C:/Users/veron/Downloads/ebooks/ebookprueba.docx"
 						},
 						{
 							"key": "title",
-							"value": "Ebook3",
+							"value": "Hiya",
 							"type": "text"
 						},
 						{
 							"key": "description",
-							"value": "Descripcion",
+							"value": "...",
 							"type": "text"
 						},
 						{
@@ -37,7 +37,7 @@
 						},
 						{
 							"key": "author",
-							"value": "Armando",
+							"value": "Mary",
 							"type": "text"
 						},
 						{
@@ -67,12 +67,12 @@
 						},
 						{
 							"key": "format",
-							"value": "DOCX",
+							"value": "PDF",
 							"type": "text"
 						},
 						{
 							"key": "publisher",
-							"value": "Joel.123",
+							"value": "Mary.123",
 							"type": "text"
 						}
 					]
@@ -96,7 +96,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n \"isActive\": true\r\n}\r\n",
+					"raw": "{\r\n \"isActive\": true,\r\n \"title\": \"New Title\",\r\n \"author\": \"New Author\",\r\n \"price\": 100.00,\r\n \"description\": \"New Description\",\r\n \"pageCount\": 100,\r\n \"genres\": \"Technology\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -156,7 +156,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/ebooks?keywords=pruebita",
+					"raw": "{{server}}assets/ebooks?keywords=PMU",
 					"host": [
 						"{{server}}assets"
 					],
@@ -166,7 +166,35 @@
 					"query": [
 						{
 							"key": "keywords",
-							"value": "pruebita"
+							"value": "PMU"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Comprar Ebook",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}assets/ebooks/users?userId=1w54iIFPN0M7YNgo10XuLIVUkJk2&ebookId=65c8cf10-3726-4776-a35a-b0e5867dcf64",
+					"host": [
+						"{{server}}assets"
+					],
+					"path": [
+						"ebooks",
+						"users"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
+						},
+						{
+							"key": "ebookId",
+							"value": "65c8cf10-3726-4776-a35a-b0e5867dcf64"
 						}
 					]
 				}

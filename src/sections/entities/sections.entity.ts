@@ -27,9 +27,8 @@ export class Section {
 
     @ApiProperty({
         description: 'Media (audios or videos) and Ebooks associated with the section.',
-        type: [Media, Ebook, CreateMediaDto, CreateEbookDto],
     })
-    public content?: (Media | Ebook | CreateMediaDto | CreateEbookDto)[]; 
+    public content?: any[]; 
 
     @ApiProperty({
         description: 'Tags or keywords describing the section content.',
@@ -51,7 +50,7 @@ export class Section {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
 
     @ApiProperty({
@@ -77,6 +76,6 @@ export class Section {
         type: [String],
     })
     @IsString({ each: true })
-    assetsTitles?: string[];
+    assetsIds?: string[];
 
 }

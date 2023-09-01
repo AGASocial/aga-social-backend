@@ -84,9 +84,8 @@ export class UpdateCourseDto {
         example: 'https://example.com/course.jpg',
         type: String,
     })
-    @IsNotEmpty()
     @IsString()
-    public titlePage: string;
+    public titlePage?: string;
 
     @ApiProperty({
         description: 'Status of the course, can be active or not',
@@ -95,6 +94,6 @@ export class UpdateCourseDto {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
 }

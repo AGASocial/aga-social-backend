@@ -68,16 +68,9 @@ export class UpdateUserDto {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
 
-    @ApiProperty({
-        description: 'URL to the users profile picture file',
-        example: 'https://example.com/picture.jpg',
-        type: String,
-    })
-    @IsString()
-    public profilePicture?: string;
 
 
 

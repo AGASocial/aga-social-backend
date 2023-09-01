@@ -50,7 +50,7 @@ export class Message {
     })
     @IsNotEmpty()
     @IsBoolean()
-    public isRead: boolean;
+    public read: boolean;
 
     @ApiProperty({
         description: 'Attachment URLs',
@@ -86,7 +86,7 @@ export class Message {
     })
     @IsNotEmpty()
     @IsBoolean()
-    public isArchived: boolean = false;
+    public archived: boolean = false;
 
 
 
@@ -120,7 +120,7 @@ export class Message {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
     @ApiProperty({
         description: 'Tags associated with the message',
@@ -140,7 +140,7 @@ export class Message {
         type: String
     })
     @IsBoolean()
-    isHighlight?: boolean;
+    highlighted?: boolean;
 
 
 }

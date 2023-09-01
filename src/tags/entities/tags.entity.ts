@@ -36,5 +36,5 @@ export class Tags {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 }

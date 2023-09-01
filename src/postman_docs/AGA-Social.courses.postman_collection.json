@@ -8,13 +8,13 @@
 	},
 	"item": [
 		{
-			"name": "Crear Curso",
+			"name": "Crear y Subir Course",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"Test-4\",\r\n  \"description\": \"A guide\",\r\n  \"publisher\": \"Fernanda\",\r\n  \"releaseDate\": \"2023-08-08\",\r\n  \"price\": 999.99,\r\n  \"language\": \"English\",\r\n  \"titlePage\":\"https://imagenPortada/curso.jpg\",\r\n  \"sections\": [\r\n    {\r\n     \"name\": \"Seccion-Test\",\r\n  \"description\": \"Seccion-Test\",\r\n  \"content\": [\r\n    {\r\n         \"description\": \"TEST-1\",\r\n            \"type\": \"audio\",\r\n            \"title\": \"TEST-1\",\r\n            \"uploadDate\": \"2013-10-10\",\r\n            \"duration\": \"00:10:30\",\r\n            \"isActive\": true,\r\n            \"url\": \"https://TEST1.com/media/video.mp3\"\r\n    }\r\n    \r\n  ],\r\n  \"tags\": [\"PRUEBA\"]\r\n            \r\n    \r\n    }\r\n  ],\r\n  \"tags\": [\"programming\", \"beginner\", \"tutorial\"],\r\n  \"instructorList\": [\"John Doe\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
+					"raw": "{\r\n  \"title\": \"Cursito\",\r\n  \"description\": \"Cursito\",\r\n  \"publisher\": \"Mary.123\",\r\n  \"releaseDate\": \"2023-08-08\",\r\n  \"price\": 150.00,\r\n  \"language\": \"English\",\r\n  \"titlePage\":\"https://imagenPortada/curso.jpg\",\r\n   \"sectionsIds\": [\"68fb6c27-11d5-4a73-9f31-a15133d4ac55\"],\r\n  \"tags\": [\"tutorial\"],\r\n  \"instructorList\": [\"John Doe\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -40,7 +40,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"courseName\":\"Test-4\",\r\n\"sectionName\":\"Seccion-Principal 222\"\r\n\r\n\r\n}",
+					"raw": "{\r\n\"courseId\":\"6e048ab8-3070-4f8b-a638-154f30b100c0\",\r\n\"sectionId\":\"5007e86e-54c3-43c0-b823-e4a14e41c75d\"\r\n\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -67,7 +67,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n  \"isActive\": true\r\n}\r\n",
+					"raw": "{\r\n\r\n  \"active\": true\r\n\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -75,7 +75,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses?id=b59c858b-de2c-4db1-999d-89a6d14cae83",
+					"raw": "{{server}}assets/courses?id=6e048ab8-3070-4f8b-a638-154f30b100c0",
 					"host": [
 						"{{server}}assets"
 					],
@@ -85,7 +85,7 @@
 					"query": [
 						{
 							"key": "id",
-							"value": "b59c858b-de2c-4db1-999d-89a6d14cae83"
+							"value": "6e048ab8-3070-4f8b-a638-154f30b100c0"
 						}
 					]
 				}
@@ -127,7 +127,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses?keywords=Prueba",
+					"raw": "{{server}}assets/courses?keywords=cursito",
 					"host": [
 						"{{server}}assets"
 					],
@@ -137,7 +137,7 @@
 					"query": [
 						{
 							"key": "keywords",
-							"value": "Prueba"
+							"value": "cursito"
 						}
 					]
 				}
@@ -154,7 +154,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n    \"tags\": [\"beginner\"]\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -162,7 +162,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses?tags=beginner",
+					"raw": "{{server}}assets/courses?tags=tutorial",
 					"host": [
 						"{{server}}assets"
 					],
@@ -172,45 +172,8 @@
 					"query": [
 						{
 							"key": "tags",
-							"value": "beginner"
+							"value": "tutorial"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Crear y Subir Course",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"url": {
-					"raw": "{{server}}assets/courses/media/ebooks",
-					"host": [
-						"{{server}}assets"
-					],
-					"path": [
-						"courses",
-						"media",
-						"ebooks"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Eliminar Curso",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{server}}assets/courses/a",
-					"host": [
-						"{{server}}assets"
-					],
-					"path": [
-						"courses",
-						"a"
 					]
 				}
 			},

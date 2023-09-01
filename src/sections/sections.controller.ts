@@ -12,6 +12,7 @@ import { DeleteSectionResponseDto } from './dto/deleteSectionResponse.dto';
 import { GetSectionsResponseDto } from './dto/getSectionResponse.dto';
 import { ManageResourceStatusInSectionDto } from './dto/manageResourceStatusInSection.dto';
 import { ManageResourceStatusInSectionResponseDto } from './dto/manageResourceStatusInSectionResponse.dto';
+import { ManageResourceStatusInSubsectionDto } from './dto/manageResourceStatusInSubsection.dto';
 import { UpdateSectionDto } from './dto/updateSection.dto';
 import { UpdateSectionResponseDto } from './dto/updateSectionResponse.dto';
 import { SectionService } from './sections.service';
@@ -46,17 +47,17 @@ export class SectionController {
     @ApiNotFoundResponse({ description: 'Parent section not found' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @ApiBadRequestResponse({ description: 'Invalid input data' })
-    @ApiQuery({ name: 'parentSectionName', description: 'Name of the parent section', required: true, type: 'string' })
     @ApiBody({ type: CreateSectionDto })
     async createAndAddSubsectionToSection(
         @Body() createSectionDto: CreateSectionDto,
-        @Query('parentSectionName') parentSectionName: string
+        @Query('parentSectionId') parentSectionId: string 
     ): Promise<CreateSectionResponseDto> {
         return this.sectionService.createAndAddSubsectionToSection(
-            parentSectionName,
+            parentSectionId,
             createSectionDto
         );
     }
+
 
 
 
@@ -71,31 +72,14 @@ export class SectionController {
     @ApiQuery({ name: 'name', description: 'Name of the section', required: true, type: 'string' })
     @ApiBody({ type: UpdateSectionDto })
     async updateSection(
-        @Query('name') name: string,
+        @Query('id') id: string,
         @Body() updateSectionDto: Partial<UpdateSectionDto>,
         @Req() req: Request
     ): Promise<UpdateSectionResponseDto> {
-        return await this.sectionService.updateSection(name, updateSectionDto);
+        return await this.sectionService.updateSection(id, updateSectionDto);
     }
 
 
-
-
-
-    //NOT IN USE
-
-    @Delete('sections')
-    @ApiOperation({ summary: 'Delete media from a section (not in use)' })
-    @ApiOkResponse({ description: 'Section deleted successfully', type: DeleteSectionResponseDto })
-    @ApiNotFoundResponse({ description: 'Section not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async deleteSection(
-        @Query('name') name: string,
-        @Query('description') description: string,
-        @Req() req: Request
-    ): Promise<DeleteSectionResponseDto> {
-        return await this.sectionService.deleteSection(name, description);
-    }
 
 
 
@@ -108,11 +92,11 @@ export class SectionController {
     async getSections(
         @Req() req: Request,
         @Query('tags') tags?: string[],
-        @Query('name') sectionName?: string,
+        @Query('sectionId') sectionId?: string,
         @Query('keywords') keywords?: string[]
     ): Promise<GetSectionsResponseDto> {
-        if (sectionName) {
-            const response = await this.sectionService.getSectionContentByName(sectionName);
+        if (sectionId) {
+            const response = await this.sectionService.getSectionContentById(sectionId);
             return response;
         }
 
@@ -136,12 +120,13 @@ export class SectionController {
     @ApiOperation({ summary: 'Add media or ebook to section' })
     @ApiOkResponse({ description: 'Media or ebook added to section successfully', type: AddMediaOrEbookResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @Patch('sections/media/ebooks')
+    @Patch('sections/assets')
     async addMediaOrEbookToSection(
-        @Body() addMediaOrEbookDto: AddMediaOrEbookDto,
+        @Body() requestBody: { sectionId: string, assetId: string },
     ): Promise<AddMediaOrEbookResponseDto> {
         try {
-            const response = await this.sectionService.addMediaOrEbookToSection(addMediaOrEbookDto);
+            const { sectionId, assetId } = requestBody;
+            const response = await this.sectionService.addMediaOrEbookToSection(sectionId, assetId);
             return response;
         } catch (error) {
             throw new InternalServerErrorException('An error occurred while processing your request.');
@@ -150,18 +135,20 @@ export class SectionController {
 
 
 
-    @Patch('sections/subsections/media/ebooks')
+    @Patch('sections/subsections/assets')
     @ApiOperation({ summary: 'Add media or ebook to subsection' })
     @ApiOkResponse({ description: 'Media or ebook added to subsection successfully', type: AddMediaOrEbookResponseDto })
     async addMediaOrEbookToSubsection(
-        @Body() mediaOrEbookData: AddMediaOrEbookDto,
-        @Query('parentSectionName') parentSectionName: string,
-        @Query('subsectionName') subsectionName: string
+        @Body() request: { sectionId: string, subsectionId: string, resourceId: string }
     ): Promise<AddMediaOrEbookResponseDto> {
+        const sectionId = request.sectionId;
+        const subsectionId = request.subsectionId;
+        const resourceId = request.resourceId;
+
         return this.sectionService.addMediaOrEbookToSubsection(
-            mediaOrEbookData,
-            parentSectionName,
-            subsectionName
+            sectionId,
+            subsectionId,
+            resourceId
         );
     }
 
@@ -173,10 +160,10 @@ export class SectionController {
     @ApiOkResponse({ description: 'Subsections retrieved successfully', type: GetSectionsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @Get('sections/subsections')
-    async getSubsectionsBySectionName(
-        @Query('sectionName') sectionName: string
+    async getSubsectionsBySectionId(
+        @Query('id') id: string
     ): Promise<GetSectionsResponseDto> {
-        return this.sectionService.getSubsectionsBySectionName(sectionName);
+        return this.sectionService.getSubsectionsBySectionId(id);
     }
 
 
@@ -207,7 +194,7 @@ export class SectionController {
     @ApiBody({ type: ManageResourceStatusInSectionDto })
     @Patch('sections/subsections')
     async manageResourceStatusForSubsections(
-        @Body() manageResourceStatusDto: ManageResourceStatusInSectionDto,
+        @Body() manageResourceStatusDto: ManageResourceStatusInSubsectionDto,
     ): Promise<ManageResourceStatusInSectionResponseDto> {
         return this.sectionService.manageResourceStatusInSubsections(manageResourceStatusDto);
     }

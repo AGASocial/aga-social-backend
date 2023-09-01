@@ -53,16 +53,6 @@ export class AuthorizationController {
 
 
 
-    @ApiOperation({ summary: 'Delete role from firebase (Not in use)' })
-    @ApiOkResponse({ description: 'Role deleted successfully' })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or role not found' })
-    @Delete('roles')
-    async deleteRoleFirebase(
-        @Query('roleName') roleName: string
-    ): Promise<SetRoleToUserResponseDto> {
-        return await this.authorizationService.deleteRoleFirebase(roleName);
-    }
-
 
 
 

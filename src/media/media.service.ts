@@ -47,13 +47,7 @@ export class MediaService {
         }
 
 
-        // Check if the title already exists in the collection
-        const titleQuery = query(mediaRef, where('title', '==', title));
-        const titleQuerySnapshot = await getDocs(titleQuery);
-
-        if (!titleQuerySnapshot.empty) {
-            throw new BadRequestException('TITLE ALREADY EXISTS');
-        }
+      
 
         const newMediaId: string = uuidv4();
 
@@ -68,7 +62,7 @@ export class MediaService {
             url,
             duration,
             uploadDate: new Date(),
-            isActive: true,
+            active: true,
         };
 
         const newMediaDocRef = await addDoc(mediaRef, newMedia);
@@ -86,7 +80,7 @@ export class MediaService {
             url,
             duration,
             uploadDate: newMedia.uploadDate.toISOString(),
-            isActive: true,
+            active: true,
         });
         this.firebaseService.setCollectionData('media', cachedMedia);
         console.log('Media added to the cache successfully.');
@@ -165,7 +159,7 @@ export class MediaService {
             const cachedMedia = await this.firebaseService.getCollectionData('media');
             if (cachedMedia.length > 0) {
                 console.log('Using cached media data.');
-                const activeMedia = cachedMedia.filter(media => media.isActive);
+                const activeMedia = cachedMedia.filter(media => media.active);
 
                 // Convert uploadDate in cached media using the imported function
                 const activeMediaWithFormattedDates = activeMedia.map(media => ({
@@ -183,7 +177,7 @@ export class MediaService {
 
             // If there is no data, query Firestore
             const mediaRef = this.firebaseService.mediaCollection;
-            const mediaQuery = query(mediaRef, where('isActive', '==', true));
+            const mediaQuery = query(mediaRef, where('active', '==', true));
             console.log('Media query created.');
 
             const mediaQuerySnapshot = await getDocs(mediaQuery);
@@ -203,7 +197,7 @@ export class MediaService {
                         type: data.type,
                         uploadDate: uploadDate,
                         url: data.url,
-                        isActive: data.isActive,
+                        active: data.active,
                     });
                 }
             });
@@ -237,88 +231,27 @@ export class MediaService {
 
 
 
-    //NOT IN USE
-    @ApiOperation({ summary: 'Delete media by title and description' })
-    @ApiOkResponse({
-        description: 'Media has been successfully deleted.',
-        type: DeleteMediaResponseDto,
-    })
-    @ApiNotFoundResponse({ description: 'Media not found with the given title and description' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-
-    async deleteMedia(title: string, description: string): Promise<DeleteMediaResponseDto> {
-        try {
-            const mediaCollectionRef = collection(this.firebaseService.fireStore, 'media');
-            const mediaQuerySnapshot = await getDocs(query(mediaCollectionRef, where('title', '==', title)));
- 
-            if (mediaQuerySnapshot.empty) {
-                console.log(`Media with title "${title}" not found in the media collection.`);
-                throw new NotFoundException('MEDIANOTFOUND');
-            }
-            const mediaDoc = mediaQuerySnapshot.docs[0];
-
-            const mediaData = mediaDoc.data() as Media;
-
-
-            if (mediaData.description === description) {
-                await deleteDoc(mediaDoc.ref);
-            }
-            else {
-                console.log(`Media with description "${description}" not found in the media collection.`);
-                throw new NotFoundException('MEDIANOTFOUND');
-            }
-
-
-            const cachedCourses = await this.firebaseService.getCollectionData('media');
-            const indexToDelete = cachedCourses.findIndex((media) => media.title === title);
-
-            if (indexToDelete !== -1) {
-                cachedCourses.splice(indexToDelete, 1);
-                this.firebaseService.setCollectionData('media', cachedCourses);
-            }
-
-
-            const response: DeleteMediaResponseDto = {
-                statusCode: 200,
-                message: 'MEDIADELETEDSUCCESSFULLY',
-            };
-
-            console.log(`Media with title "${title}" has been deleted successfully.`);
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
-
-
-
-
-
-
-
-
-
-
     @ApiOperation({ summary: 'Get media resources by keywords on the title' })
     @ApiOkResponse({
         description: 'Media resources matching the keywords have been successfully retrieved.',
         type: GetMediaResponseDto,
     })
-    async getMediaByKeywords(keywords: string[]): Promise<GetMediaResponseDto> {
+    async getMediaByKeywords(keywords: string[] | string): Promise<GetMediaResponseDto> {
         try {
             console.log('Initializing getMediaByKeywords...');
+
+            if (typeof keywords === 'string') {
+                keywords = [keywords];
+            }
 
             // Tries to use data in cache if it exists
             const cachedMedia = await this.firebaseService.getCollectionData('media');
             if (cachedMedia.length > 0) {
                 console.log('Using cached media data.');
-                const activeMedia = cachedMedia.filter(media => media.isActive);
-                const matchedMedia = activeMedia.filter(media =>
-                    keywords.some(keyword => media.title.toLowerCase().includes(keyword.toLowerCase()))
+                const matchedMedia = cachedMedia.filter(media =>
+                    media.active && this.mediaMatchesKeywords(media, keywords)
                 );
 
-                // Convert uploadDate in cached media using the imported function
                 const matchedMediaWithFormattedDates = matchedMedia.map(media => ({
                     ...media,
                     uploadDate: convertFirestoreTimestamp(media.uploadDate),
@@ -334,7 +267,7 @@ export class MediaService {
 
             // If there is no data in cache, query Firestore
             const mediaRef = this.firebaseService.mediaCollection;
-            const mediaQuery = query(mediaRef, where('isActive', '==', true));
+            const mediaQuery = query(mediaRef, where('active', '==', true));
             console.log('Media query created.');
 
             const mediaQuerySnapshot = await getDocs(mediaQuery);
@@ -343,7 +276,7 @@ export class MediaService {
             const queryResult = [];
             mediaQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
-                if (data.isActive) {
+                if (data.active) {
                     const uploadTimestamp: Timestamp = data.uploadDate;
                     const uploadDate = convertFirestoreTimestamp(uploadTimestamp);
                     queryResult.push({
@@ -354,15 +287,15 @@ export class MediaService {
                         type: data.type,
                         uploadDate: uploadDate,
                         url: data.url,
-                        isActive: data.isActive,
+                        active: data.active,
                     });
                 }
             });
             console.log('Media data collected.');
 
-            // Filter the media by keywords
+            // Filter the media by keywords using the helper function
             const matchedMedia = queryResult.filter(media =>
-                keywords.some(keyword => media.title.toLowerCase().includes(keyword.toLowerCase()))
+                this.mediaMatchesKeywords(media, keywords)
             );
 
             const matchedMediaWithFormattedDates = matchedMedia.map(media => ({
@@ -387,6 +320,15 @@ export class MediaService {
         }
     }
 
+    private mediaMatchesKeywords(media: Media, keywords: string[] | string): boolean {
+        if (typeof keywords === 'string') {
+            keywords = [keywords];
+        }
+
+        const lowerCaseTitle = media.title.toLowerCase();
+        return keywords.every(keyword => lowerCaseTitle.includes(keyword.toLowerCase()));
+    }
+
 
 
 
@@ -400,7 +342,18 @@ export class MediaService {
         createNewMediaDto: CreateMediaDto
     ): Promise<UploadMediaResponseDto | CreateMediaResponseDto> {
         try {
-           
+
+            const maxFileSize = 150 * 1024 * 1024; // 150 MB
+
+            if (file.size > maxFileSize) {
+                return {
+                    statusCode: 400,
+                    message: 'Max size for the file exceeded',
+                };
+            }
+
+
+
             const newMediaId: string = uuidv4();
 
 
@@ -476,11 +429,11 @@ export class MediaService {
                 url,
                 duration,
                 uploadDate: new Date(),
-                isActive: true,
+                active: true,
                 vimeoVideo: type === 'video' ? mediaLink : '',            };
             const newMediaDocRef = await addDoc(mediaRef, newMedia);
 
-            const responseDto = new UploadMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY');
+            const responseDto = new UploadMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY', newMediaId);
 
           
 
@@ -496,7 +449,7 @@ export class MediaService {
                 url: mediaPath,
                 duration,
                 uploadDate: new Date(),
-                isActive: true,
+                active: true,
                 vimeoVideo: mediaLink,
 
             });

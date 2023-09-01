@@ -64,7 +64,7 @@ export class CreateMediaDto {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true; //isActive
+    active?: boolean = true; //isActive
 
 
     @ApiProperty({

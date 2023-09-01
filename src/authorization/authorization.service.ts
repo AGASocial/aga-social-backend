@@ -69,8 +69,8 @@ export class AuthorizationService {
             const newRole: Role = {
                 name: roleData.name,
                 description: roleData.description,
-                isDefault: roleData.isDefault,
-                isActive: roleData.isActive,
+                default: roleData.default,
+                active: roleData.active,
             };
 
             const updatedRoles = [...currentRoles, newRole];
@@ -174,37 +174,6 @@ export class AuthorizationService {
 
 
 
-    @ApiOperation({ summary: 'Delete role from firebase' })
-    @ApiOkResponse({ description: 'role deleted successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async deleteRoleFirebase(roleName: string): Promise<SetRoleToUserResponseDto> {
-        try {
-            const rolesCollectionRef = collection(this.firebaseService.fireStore, 'roles');
-            const roleQuerySnapshot = await getDocs(query(rolesCollectionRef, where('name', '==', roleName)));
-
-            if (roleQuerySnapshot.empty) {
-                console.log(`Role with name "${roleName}" not found in the roles collection.`);
-                throw new NotFoundException('ROLENOTFOUND');
-            }
-
-            const roleDoc = roleQuerySnapshot.docs[0];
-            await deleteDoc(roleDoc.ref);
-
-            const response: SetRoleToUserResponseDto = {
-                statusCode: 200,
-                message: 'ROLEDELETEDSUCCESS',
-            };
-
-            console.log(`Role "${roleName}" has been deleted successfully.`);
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }
-
-
 
    
 
@@ -215,8 +184,9 @@ export class AuthorizationService {
     async createNewRole(createNewRoleDto: CreateNewRoleDto): Promise<CreateNewRoleResponseDto> {
         const roleName = createNewRoleDto.name;
         const roleDescription = createNewRoleDto.description;
-        const roleDefault = createNewRoleDto.isDefault;
-        const roleActive = createNewRoleDto.isActive;
+        const roleDefault = createNewRoleDto.default;
+        const roleActive = createNewRoleDto.active;
+        const newRoleId: string = uuidv4();
 
         console.log('Creating new role...');
 
@@ -225,11 +195,11 @@ export class AuthorizationService {
             throw new BadRequestException('ROLEALREADYEXISTS');
         } else {
             const newRole = {
-                id: uuidv4(),
+                id: newRoleId,
                 name: roleName,
                 description: roleDescription,
-                isDefault: roleDefault,
-                isActive: roleActive,
+                default: roleDefault,
+                active: roleActive,
             };
             try {
                 console.log('Saving new role to the database...');
@@ -246,7 +216,7 @@ export class AuthorizationService {
             }
         }
 
-        const createNewRoleDtoResponse: CreateNewRoleResponseDto = { statusCode: 201, message: 'ROLECREATED' };
+        const createNewRoleDtoResponse: CreateNewRoleResponseDto = { statusCode: 201, message: 'ROLECREATED', roleId: newRoleId };
         console.log('Role creation complete.');
         return createNewRoleDtoResponse;
     }

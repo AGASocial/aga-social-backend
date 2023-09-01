@@ -1,0 +1,83 @@
+{
+	"info": {
+		"_postman_id": "b1631557-38e5-4f26-82fd-b94ad9a91e0c",
+		"name": "tags",
+		"description": "Coleccion Postman creada para la realizacion de pruebas en el controller tags usado para la gestion de tags incluidas en los messages (mensajeria entre publishers y subscribers)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Crear Tag",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Test\",\r\n  \"username\": \"Joel.123\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}tags",
+					"host": [
+						"{{server}}tags"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Tag",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"active\": true,\r\n    \"name\": \"Nuevo\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}tags?id=b3fc6dab-dc51-4526-ba89-fd367e17e709",
+					"host": [
+						"{{server}}tags"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "b3fc6dab-dc51-4526-ba89-fd367e17e709"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Tags por Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}tags?id=1w54iIFPN0M7YNgo10XuLIVUkJk2",
+					"host": [
+						"{{server}}tags"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

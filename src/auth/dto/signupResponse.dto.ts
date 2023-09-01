@@ -25,6 +25,11 @@ export class SignUpDtoResponse {
     @IsUppercase()
     public message: string;
 
+    @ApiProperty({
+        description: 'ID of the created user',
+        type: String
+    })
+    public userId?: string;
 
     
 }

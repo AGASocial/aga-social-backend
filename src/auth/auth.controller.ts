@@ -1,4 +1,4 @@
-import { Body, Controller,Delete,Get,HttpException,HttpStatus,Param,Patch,Post,Put,Query,Req,Res,UseGuards } from "@nestjs/common";
+import { Body, Controller,Delete,Get,HttpException,HttpStatus,Param,Patch,Post,Put,Query,Req,Res,UploadedFile,UseGuards, UseInterceptors } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { SignUpDto } from "./dto/signup.dto";
 import { LogInDto } from "./dto/login.dto";
@@ -27,6 +27,8 @@ import { ChangeCredentialsDtoResponse } from "./dto/changeCredentialsResponse.dt
 import { CsrfGuard } from "../session/csrf.guard";
 import { CsrfProtectionMiddleware } from "../session/middleware/csrfProtection.middleware";
 import { CsrfValidationMiddleware } from "../session/middleware/csrfValidation.middleware";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { profile } from "console";
 
 
 @Controller('auth')
@@ -52,19 +54,13 @@ export class AuthController {
         res.send({
             statusCode: signUpDtoResponse.statusCode,
             message: signUpDtoResponse.message,
+            userId: signUpDtoResponse.userId,
+
         })
 
     }
 
 
-    //NOT IN USE
-    @ApiOperation({ summary: 'Delete user (Not in use)' })
-    @ApiOkResponse({ description: 'User successfully deleted', type: DeleteUserResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
-    @Delete('users')
-    async deleteUser(@Body() deleteUserDto: DeleteUserDto): Promise<DeleteUserResponseDto> {
-        return this.authService.firebaseDeleteUser(deleteUserDto);
-    }
 
     @UseGuards(FreezedGuard)
     @ApiOperation({ summary: 'User login' })
@@ -76,13 +72,14 @@ export class AuthController {
 
         const loginResponseDto: LogInResponseDto = await this.authService.firebaseLogin(logInDto);
 
-        const { statusCode, message, bearer_token, authCookieAge, refresh_token, refreshCookieAge } = loginResponseDto;
+        const { statusCode, message, userId, bearer_token, authCookieAge, refresh_token, refreshCookieAge } = loginResponseDto;
 
         res.cookie('bearer_token', bearer_token, { signed: true, maxAge: authCookieAge });
         res.cookie('refresh_token', refresh_token, { signed: true, maxAge: refreshCookieAge });
         res.send({
             statusCode,
             message,
+            userId,
         })
     }
 
@@ -128,16 +125,23 @@ export class AuthController {
     @ApiOperation({ summary: 'Update user data' })
     @ApiBody({ type: UpdateUserDto })
     @ApiOkResponse({ description: 'User data changed successfully', type: UpdateUserResponseDto })
+    @UseInterceptors(FileInterceptor('profilePicture')) 
     @Put('users') 
     async updateUser(
         @Query('id') id: string, 
-        @Body() newData: Partial<UpdateUserDto>,
-        @Req() req: Request
+        @Body() newData?: Partial<UpdateUserDto>,
+        @UploadedFile() profilePicture?: any
     ): Promise<UpdateUserResponseDto> {
         try {
-            const jwtToken = req.signedCookies.refresh_token;
-            const response = await this.authService.updateUser(id, newData, jwtToken);
-            return response;
+            if (!profilePicture && newData) {
+                const response = await this.authService.updateUser(id, newData);
+                return response;
+            }
+            else if (profilePicture) {
+                const response = await this.authService.uploadProfilePicture(id, profilePicture);
+                return response;
+
+            }
         } catch (error) {
             throw new Error('Failed to update user');
         }
@@ -171,35 +175,35 @@ export class AuthController {
     @ApiQuery({ name: 'new_password', required: false })
     @ApiQuery({ name: 'security_answer', required: false })
     @Patch('users')
-    async manageUserCredentials( 
+    async manageUserCredentials(
         @Req() req: Request,
-        @Query('id') id: string,
-        @Query('password') password: string,
-        @Query('new_security_answer') newSecurityAnswer: string,
-        @Query('new_password') newPassword: string,
-        @Query('security_answer') securityAnswer: string,
+        @Body() credentials: {
+            password?: string,
+            new_security_answer?: string,
+            new_password?: string,
+            security_answer?: string,
+        }
     ): Promise<any> {
-
         const jwtToken = req.signedCookies.refresh_token;
 
-        if (password && newSecurityAnswer) {
+        if (credentials.password && credentials.new_security_answer) {
             const changeSecurityAnswerDto = new ChangeSecurityAnswerDto();
-            changeSecurityAnswerDto.password = password;
-            changeSecurityAnswerDto.new_security_answer = newSecurityAnswer;
+            changeSecurityAnswerDto.password = credentials.password;
+            changeSecurityAnswerDto.new_security_answer = credentials.new_security_answer;
 
             return this.authService.changeSecurityAnswer(changeSecurityAnswerDto, jwtToken);
-        } else if (password && newPassword) {
+        } else if (credentials.password && credentials.new_password) {
             const changePasswordDto = new ChangePasswordDto();
-            changePasswordDto.password = password;
-            changePasswordDto.new_password = newPassword;
+            changePasswordDto.password = credentials.password;
+            changePasswordDto.new_password = credentials.new_password;
             return this.authService.firebaseChangePassword(changePasswordDto, jwtToken);
-        } else if (securityAnswer && newPassword) {
+        } else if (credentials.security_answer && credentials.new_password) {
             const recoverPasswordDto = new RecoverPasswordDto();
-            recoverPasswordDto.security_answer = securityAnswer;
-            recoverPasswordDto.new_password = newPassword;
+            recoverPasswordDto.security_answer = credentials.security_answer;
+            recoverPasswordDto.new_password = credentials.new_password;
             return this.authService.firebaseRecoverPassword(recoverPasswordDto, jwtToken);
         } else {
-            throw new HttpException('Invalid combination of query parameters', HttpStatus.BAD_REQUEST);
+            throw new HttpException('Invalid combination of credentials', HttpStatus.BAD_REQUEST);
         }
     }
 

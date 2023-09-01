@@ -29,9 +29,8 @@ export class CreateSectionDto {
 
     @ApiProperty({
         description: 'Media (audios or videos) and Ebooks associated with the section.',
-        type: [CreateEbookDto, CreateMediaDto],
     })
-    content: (CreateMediaDto | CreateEbookDto)[];
+    content: any[];
 
     @ApiProperty({
         description: 'Tags or keywords describing the section content.',
@@ -51,7 +50,7 @@ export class CreateSectionDto {
         type: [String],
     })
     @IsString({ each: true })
-    assetsTitles?: string[];
+    assetsIds?: string[];
 
 
 

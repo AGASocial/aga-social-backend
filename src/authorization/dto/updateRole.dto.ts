@@ -26,7 +26,7 @@ export class UpdateRoleDto {
     })
     @IsBoolean()
     @IsOptional()
-    public isDefault?: boolean;
+    public default?: boolean;
 
     @ApiProperty({
         description: 'Indicates if the role is enabled or disabled',
@@ -34,7 +34,7 @@ export class UpdateRoleDto {
     })
     @IsBoolean()
     @IsOptional()
-    public isActive?: boolean;
+    public active?: boolean;
 
 
 }

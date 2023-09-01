@@ -17,7 +17,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"pruebita@gmail.com\",\r\n  \"username\": \"Pruebita.123\",\r\n  \"password\": \"Vitra/?13\",\r\n  \"name\": \"Pruebita\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"frio2@gmail.com\",\r\n  \"username\": \"Frio.223\",\r\n  \"password\": \"Vitra/?13\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -43,7 +43,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"pruebita@gmail.com\",\r\n  \"password\": \"Viztrak/?1344\"\r\n}",
+					"raw": "{\r\n  \"email\": \"cory@gmail.com\",\r\n  \"password\": \"Viztrak/?1344\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -70,7 +70,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n     \r\n    \"isActive\": true\r\n   \r\n}\r\n",
+					"raw": "{\r\n     \r\n    \"active\": false,\r\n    \"description\": \"hola\",\r\n    \"username\": \"UserNuevo.123\",\r\n    \"name\": \"Nombre Nuevo\",\r\n    \"country\": \"Colombia\",\r\n    \"phoneNumber\": \"04145708990\"\r\n   \r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -102,7 +102,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"user\": \"pruebita@gmail.com\",\r\n  \"security_answer\": \"Perfect Green\",\r\n  \"new_password\": \"Viztrak/?1344\"\r\n}",
+					"raw": "{\r\n    \"security_answer\": \"Perfect Green\",\r\n    \"new_password\": \"NewPass123/.\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -110,26 +110,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/users?email=pruebita@gmail.com&security_answer=Perfect Green&new_password=Viztrak/?1344",
+					"raw": "{{server}}auth/users",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
 						"users"
-					],
-					"query": [
-						{
-							"key": "email",
-							"value": "pruebita@gmail.com"
-						},
-						{
-							"key": "security_answer",
-							"value": "Perfect Green"
-						},
-						{
-							"key": "new_password",
-							"value": "Viztrak/?1344"
-						}
 					]
 				}
 			},
@@ -142,7 +128,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"password\": \"Viztrak/?1344\",\r\n  \"new_password\": \"NewPass123/.\"\r\n}",
+					"raw": "{\r\n    \"password\": \"NewPass123/.\",\r\n    \"new_password\": \"NewPass123/.\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -150,22 +136,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/users?password=Vitra/?13&new_password=NewPass123/.",
+					"raw": "{{server}}auth/users",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
 						"users"
-					],
-					"query": [
-						{
-							"key": "password",
-							"value": "Vitra/?13"
-						},
-						{
-							"key": "new_password",
-							"value": "NewPass123/."
-						}
 					]
 				}
 			},
@@ -178,7 +154,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"password\": \"Vitra/?13\",\r\n  \"new_security_answer\": \"Perfect Green\",\r\n  \"email\": \"pruebita@gmail.com\"\r\n}\r\n",
+					"raw": "{\r\n    \"password\": \"NewPass123/.\",\r\n    \"new_security_answer\": \"Perfect Green\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -186,26 +162,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/users?email=new_email@example.com&password=Vitra/?13&new_security_answer=Perfect Green",
+					"raw": "{{server}}auth/users",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
 						"users"
-					],
-					"query": [
-						{
-							"key": "email",
-							"value": "new_email@example.com"
-						},
-						{
-							"key": "password",
-							"value": "Vitra/?13"
-						},
-						{
-							"key": "new_security_answer",
-							"value": "Perfect Green"
-						}
 					]
 				}
 			},
@@ -281,7 +243,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -289,30 +251,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/users?email=joel123@gmail.com",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"users"
-					],
-					"query": [
-						{
-							"key": "email",
-							"value": "joel123@gmail.com"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Ganancias Usuarios",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{server}}auth/users?id=nyoBoIroCqNTL7FnInQohxF7t7I2",
+					"raw": "{{server}}auth/users?id=1w54iIFPN0M7YNgo10XuLIVUkJk2",
 					"host": [
 						"{{server}}auth"
 					],
@@ -322,7 +261,7 @@
 					"query": [
 						{
 							"key": "id",
-							"value": "nyoBoIroCqNTL7FnInQohxF7t7I2"
+							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
 						}
 					]
 				}
@@ -330,26 +269,33 @@
 			"response": []
 		},
 		{
-			"name": "Eliminar Usuario Firebase",
+			"name": "Agregar Profile Picture",
 			"request": {
-				"method": "DELETE",
+				"method": "PUT",
 				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"joel115@gmail.com\",\r\n  \"security_answer\": \"perfect blue\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "profilePicture",
+							"type": "file",
+							"src": "/C:/Users/veron/Downloads/duck-animate-1-500x500.png"
 						}
-					}
+					]
 				},
 				"url": {
-					"raw": "{{server}}auth/users",
+					"raw": "{{server}}auth/users?id=SFUcEOGs1lbWj4PdVrRxjbyLOtU2",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
 						"users"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "SFUcEOGs1lbWj4PdVrRxjbyLOtU2"
+						}
 					]
 				}
 			},

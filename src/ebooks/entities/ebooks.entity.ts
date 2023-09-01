@@ -5,8 +5,6 @@ import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum, IsBoole
 export enum EbookFormat {
     PDF = 'PDF',
     EPUB = 'EPUB',
-    MOBI = 'MOBI',
-    AZW3 = 'AZW3',
     DOCX = 'DOCX',
 }
 
@@ -194,7 +192,7 @@ export class Ebook {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
 
 
@@ -204,6 +202,14 @@ export class Ebook {
         type: String
     })
     id?: string;
+
+
+    @ApiProperty({
+        description: 'bucket url for the ebook',
+        example: 'assets/abcdef123456/fileName',
+        type: String
+    })
+    bucketReference?: string;
 
 
 }

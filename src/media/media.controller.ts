@@ -46,7 +46,7 @@ export class MediaController {
     async getMedia(
         @Query('keywords') keywords?: string[]
     ): Promise<GetMediaResponseDto> {
-        if (keywords && Array.isArray(keywords) && keywords.length > 0) {
+        if (keywords) {
             const response = await this.mediaService.getMediaByKeywords(keywords);
             return response;
         } else {

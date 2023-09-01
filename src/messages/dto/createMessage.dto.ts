@@ -40,9 +40,8 @@ export class CreateMessageDto {
         type: Boolean,
         default: false,
     })
-    @IsNotEmpty()
     @IsBoolean()
-    public isRead: boolean = false;
+    public read: boolean = false;
 
 
     @ApiProperty({
@@ -51,9 +50,8 @@ export class CreateMessageDto {
         type: Boolean,
         default: false,
     })
-    @IsNotEmpty()
     @IsBoolean()
-    public isArchived: boolean = false;
+    public archived: boolean = false;
 
 
 
@@ -117,7 +115,7 @@ export class CreateMessageDto {
         example: true,
         type: String
     })
-    isHighlight?: boolean;
+    highlighted?: boolean;
 
 
 }

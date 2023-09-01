@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/signup.dto';
 import { LogInDto } from './dto/login.dto';
@@ -35,6 +35,9 @@ import { UpdateUserResponseDto } from './dto/updateUserResponse.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as admin from 'firebase-admin';
 import { GetUsersEarningsResponseDto } from './dto/getUsersEarningsResponse.dto';
+import { Readable } from 'stream';
+import { v4 as uuidv4 } from 'uuid';
+
 
 
 
@@ -111,6 +114,7 @@ export class AuthService {
             const loginResponseDto: LogInResponseDto = {
                 statusCode: 201,
                 message: 'LOGINSUCCESSFUL',
+                userId: user.id,
                 bearer_token: token,
                 authCookieAge: sessionTime * cookieTimeMultiplier,
                 refresh_token: refreshToken,
@@ -156,15 +160,14 @@ export class AuthService {
         const roleEntity: Role = {
             name: roleData.name,
             description: roleData.description,
-            isDefault: roleData.isDefault,
-            isActive: roleData.isActive
+            default: roleData.default,
+            active: roleData.active
         };
 
-        const { email, username, password, name, security_answer } = signUpDto;
+        const { email, username, password } = signUpDto;
         const hashedPassword = await this.hashService.hashString(password);
         signUpDto.password = hashedPassword;
-        const hashedSecurityAnswer = await this.hashService.hashString(security_answer);
-        signUpDto.security_answer = hashedSecurityAnswer;
+       
 
         console.log('Before emailChecker...');
         await this.usersService.emailChecker(email, false);
@@ -189,17 +192,17 @@ export class AuthService {
                 hashedPassword,
             );
             console.log('After createUserWithEmailAndPassword...');
+            const id: string = userCredential.user.uid; 
 
             if (userCredential) {
-                const id: string = userCredential.user.uid; 
 
                 let newUser: User = {
                     id, 
                     email: email,
                     username: username,
                     password: hashedPassword,
-                    name: name,
-                    security_answer: signUpDto.security_answer,
+                    name: '',
+                    security_answer: '',
                     role: [roleEntity],
                     purchasedBooks: [],
                     purchasedCourses: [],
@@ -209,7 +212,7 @@ export class AuthService {
                     description: '',
                     country: '',
                     phoneNumber: '',
-                    isActive: true,
+                    active: true,
                     profilePicture: ''
                 };
 
@@ -224,66 +227,16 @@ export class AuthService {
                 const signUpDtoResponse: SignUpDtoResponse = {
                     statusCode: 201,
                     message: 'SIGNUPSUCCESSFUL',
+                    userId: id,
                 };
+
+                console.log('Response:', signUpDtoResponse); 
                 return signUpDtoResponse;
             }
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
         }
     }
-
-
-    //NOT IN USE
-
-    @ApiOkResponse({ description: 'User successfully deleted', type: DeleteUserResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
-    @ApiUnauthorizedResponse({ description: 'Unauthorized: Incorrect security answer' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async firebaseDeleteUser(deleteUserDto: DeleteUserDto): Promise<DeleteUserResponseDto> {
-        const { email, security_answer } = deleteUserDto;
-
-        try {
-            const userQuery = query(this.firebaseService.usersCollection, where('email', '==', email), limit(1));
-            const userQuerySnapshot = await getDocs(userQuery);
-
-            if (userQuerySnapshot.empty) {
-                throw new NotFoundException('User not found');
-            }
-
-            const userDoc = userQuerySnapshot.docs[0];
-
-            const userSecurityAnswer = userDoc.data().security_answer;
-            const isSecurityAnswerCorrect = await this.hashService.compareHashedStrings(security_answer, userSecurityAnswer);
-
-            if (!isSecurityAnswerCorrect) {
-                throw new UnauthorizedException('Incorrect security answer');
-            }
-
-            await deleteDoc(userDoc.ref);
-            console.log(`User with email ${email} has been successfully deleted.`);
-
-
-            const cachedCourses = await this.firebaseService.getCollectionData('users');
-            const indexToDelete = cachedCourses.findIndex((user) => user.email === email);
-
-            if (indexToDelete !== -1) {
-                cachedCourses.splice(indexToDelete, 1);
-                this.firebaseService.setCollectionData('users', cachedCourses);
-            }
-
-            const deleteUserResponseDto: DeleteUserResponseDto = {
-                statusCode: 200,
-                message: 'USERDELETED',
-            };
-            return deleteUserResponseDto;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('USERDELETEFAILED');
-        }
-    }
-
-
-
 
 
 
@@ -437,7 +390,7 @@ export class AuthService {
                     description: user.description,
                     country: user.country,
                     phoneNumber: user.phoneNumber,
-                    isActive: user.isActive,
+                    active: user.active,
                     profilePicture: user.profilePicture,
 
 
@@ -476,7 +429,7 @@ export class AuthService {
                     description: data.description,
                     country: data.country,
                     phoneNumber: data.phoneNumber,
-                    isActive: data.isActive,
+                    active: data.active,
                     profilePicture: data.profilePicture,
 
 
@@ -490,7 +443,7 @@ export class AuthService {
 
             const getUsersDtoResponse: GetUsersResponseDto = {
                 statusCode: 200,
-                message: "USERSGOT",
+                message: "USERSGOT",  //REVISAR
                 usersFound: queryResult,
             };
             console.log('Response created.');
@@ -552,13 +505,14 @@ export class AuthService {
                     country: data.country,
                     phoneNumber: data.phoneNumber,
                     profilePicture: data.profilePicture,
+                    active: data.active
                 };
             });
             console.log('User data collected.');
 
             const getSingleUserDtoResponse: GetUsersResponseDto = {
                 statusCode: queryResult.length > 0 ? 200 : 404,
-                message: queryResult.length > 0 ? "USERSGOT" : "USERNOTFOUND",
+                message: queryResult.length > 0 ? "USER_ACCOUNT_INFORMATION_RETRIEVED" : "USERNOTFOUND",
                 usersFound: queryResult,
             };
             console.log('Response created.');
@@ -571,6 +525,9 @@ export class AuthService {
                 // If the user was not found, update cache with an empty array to avoid querying Firestore repeatedly
                 await this.firebaseService.setCollectionData('users', []);
             }
+
+
+
 
             return getSingleUserDtoResponse;
         } catch (error) {
@@ -711,7 +668,12 @@ export class AuthService {
 
 
 
-    async updateUser(id: string, newData: Partial<UpdateUserDto>, jwtToken: string): Promise<UpdateUserResponseDto> {
+
+
+
+
+
+    async updateUser(id: string, newData: Partial<UpdateUserDto>): Promise<UpdateUserResponseDto> {
         try {
             console.log('Initializing updateUser...');
 
@@ -721,11 +683,9 @@ export class AuthService {
                 description,
                 country,
                 phoneNumber,
-                isActive,
-                profilePicture,
+                active,
                 new_email,
             } = newData;
-
 
             const usersCollectionRef = admin.firestore().collection('users');
 
@@ -738,7 +698,6 @@ export class AuthService {
 
             const usersRef = collection(this.firebaseService.fireStore, 'users');
 
-
             if (username) {
                 const customUserWhere: QueryFieldFilterConstraint = where('username', '==', username);
                 console.log('customUserWhere:', customUserWhere);
@@ -750,38 +709,28 @@ export class AuthService {
                 if (!userQuerySnapshot.empty) {
                     throw new BadRequestException('USERNAMEEXISTS');
                 }
-
             }
 
-            const userID = this.usersService.extractID(jwtToken);
-
-            const singleUserReference = doc(this.firebaseService.usersCollection, userID);
-
-            const singleUserSnap = await getDoc(singleUserReference);
-
-
             if (new_email) {
-
                 try {
                     const auth = getAuth();
                     const userCredential = await updateEmail(auth.currentUser, new_email);
                     console.log('Email Updated in Firebase Auth.');
-
-                } catch (error: unknown) {
+                } catch (error) {
                     console.warn(`[ERROR]: ${error}`);
                     throw new BadRequestException('An error occurred while updating the email.');
                 }
 
                 try {
+                    const singleUserReference = doc(this.firebaseService.usersCollection, id);
                     await updateDoc(singleUserReference, {
                         email: new_email
                     });
                     console.log('Email updated in Firestore:', new_email);
-                } catch (error: unknown) {
+                } catch (error) {
                     console.warn(`[ERROR]: ${error}`);
                     throw new BadRequestException('An error occurred while updating the email in Firestore.');
                 }
-
             }
 
             const batch = admin.firestore().batch();
@@ -791,6 +740,17 @@ export class AuthService {
 
             await batch.commit();
             console.log(`Updated info for user with id "${id}"`);
+
+
+            //Update cache
+            const cachedUsers = await this.firebaseService.getCollectionData('users');
+            const cachedUserIndex = cachedUsers.findIndex(user => user.id === id);
+            if (cachedUserIndex !== -1) {
+                const updatedCachedUser = { id, ...newData };
+                cachedUsers[cachedUserIndex] = updatedCachedUser;
+                await this.firebaseService.setCollectionData('users', cachedUsers);
+            }
+
 
             const response: UpdateUserResponseDto = {
                 statusCode: 200,
@@ -851,6 +811,82 @@ export class AuthService {
     }
 
 
+
+
+
+    async uploadProfilePicture(id: string, file: any): Promise<UpdateUserResponseDto> {
+        console.log('Initializing Upload of Profile Picture...');
+        try {
+            const maxFileSize = 10 * 1024 * 1024; // 10 MB
+
+            if (file.size > maxFileSize) {
+                throw new BadRequestException('The size of the file has surpassed the max, the file must be 10 MB or lower');
+            }
+
+            const newProfilePictureId: string = uuidv4();
+            const mediaFileName = `${Date.now()}_${file.originalname}`;
+            const mediaPath = `assets/${newProfilePictureId}/${mediaFileName}`;
+
+            console.log('Uploading file to:', mediaPath);
+
+            const fileBucket = admin.storage().bucket();
+            const uploadStream = fileBucket.file(mediaPath).createWriteStream({
+                metadata: {
+                    contentType: file.mimetype,
+                },
+            });
+
+            const readableStream = new Readable();
+            readableStream._read = () => { };
+            readableStream.push(file.buffer);
+            readableStream.push(null);
+
+            await new Promise<void>((resolve, reject) => {
+                readableStream.pipe(uploadStream)
+                    .on('error', (error) => {
+                        console.error('Error while uploading the file:', error);
+                        reject(error);
+                    })
+                    .on('finish', () => {
+                        console.log('File uploaded successfully.');
+                        resolve();
+                    });
+            });
+
+            const [url] = await fileBucket.file(mediaPath).getSignedUrl({
+                action: 'read',
+                expires: '01-01-2100',
+            });
+
+            const usersCollectionRef = admin.firestore().collection('users');
+            const userDoc = await usersCollectionRef.doc(id).get();
+
+            if (!userDoc.exists) {
+                throw new BadRequestException(`User with id "${id}" not found`);
+            }
+
+            await usersCollectionRef.doc(id).update({ profilePicture: url });
+
+            //Update cache
+            const cachedUsers = await this.firebaseService.getCollectionData('users');
+            const cachedUserIndex = cachedUsers.findIndex(user => user.id === id);
+            if (cachedUserIndex !== -1) {
+                cachedUsers[cachedUserIndex].profilePicture = url;
+                await this.firebaseService.setCollectionData('users', cachedUsers);
+            }
+
+
+            const response: UpdateUserResponseDto = {
+                statusCode: 200,
+                message: 'USERUPDATEDSUCCESSFULLY',
+            };
+
+            return response;
+        } catch (error) {
+            console.error('There was an error uploading the picture:', error);
+            throw new HttpException(`${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
 

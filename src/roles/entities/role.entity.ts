@@ -24,7 +24,7 @@ export class Role {
     })
     @IsNotEmpty()
     @IsBoolean()
-    public isDefault: boolean;
+    public default: boolean;
 
     @ApiProperty({
         description: 'Indicates if the role is enabled or disabled',
@@ -32,12 +32,7 @@ export class Role {
     })
     @IsNotEmpty()
     @IsBoolean()
-    public isActive: boolean;
+    public active: boolean;
 
-    constructor(name: string, description: string, isDefault: boolean, isActive: boolean) {
-        this.name = name;
-        this.description = description;
-        this.isDefault = isDefault;
-        this.isActive = isActive;
-    }
+
 }

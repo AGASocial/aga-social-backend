@@ -154,7 +154,7 @@ export class User {
         type: String
     })
     @IsBoolean()
-    isActive?: boolean = true;
+    active?: boolean = true;
 
 
     @ApiProperty({
