@@ -43,14 +43,33 @@ import { VimeoService } from './vimeo/vimeo.service';
 import { TagsModule } from './tags/tags.module';
 import { TagsService } from './tags/tags.service';
 import { TagsController } from './tags/tags.controller';
+import { LikesModule } from './Pluggins/likes/likes.module';
+import { NotesModule } from './Pluggins/notes/notes.module';
+import { PlugginModule } from './Pluggins/pluggin/pluggin.module';
+import { StripeModule } from './Pluggins/stripe/stripe.module';
+import { TodoModule } from './Pluggins/todo/todo.module';
+import { LikesService } from './Pluggins/likes/likes.service';
+import { NotesService } from './Pluggins/notes/notes.service';
+import { PlugginService } from './Pluggins/pluggin/pluggin.service';
+import { StripeService } from './Pluggins/stripe/stripe.service';
+import { TodoService } from './Pluggins/todo/todo.service';
+import { JwtModule } from '@nestjs/jwt';
+import { LikesController } from './Pluggins/likes/likes.controller';
+import { NotesController } from './Pluggins/notes/notes.controller';
+import { PlugginController } from './Pluggins/pluggin/pluggin.controller';
+import { StripeController } from './Pluggins/stripe/stripe.controller';
+import { TodoController } from './Pluggins/todo/todo.controller';
 
 
 @Module({
-    imports: [TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
-    }), SessionModule, RolesModule],
-    controllers: [TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController],
+    }), SessionModule, RolesModule, JwtModule.register({
+        secret: process.env.jwtConstants,
+        signOptions: { expiresIn: '60s' }
+    })],
+    controllers: [TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController,LikesController,NotesController, PlugginController, StripeController, TodoController],
     providers: [
         AppService,
         DataFiltererService,
@@ -66,6 +85,11 @@ import { TagsController } from './tags/tags.controller';
         CouponService,
         VimeoService,
         TagsService,
+        LikesService,
+        NotesService,
+        PlugginService,
+        StripeService,
+        TodoService,
         
         {
             provide: APP_GUARD,

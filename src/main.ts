@@ -88,5 +88,5 @@ async function bootstrap() {
 }
 
 
-
+export { admin };
 bootstrap();
