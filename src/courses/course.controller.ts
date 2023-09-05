@@ -6,6 +6,8 @@ import { AddSectionToCourseResponseDto } from "./dto/addSectionToCourseResponse.
 import { CreateCourseDto } from "./dto/createCourse.dto";
 import { CreateCourseResponseDto } from "./dto/createCourseResponse.dto";
 import { GetCoursesResponseDto } from "./dto/getCoursesResponse.dto";
+import { PurchaseCourseDto } from "./dto/purchaseCourse.dto";
+import { PurchaseCourseResponseDto } from "./dto/purchaseCourseResponse.dto";
 import { UpdateCourseDto } from "./dto/updateCourse.dto";
 import { UpdateCourseResponseDto } from "./dto/updateCourseResponse.dto";
 
@@ -93,6 +95,25 @@ export class CourseController {
             throw error;
         }
     }
+
+
+
+    @ApiOperation({ summary: 'Purchase a course' })
+    @ApiOkResponse({ description: 'Course purchased successfully' })
+    @ApiBadRequestResponse({ description: 'Bad request' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Post('assets/courses/users')
+    async purchaseCourse(@Body() purchaseCourseDto: PurchaseCourseDto): Promise<PurchaseCourseResponseDto> {
+        try {
+            const { userId, courseId, paymentIntentId } = purchaseCourseDto;
+
+            const response = await this.courseService.purchaseCourse(userId, courseId, paymentIntentId);
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    }
+
 
 
 

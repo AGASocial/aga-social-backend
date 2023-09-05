@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { admin } from 'src/main';
 import { CreatePlugginDto } from './dto/create-pluggin.dto';
 import { UpdatePlugginDto } from './dto/update-pluggin.dto';
 import { ConfigService } from '@nestjs/config';
 import { FindOnePlugginDTO } from './dto/find-one-pluggin.dto';
 import { FindPluginPayDTO } from './dto/Find-plugin-pay.dto';
+import { admin } from '../../main';
 
 
 @Injectable()

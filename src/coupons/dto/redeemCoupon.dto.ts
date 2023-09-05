@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 
 export enum ResourceType {
@@ -32,10 +32,6 @@ export class RedeemCouponDto {
     @IsString()
     resourceType: ResourceType;
 
-    @ApiProperty({
-        description: 'Title of resource to apply the coupon to (Course or Ebook)',
-        example: "Last Summer",
-    })
-    @IsNotEmpty()
-    resourceTitle: string;
+
+ 
 }

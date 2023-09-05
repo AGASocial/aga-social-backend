@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"code\": \"VERO222\",\r\n  \"status\": \"available\",\r\n  \"description\": \"Sale 10$ Off\",\r\n  \"discountType\": \"nominal\",\r\n  \"discountAmount\": 10,\r\n  \"expiryDate\": \"2023-12-12\",\r\n  \"maxUses\": 60,\r\n  \"maxUsesPerUser\": 1\r\n}\r\n",
+					"raw": "{\r\n  \"code\": \"VERO333\",\r\n  \"assetId\": \"65c8cf10-3726-4776-a35a-b0e5867dcf64\",\r\n  \"status\": \"available\",\r\n  \"description\": \"Sale 10$ Off\",\r\n  \"discountType\": \"nominal\",\r\n  \"discountAmount\": 10,\r\n  \"expiryDate\": \"2023-12-12\",\r\n  \"maxUses\": 60,\r\n  \"maxUsesPerUser\": 1\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,7 +37,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"code\": \"SUMMER10\", \r\n  \"description\": \"New Description\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-08-15\",\r\n  \"maxUses\": 200,\r\n  \"maxUsesPerUser\": 2,\r\n  \"status\": \"eliminated\"\r\n}\r\n",
+					"raw": "{\r\n  \"description\": \"New Description\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-08-15\",\r\n  \"maxUses\": 200,\r\n  \"maxUsesPerUser\": 2,\r\n  \"status\": \"available\",\r\n  \"assetId\": \"65c8cf10-3726-4776-a35a-b0e5867dcf64\"\r\n\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,41 +45,15 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons?code=SUMMER10",
+					"raw": "{{server}}coupons?code=TEST123",
 					"host": [
 						"{{server}}coupons"
 					],
 					"query": [
 						{
 							"key": "code",
-							"value": "SUMMER10"
+							"value": "TEST123"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Asignar Coupon a User",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"5sXP5IJENVTrCUECYOICe3Gl0VK2\",\r\n  \"couponCode\": \"WINTER25\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}coupons/users",
-					"host": [
-						"{{server}}coupons"
-					],
-					"path": [
-						"users"
 					]
 				}
 			},
@@ -92,7 +66,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"couponCode\": \"WINTER25\",\r\n  \"resourceType\": \"Ebook\",\r\n  \"resourceTitle\": \"Pruebita\"\r\n}\r\n",
+					"raw": "{\r\n  \"couponCode\": \"VERO444\",\r\n  \"resourceType\": \"Ebook\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -100,19 +74,17 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons/ebooks/courses/?id=5sXP5IJENVTrCUECYOICe3Gl0VK2",
+					"raw": "{{server}}coupons/assets?id=SFUcEOGs1lbWj4PdVrRxjbyLOtU2",
 					"host": [
 						"{{server}}coupons"
 					],
 					"path": [
-						"ebooks",
-						"courses",
-						""
+						"assets"
 					],
 					"query": [
 						{
 							"key": "id",
-							"value": "5sXP5IJENVTrCUECYOICe3Gl0VK2"
+							"value": "SFUcEOGs1lbWj4PdVrRxjbyLOtU2"
 						}
 					]
 				}
@@ -146,38 +118,6 @@
 			"response": []
 		},
 		{
-			"name": "Consultar Todos los Coupons de un Usuario",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}coupons?id=5sXP5IJENVTrCUECYOICe3Gl0VK2",
-					"host": [
-						"{{server}}coupons"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "5sXP5IJENVTrCUECYOICe3Gl0VK2"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Consultar Coupon Por Su Codigo",
 			"request": {
 				"method": "GET",
@@ -198,83 +138,20 @@
 			"response": []
 		},
 		{
-			"name": "Consultar Coupons de Usuario Segun Su Status",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
+			"name": "Consultar Coupons creados por un Usuario",
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
-					"raw": "{{server}}coupons?status=used&id=5sXP5IJENVTrCUECYOICe3Gl0VK2",
+					"raw": "{{server}}coupons?id=44hZi5p78Rac0x8Mfr5PbCPN4B63",
 					"host": [
 						"{{server}}coupons"
 					],
 					"query": [
 						{
-							"key": "status",
-							"value": "used"
-						},
-						{
 							"key": "id",
-							"value": "5sXP5IJENVTrCUECYOICe3Gl0VK2"
+							"value": "44hZi5p78Rac0x8Mfr5PbCPN4B63"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Desactivar/Eliminar Coupon a User",
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"code\": \"WINTER25\",\r\n    \"id\": \"5sXP5IJENVTrCUECYOICe3Gl0VK2\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}coupons/users",
-					"host": [
-						"{{server}}coupons"
-					],
-					"path": [
-						"users"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Colocar Coupon Como Expirado para un User",
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"5sXP5IJENVTrCUECYOICe3Gl0VK2\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}coupons/users",
-					"host": [
-						"{{server}}coupons"
-					],
-					"path": [
-						"users"
 					]
 				}
 			},

@@ -284,7 +284,7 @@
 					]
 				},
 				"url": {
-					"raw": "{{server}}auth/users?id=SFUcEOGs1lbWj4PdVrRxjbyLOtU2",
+					"raw": "{{server}}auth/users?id=XUG7QW1LkJVHXHZXeJtO30IqDjW2",
 					"host": [
 						"{{server}}auth"
 					],
@@ -294,7 +294,7 @@
 					"query": [
 						{
 							"key": "id",
-							"value": "SFUcEOGs1lbWj4PdVrRxjbyLOtU2"
+							"value": "XUG7QW1LkJVHXHZXeJtO30IqDjW2"
 						}
 					]
 				}

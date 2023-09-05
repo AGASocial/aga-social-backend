@@ -7,11 +7,13 @@ export enum DiscountType {
 }
 
 export enum CouponStatus {
-    Used = 'used',
-    Expired = 'expired',
-    Available = 'available',
-    Eliminated = 'eliminated'
+    Expired = 'expired', 
+    Available = 'available', 
+    Eliminated = 'eliminated', 
+    Draft = 'draft', 
+    OutOfStock = 'outOfStock', 
 }
+
 
 export class Coupon {
     @ApiProperty({
@@ -21,7 +23,7 @@ export class Coupon {
     })
     @IsNotEmpty()
     @IsString()
-   public code: string;
+    public code: string;
 
     @ApiProperty({
         description: 'Coupon description',
@@ -30,7 +32,7 @@ export class Coupon {
     })
     @IsNotEmpty()
     @IsString()
-   public description: string;
+    public description: string;
 
     @ApiProperty({
         description: 'Type of discount',
@@ -38,7 +40,7 @@ export class Coupon {
     })
     @IsNotEmpty()
     @IsEnum(DiscountType)
-   public  discountType: DiscountType;
+    public discountType: DiscountType;
 
     @ApiProperty({
         description: 'Discount amount',
@@ -66,7 +68,7 @@ export class Coupon {
     @IsNotEmpty()
     @IsNumber()
     @Min(1)
-    public maxUses: number;
+    public maxUses?: number;
 
     @ApiProperty({
         description: 'Maximum number of uses per user for the coupon',
@@ -75,8 +77,7 @@ export class Coupon {
     })
     @IsNotEmpty()
     @IsNumber()
-    @Min(1)
-   public maxUsesPerUser: number;
+    public maxUsesPerUser: number;
 
     @ApiProperty({
         description: 'Coupon status',
@@ -87,15 +88,6 @@ export class Coupon {
     public status: CouponStatus;
 
 
-    @ApiProperty({
-        description: 'Current number of uses the user has for the coupon',
-        example: 1,
-        type: Number,
-        default: 0,
-    })
-    @IsNotEmpty()
-    @IsNumber()
-    public currentUsesPerUser: number = 0;
 
 
     @ApiProperty({
@@ -104,8 +96,36 @@ export class Coupon {
         type: Number,
         default: 0,
     })
-    @IsNotEmpty()
     @IsNumber()
-    public totalMaxUses: number = 0;
+    public currentUses?: number = 0;
+
+
+    @ApiProperty({
+        description: 'Id of the asset eligible for the coupon discount',
+        example: '515dfds2fergf6b4fg8b4c6s4',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public assetId: string;
+
+    @ApiProperty({
+        description: 'Array of user IDs who redeemed the coupon',
+        example: ['543545dfe8r5w5wd', 's5s8fg5a5JTF4D5'],
+        type: [String],
+    })
+    @IsOptional()
+    @IsString({ each: true })
+    public redeemedByUsers?: string[];
+
+
+    @ApiProperty({
+        description: 'Id of the creator of the coupon',
+        example: '515dfds2fergf6b4fg8b4c6s4',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public createdBy: string;
 
 }

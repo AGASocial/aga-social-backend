@@ -15,13 +15,15 @@ import { UpdateEbookDto } from './dto/updateEbook.dto';
 import { convertFirestoreTimestamp } from '../utils/timeUtils.dto';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { PersonalizeEbookResponseDto } from './dto/personalizeEbookResponse.dto';
+import { StripeService } from '../Pluggins/stripe/stripe.service';
+import { PurchaseEbookResponseDto } from './dto/purchaseEbookResponse.dto';
 
 
 
 @Injectable()
 export class EbookService {
 
-    constructor(private firebaseService: FirebaseService) { }
+    constructor(private firebaseService: FirebaseService, private stripeService: StripeService) { }
 
 
 
@@ -416,24 +418,6 @@ export class EbookService {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     //PDF
 
     async purchasePdf(userId: string, ebookId: string): Promise<PersonalizeEbookResponseDto> {
@@ -514,6 +498,49 @@ export class EbookService {
             return new PersonalizeEbookResponseDto(200, 'EBOOKPERSONALIZEDSUCCESSFULLY', signedUrl);
         } catch (error) {
             console.error('Error:', error);
+            throw error;
+        }
+    }
+
+
+
+
+    async purchaseEbook(userId: string, ebookId: string, paymentIntentId: string): Promise<PurchaseEbookResponseDto> {
+        try {
+            const ebookQuerySnapshot = await admin
+                .firestore()
+                .collection('ebooks')
+                .where('id', '==', ebookId)
+                .get();
+
+            if (ebookQuerySnapshot.empty) {
+                throw new Error('Ebook not found');
+            }
+
+            const ebookDoc = ebookQuerySnapshot.docs[0];
+            const ebookData = ebookDoc.data();
+            const ebookPriceInCents = ebookData.price * 100;
+
+            const paymentConfirmed = await this.stripeService.confirmPayment(paymentIntentId);
+
+            if (paymentConfirmed) {
+                const userDoc = await admin.firestore().collection('users').doc(userId).get();
+                const purchasedBooks = userDoc.data()?.purchasedBooks || [];
+
+                const updatedPurchasedBooks = [...purchasedBooks, ebookId];
+
+                await admin.firestore().collection('users').doc(userId).update({
+                    purchasedBooks: updatedPurchasedBooks,
+                });
+
+                const response = new PurchaseEbookResponseDto(201, 'EBOOKPURCHASEDSUCCESSFULLY');
+                return response;
+            } else {
+                const response = new PurchaseEbookResponseDto(400, 'Payment could not be completed');
+                return response;
+            }
+        } catch (error) {
+            console.error('Error purchasing eBook:', error);
             throw error;
         }
     }

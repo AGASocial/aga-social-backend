@@ -178,6 +178,33 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Comprar Course Stripe",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userId\": \"user123\",\r\n  \"courseId\": \"course456\",\r\n  \"paymentIntentId\": \"pi_123456789\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}assets/courses/users",
+					"host": [
+						"{{server}}assets"
+					],
+					"path": [
+						"courses",
+						"users"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

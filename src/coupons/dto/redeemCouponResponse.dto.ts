@@ -35,9 +35,24 @@ export class RedeemCouponResponseDto {
     public discountedPrice: number;
 
 
-    constructor(statusCode: number, message: string, discountedPrice: number) {
+
+    @ApiProperty({
+        description: 'Price of the resource before applying the coupon discount',
+        example: 90.00,
+        type: Number,
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    @IsPositive()
+    public initialPrice: number;
+
+
+
+    constructor(statusCode: number, message: string, discountedPrice: number, initialPrice: number) {
         this.statusCode = statusCode;
         this.message = message;
         this.discountedPrice = discountedPrice;
+        this.initialPrice = initialPrice;
+
     }
 }

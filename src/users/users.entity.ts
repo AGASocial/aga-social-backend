@@ -113,13 +113,6 @@ export class User {
     ebookEarnings: number = 0;
 
 
-    @ApiProperty({
-        description: "User's coupons",
-        type: [Coupon],
-    })
-    @IsArray()
-    coupons: Coupon[] = [];
-
 
 
     @ApiProperty({
