@@ -3,7 +3,7 @@ import { DocumentReference, DocumentSnapshot, doc, getDoc, setDoc, updateDoc, ge
 import * as admin from 'firebase-admin';
 import { CreateMediaDto } from './dto/createMedia.dto';
 import { CreateMediaResponseDto } from './dto/createMediaResponse.dto';
-import { Media } from './entities/media.entity';
+import { Media, MediaType } from './entities/media.entity';
 import { UpdateMediaDto } from './dto/updateMedia.dto';
 import { UpdateMediaResponseDto } from './dto/updateMediaResponse.dto';
 import { GetMediaResponseDto } from './dto/getMediaResponse.dto';
@@ -409,13 +409,6 @@ export class MediaService {
 
           
 
-            // Check if the title already exists in the collection
-            const titleQuery = query(mediaRef, where('title', '==', title));
-            const titleQuerySnapshot = await getDocs(titleQuery);
-
-            if (!titleQuerySnapshot.empty) {
-                throw new BadRequestException('TITLE ALREADY EXISTS');
-            }
 
 
 
@@ -466,7 +459,49 @@ export class MediaService {
 
 
 
+    @ApiOperation({ summary: 'Register media file on Firestore. The media already exists on Youtube or Vimeo' })
+    @ApiBadRequestResponse({ description: 'Invalid parameter/s' })
+    async registerMedia(
+        type: MediaType,
+        title: string,
+        description: string,
+        duration: string,
+        publisher: string,
+        url: string,
+        uploadDate: Date,
+    ): Promise<UploadMediaResponseDto> {
+        try {
+            const mediaRef = collection(this.firebaseService.fireStore, 'media');
+            const newMediaId: string = uuidv4();
 
+            const newMedia: Media = {
+                id: newMediaId,
+                publisher,
+                type,
+                title,
+                description,
+                url,
+                duration,
+                uploadDate,
+                active: true,
+            };
+
+            await addDoc(mediaRef, newMedia);
+
+            const responseDto = new UploadMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY', newMediaId);
+
+            // Update cache with the newly created media
+            const cachedMedia = await this.firebaseService.getCollectionData('media');
+            cachedMedia.push(newMedia);
+            this.firebaseService.setCollectionData('media', cachedMedia);
+            console.log('Media added to the cache successfully.');
+
+            return responseDto;
+        } catch (error) {
+            console.error('Error uploading the file or creating media:', error);
+            throw new Error(`Error uploading the file or creating media: ${error.message}`);
+        }
+    }
 
 
 

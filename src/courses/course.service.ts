@@ -14,113 +14,14 @@ import { AddSectionToCourseDto } from "./dto/addSectionToCourse.dto";
 import { AddSectionToCourseResponseDto } from "./dto/addSectionToCourseResponse.dto";
 import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { v4 as uuidv4 } from 'uuid';
+import { StripeService } from "../Pluggins/stripe/stripe.service";
+import { PurchaseCourseResponseDto } from "./dto/purchaseCourseResponse.dto";
 
 
 @Injectable()
 export class CourseService {
 
-    constructor(private firebaseService: FirebaseService) { }
-
-
-    /*
-    @ApiOperation({ summary: 'Create a new course' })
-    @ApiOkResponse({ description: 'Course created successfully', type: CreateCourseResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async createNewCourse(createNewCourseDto: CreateCourseDto): Promise<CreateCourseResponseDto> {
-        try {
-            console.log('Creating a new course...');
-
-            const { title, description, publisher, releaseDate, price, language, tags, instructorList, offersCertificate, titlePage, sectionsIds } = createNewCourseDto;
-            const courseRef = collection(this.firebaseService.fireStore, 'courses');
-
-            const customCourseWhere: QueryFieldFilterConstraint = where('title', '==', title);
-            const courseQuery = query(courseRef, customCourseWhere);
-            const courseQuerySnapshot = await getDocs(courseQuery);
-
-            console.log('Checking if publisher exists...');
-            const userRef = collection(this.firebaseService.fireStore, 'users');
-            const userQuery = query(userRef, where('username', '==', publisher));
-            const userQuerySnapshot = await getDocs(userQuery);
-
-            if (userQuerySnapshot.empty) {
-                console.log('Publisher with that username does not exist.');
-                throw new BadRequestException('PUBLISHER NOT FOUND: ' + publisher);
-            }
-
-            const newCourseId: string = uuidv4();
-            const newSections = [];
-
-            for (const sectionId of sectionsIds) {
-                console.log('Checking if the section exists...');
-
-                const sectionRef = collection(this.firebaseService.fireStore, 'sections');
-                const sectionQuery = query(sectionRef, where('id', '==', sectionId));
-                const sectionQuerySnapshot = await getDocs(sectionQuery);
-
-                if (!sectionQuerySnapshot.empty) {
-                    console.log('Section found for ID:', sectionId);
-                    const sectionData = sectionQuerySnapshot.docs[0].data();
-                    newSections.push(sectionData);
-                } else {
-                    console.log('Section not found for ID:', sectionId);
-                    throw new BadRequestException('ID NOT FOUND in REGISTERED SECTIONS: ' + sectionId);
-                }
-            }
-
-            const newCourse: Course = {
-                id: newCourseId,
-                title: title,
-                description: description,
-                publisher: publisher,
-                releaseDate: releaseDate,
-                price: price,
-                language: language,
-                sections: newSections,
-                tags: tags,
-                instructorList: instructorList,
-                offersCertificate: offersCertificate,
-                salesCount: 0,
-                active: true,
-                titlePage: titlePage,
-            };
-
-            console.log('Creating new course...');
-            const newCourseDocRef = await addDoc(courseRef, newCourse);
-
-            //Adds the created course to the cache
-            const cachedCourses = await this.firebaseService.getCollectionData('courses');
-            cachedCourses.push({
-                id: newCourseId,
-                title,
-                description,
-                publisher,
-                price,
-                sections: newSections, 
-                tags,
-                releaseDate,
-                instructorList,
-                language,
-                offersCertificate,
-                salesCount: 0,
-                active: true,
-                titlePage,
-            });
-            this.firebaseService.setCollectionData('courses', cachedCourses);
-            console.log('Course added to the cache successfully.');
-
-            console.log('Course created successfully.');
-            const responseDto = new CreateCourseResponseDto(201, 'COURSECREATEDSUCCESSFULLY');
-            return responseDto;
-        } catch (error) {
-            console.error('Error:', error);
-            throw error;
-        }
-    }*/
-
-
-
-
+    constructor(private firebaseService: FirebaseService, private stripeService: StripeService) { }
 
 
 
@@ -641,6 +542,47 @@ export class CourseService {
             throw error;
         }
     }
+
+
+
+
+    async purchaseCourse(userId: string, courseId: string, paymentIntentId: string): Promise<PurchaseCourseResponseDto> {
+        try {
+            const coursesCollectionRef = admin.firestore().collection('courses');
+            const courseQuerySnapshot = await coursesCollectionRef.where('id', '==', courseId).get();
+
+            if (courseQuerySnapshot.empty) {
+                throw new Error('Course not found');
+            }
+
+            const courseDoc = courseQuerySnapshot.docs[0];
+            const courseData = courseDoc.data();
+            const coursePriceInCents = courseData.price * 100;
+
+            const paymentConfirmed = await this.stripeService.confirmPayment(paymentIntentId);
+
+            if (paymentConfirmed) {
+                const userDoc = await admin.firestore().collection('users').doc(userId).get();
+                const purchasedCourses = userDoc.data()?.purchasedCourses || [];
+
+                const updatedPurchasedCourses = [...purchasedCourses, courseId];
+
+                await admin.firestore().collection('users').doc(userId).update({
+                    purchasedCourses: updatedPurchasedCourses,
+                });
+
+                const response = new PurchaseCourseResponseDto(201, 'COURSEPURCHASEDSUCCESSFULLY');
+                return response;
+            } else {
+                const response = new PurchaseCourseResponseDto(400, 'Payment could not be completed');
+                return response;
+            }
+        } catch (error) {
+            console.error('Error purchasing course:', error);
+            throw error;
+        }
+    }
+
 
 
 

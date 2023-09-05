@@ -142,6 +142,33 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Registrar Media de Youtube/Vimeo",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"type\": \"audio\",\r\n  \"title\": \"Sample Audio\",\r\n  \"description\": \"This is a sample audio description.\",\r\n  \"url\": \"https://www.youtube.com/watch?v=Tst7dP14MEZRY=616s&ab_channel=AChannel\",\r\n  \"duration\": \"00:05:30\",\r\n  \"uploadDate\": \"2023-08-03\",\r\n  \"active\": true,\r\n  \"publisher\": \"John Doe\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}assets/media/users",
+					"host": [
+						"{{server}}assets"
+					],
+					"path": [
+						"media",
+						"users"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

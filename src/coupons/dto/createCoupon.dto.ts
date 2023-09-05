@@ -61,7 +61,7 @@ export class CreateCouponDto {
     @IsNotEmpty()
     @IsNumber()
     @Min(1)
-    public maxUses: number;
+    public maxUses?: number;
 
     @ApiProperty({
         description: 'Maximum number of uses per user for the coupon',
@@ -70,7 +70,6 @@ export class CreateCouponDto {
     })
     @IsNotEmpty()
     @IsNumber()
-    @Min(1)
     public maxUsesPerUser: number;
 
     @ApiProperty({
@@ -79,19 +78,10 @@ export class CreateCouponDto {
     })
     @IsNotEmpty()
     @IsEnum(CouponStatus)
-    public status: CouponStatus;
+    public status?: CouponStatus;
 
 
-    @ApiProperty({
-        description: 'Current number of uses the user has for the coupon',
-        example: 1,
-        type: Number,
-        default: 0,
-    })
-    @IsNotEmpty()
-    @IsNumber()
-    public currentUsesPerUser: number = 0;
-
+ 
 
     @ApiProperty({
         description: 'Max current number of uses for the coupon from all users',
@@ -99,8 +89,31 @@ export class CreateCouponDto {
         type: Number,
         default: 0,
     })
-    @IsNotEmpty()
     @IsNumber()
-    public totalMaxUses: number = 0;
+    public currentUses?: number = 0;
+
+
+    @ApiProperty({
+        description: 'Id of the asset eligible for the coupon discount',
+        example: '515dfds2fergf6b4fg8b4c6s4',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public assetId: string;
+
+
+
+    @ApiProperty({
+        description: 'Id of the creator of the coupon',
+        example: '515dfds2fergf6b4fg8b4c6s4',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public createdBy: string;
+
+
+
 
 }

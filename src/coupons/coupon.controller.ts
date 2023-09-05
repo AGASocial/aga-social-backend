@@ -55,30 +55,11 @@ export class CouponController {
     @ApiOperation({ summary: 'Redeem a coupon' })
     @ApiOkResponse({ description: 'Coupon redeemed successfully ' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
-    @Post('coupons/ebooks/courses')
+    @Post('coupons/assets')
     async redeemCoupon(@Body() redeemCouponDto: RedeemCouponDto, @Query('id') id: string): Promise<RedeemCouponResponseDto> {
         const response = await this.couponService.redeemCoupon(redeemCouponDto, id);
         return response;
     }
-
-
-
-
-    @ApiOperation({ summary: 'Assign a coupon to a user' })
-    @ApiOkResponse({ description: 'Coupon assigned successfully' })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon/user not found' })
-    @Post('coupons/users')
-    async assignCouponToUser(
-        @Body() body: { couponCode: string, id: string }
-    ): Promise<AssignCouponResponseDto> {
-        return this.couponService.assignCouponToUser(body.couponCode, body.id);
-    }
-
-
-
-
-
-
 
 
 
@@ -92,26 +73,6 @@ export class CouponController {
     }
 
 
-
-
-    @ApiOperation({ summary: 'Manage coupons from user to eliminate them or mark them as expired' })
-    @ApiOkResponse({ description: 'Coupon from user updated successfully ' })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon/user not found' })
-    @Patch('coupons/users')
-    async manageCouponStatusOfUser(
-        @Body() request: {
-            code?: string,
-            id?: string,
-        }
-    ) {
-        if (request.id && request.code) {
-            return this.couponService.deactivateCouponForUser(request.code, request.id);
-        } else if (request.id) {
-            return this.couponService.updateUserExpiredCouponsStatus(request.id);
-        } else {
-            throw new BadRequestException('Invalid input');
-        }
-    }
 
     @ApiOperation({ summary: 'Delete expired coupons from firebase' })
     @ApiOkResponse({ description: 'Coupons deleted successfully ' })
@@ -140,35 +101,15 @@ export class CouponController {
 
         else if (code) {
             return this.couponService.getCouponByCode(code);
-        } else if (status && id) {
+        } /*else if (status && id) {
             return this.couponService.filterCouponsByStatus(status, id);
-        } else if (id) {
-            return this.couponService.getCouponsByUser(id);
+        } */else if (id) {
+            return this.couponService.getCouponsCreatedByUser(id);
         } else {
             throw new BadRequestException('Invalid parameters');
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
-  @ApiOperation({ summary: 'Delete expired/used coupons from a user' })
-  @ApiOkResponse({ description: 'Coupons deleted successfully ' })
-  @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
-  @Delete('coupons/users/:userEmail')
-  async deleteExpiredAndUsedCouponsFromUser(@Param('userEmail') userEmail: string): Promise<DeleteCouponResponseDto> {
-      return this.couponService.deleteExpiredAndUsedCouponsFromUser(userEmail);
-  }*/
 
 
 }

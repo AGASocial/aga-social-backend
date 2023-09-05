@@ -90,8 +90,32 @@ export class MediaController {
         }
     }
 
+    @ApiOperation({ summary: 'Register media file on Firestore. The media already exists on Youtube or Vimeo' })
+    @ApiBadRequestResponse({ description: 'Invalid parameter/s' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Post('assets/media/users')
+    async registerMedia(
+        @Body() createMediaDto: any
+    ): Promise<CreateMediaResponseDto> {
+        try {
 
-    
+            await this.mediaService.registerMedia(
+                createMediaDto.type,
+                createMediaDto.title,
+                createMediaDto.description,
+                createMediaDto.duration,
+                createMediaDto.publisher,
+                createMediaDto.url,
+                createMediaDto.uploadDate
+            );
+
+            const responseDto = new CreateMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY');
+            return responseDto;
+        } catch (error) {
+            console.error('Error registering media:', error);
+            throw error;
+        }
+    }
   
 
 

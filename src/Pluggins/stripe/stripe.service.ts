@@ -5,11 +5,12 @@ import { ConfigService } from '@nestjs/config';
 import { Cart } from './entities/cart.entity';
 import { JwtService } from '@nestjs/jwt';
 import Stripe from 'stripe';
-import { admin } from 'src/main';
 import { createReadStream } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { CreatePlugginDto } from 'src/Pluggins/pluggin/dto/create-pluggin.dto';
 import exp from 'constants';
+import { admin } from '../../main';
+import { CreateStripeCourseDto } from './dto/createStripeCourse.dto';
+import { CreateStripeEbookDto } from './dto/createStripeEbook.dto';
 
 @Injectable()
 export class StripeService {
@@ -77,5 +78,128 @@ export class StripeService {
       return error
     }
   };
+
+
+    async createPaymentIntentForEbook(
+        receipt_email: string,
+        paymentMethodId: string,
+        ebookId: string
+    ): Promise<string> {
+        try {
+            console.log('Received receipt_email:', receipt_email);
+            console.log('Received paymentMethodId:', paymentMethodId);
+            console.log('Received ebookId:', ebookId);
+
+            const customer = await this._stripe.customers.create({
+                email: receipt_email,
+                source: paymentMethodId,
+            });
+
+            const ebookQuerySnapshot = await admin
+                .firestore()
+                .collection('ebooks')
+                .where('id', '==', ebookId)
+                .get();
+
+            if (ebookQuerySnapshot.empty) {
+                throw new Error('Ebook not found');
+            }
+
+            const ebookDoc = ebookQuerySnapshot.docs[0];
+            const ebookData = ebookDoc.data();
+            const ebookPriceInCents = ebookData.price * 100;
+
+            // Create a Payment Intent for the ebook.
+            const paymentIntent = await this._stripe.paymentIntents.create({
+                amount: ebookPriceInCents,
+                currency: 'usd',
+                description: 'Ebook Purchase',
+                metadata: {
+                    ebookId: ebookId,
+                },
+            });
+
+            console.log('Created paymentIntent:', paymentIntent);
+
+            // Return the client secret to confirm the payment.
+            return paymentIntent.client_secret;
+        } catch (error) {
+            console.error('Error creating Payment Intent:', error);
+            throw error;
+        }
+    }
+
+
+
+
+
+
+
+    async createPaymentIntentForCourse(createStripe: CreateStripeCourseDto, courseId: string): Promise<string> {
+        try {
+            const customer = await this._stripe.customers.create({
+                email: createStripe.receipt_email,
+                source: createStripe.paymentMethodId,
+            });
+
+            const courseQuerySnapshot = await admin
+                .firestore()
+                .collection('courses')
+                .where('id', '==', courseId)
+                .get();
+
+            if (courseQuerySnapshot.empty) {
+                throw new Error('Course not found');
+            }
+
+            const courseDoc = courseQuerySnapshot.docs[0];
+            const courseData = courseDoc.data();
+            const coursePriceInCents = courseData.price * 100;
+
+            const paymentIntent = await this._stripe.paymentIntents.create({
+                amount: coursePriceInCents,
+                currency: createStripe.currency,
+                description: 'Course Purchase',
+                metadata: {
+                    userId: createStripe.uid, 
+                    courseId: courseId,
+                },
+            });
+
+            // Return the client secret to confirm the payment.
+            return paymentIntent.client_secret;
+        } catch (error) {
+            console.error('Error creating Payment Intent:', error);
+            throw error;
+        }
+    }
+
+
+
+
+
+
+
+    async confirmPayment(paymentIntentId: string): Promise<boolean> {
+        try {
+            const paymentIntent = await this._stripe.paymentIntents.confirm(paymentIntentId);
+
+            if (paymentIntent.status === 'succeeded') {
+                return true; //Payment was successful
+            } else {
+                return false; //Payment could not be completed
+            }
+        } catch (error) {
+            console.error('Error confirming Payment Intent:', error);
+            throw error;
+        }
+    }
+
+
+
+
+
+
+
 
 } 

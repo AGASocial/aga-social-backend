@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Get, Put, Req, Delete, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Put, Req, Delete, UseInterceptors, UploadedFile, Query, HttpStatus, HttpException } from '@nestjs/common';
 import { CreateEbookDto } from './dto/createEbook.dto';
 import { CreateEbookResponseDto } from './dto/createEbookResponse.dto';
 import { DeleteEbookDto } from './dto/deleteEbook.dto';
@@ -11,6 +11,8 @@ import { EbookFormat, EbookGenre } from './entities/ebooks.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadEbookResponseDto } from './dto/uploadEbookResponse.dto';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { PurchaseEbookResponseDto } from './dto/purchaseEbookResponse.dto';
+import { PurchaseEbookDto } from './dto/purchaseEbook.dto';
 
 
 
@@ -127,7 +129,31 @@ export class EbookController {
             throw error;
         }
     }
-     
+
+
+
+    @ApiOperation({ summary: 'Purchase an ebook' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Post('assets/ebooks/users')
+    async purchaseEbook(
+        @Body() purchaseEbookDto: PurchaseEbookDto,
+    ): Promise<PurchaseEbookResponseDto> {
+        const { userId, ebookId, paymentIntentId } = purchaseEbookDto;
+
+        try {
+            const response = await this.ebookService.purchaseEbook(userId, ebookId, paymentIntentId);
+            return response;
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+
+
+
+
+
 }
 
 

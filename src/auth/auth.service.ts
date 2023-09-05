@@ -62,7 +62,7 @@ export class AuthService {
 
         if (!user) {
             console.log('firebaseLogin - User not found');
-            throw new BadRequestException('WRONGCREDENTIALS');
+            throw new NotFoundException('User not found'); 
         }
 
         const hashedPassword = user.password;
@@ -74,7 +74,7 @@ export class AuthService {
 
         if (!doPasswordsMatch) {
             console.log('firebaseLogin - Passwords do not match');
-            throw new BadRequestException('WRONGCREDENTIALS');
+            throw new UnauthorizedException('Invalid credentials'); 
         }
 
         let userCredential;
@@ -85,6 +85,7 @@ export class AuthService {
             );
         } catch (error: unknown) {
             console.warn(`firebaseLogin - Error while signing in with email and password: ${error}`);
+            throw new InternalServerErrorException('There was an error during the signing');
         }
 
         if (userCredential) {
@@ -112,8 +113,8 @@ export class AuthService {
             console.log('firebaseLogin - Refresh token generated');
 
             const loginResponseDto: LogInResponseDto = {
-                statusCode: 201,
-                message: 'LOGINSUCCESSFUL',
+                statusCode: 200, 
+                message: 'Login successful',
                 userId: user.id,
                 bearer_token: token,
                 authCookieAge: sessionTime * cookieTimeMultiplier,
@@ -125,9 +126,10 @@ export class AuthService {
             return loginResponseDto;
         } else {
             console.log('firebaseLogin - User credential not found');
-            throw new BadRequestException('WRONGCREDENTIALS');
+            throw new BadRequestException('Error signing in'); 
         }
     }
+
 
 
     @ApiOkResponse({ description: 'Session token successfully refreshed', type: RefreshResponseDto })
@@ -167,7 +169,6 @@ export class AuthService {
         const { email, username, password } = signUpDto;
         const hashedPassword = await this.hashService.hashString(password);
         signUpDto.password = hashedPassword;
-       
 
         console.log('Before emailChecker...');
         await this.usersService.emailChecker(email, false);
@@ -175,13 +176,13 @@ export class AuthService {
 
         const usersRef = collection(this.firebaseService.fireStore, 'users');
 
-        //query for checking if there is someone with the username in dto
+        // Query for checking if there is someone with the username in the DTO
         const customUserWhere: QueryFieldFilterConstraint = where('username', '==', username);
         const userQuery = query(usersRef, customUserWhere);
         const userQuerySnapshot = await getDocs(userQuery);
 
         if (!userQuerySnapshot.empty) {
-            throw new BadRequestException('USERNAMEEXISTS');
+            throw new BadRequestException('Username already exists'); 
         }
 
         try {
@@ -192,12 +193,11 @@ export class AuthService {
                 hashedPassword,
             );
             console.log('After createUserWithEmailAndPassword...');
-            const id: string = userCredential.user.uid; 
+            const id: string = userCredential.user.uid;
 
             if (userCredential) {
-
                 let newUser: User = {
-                    id, 
+                    id,
                     email: email,
                     username: username,
                     password: hashedPassword,
@@ -208,7 +208,6 @@ export class AuthService {
                     purchasedCourses: [],
                     courseEarnings: 0,
                     ebookEarnings: 0,
-                    coupons: [],
                     description: '',
                     country: '',
                     phoneNumber: '',
@@ -226,17 +225,19 @@ export class AuthService {
 
                 const signUpDtoResponse: SignUpDtoResponse = {
                     statusCode: 201,
-                    message: 'SIGNUPSUCCESSFUL',
+                    message: 'User registration successful',
                     userId: id,
                 };
 
-                console.log('Response:', signUpDtoResponse); 
+                console.log('Response:', signUpDtoResponse);
                 return signUpDtoResponse;
             }
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
+            throw new BadRequestException('Error signing up'); 
         }
     }
+
 
 
 
@@ -386,7 +387,6 @@ export class AuthService {
                     purchasedCourses: user.purchasedCourses,
                     courseEarnings: user.courseEarnings,
                     ebookEarnings: user.ebookEarnings,
-                    coupons: user.coupons,
                     description: user.description,
                     country: user.country,
                     phoneNumber: user.phoneNumber,
@@ -425,7 +425,6 @@ export class AuthService {
                     purchasedCourses: data.purchasedCourses,
                     courseEarnings: data.courseEarnings,
                     ebookEarnings: data.ebookEarnings,
-                    coupons: data.coupons,
                     description: data.description,
                     country: data.country,
                     phoneNumber: data.phoneNumber,
@@ -500,7 +499,6 @@ export class AuthService {
                     purchasedCourses: data.purchasedCourses,
                     courseEarnings: data.courseEarnings,
                     ebookEarnings: data.ebookEarnings,
-                    coupons: data.coupons,
                     description: data.description,
                     country: data.country,
                     phoneNumber: data.phoneNumber,

@@ -174,7 +174,7 @@
 			"response": []
 		},
 		{
-			"name": "Comprar Ebook",
+			"name": "Personalizar PDF",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -196,6 +196,33 @@
 							"key": "ebookId",
 							"value": "65c8cf10-3726-4776-a35a-b0e5867dcf64"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Comprar Ebook Stripe",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userId\": \"user123\",\r\n  \"ebookId\": \"ebook456\",\r\n  \"paymentIntentId\": \"pi_123456789\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}assets/ebooks/users",
+					"host": [
+						"{{server}}assets"
+					],
+					"path": [
+						"ebooks",
+						"users"
 					]
 				}
 			},

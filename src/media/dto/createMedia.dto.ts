@@ -28,7 +28,7 @@ export class CreateMediaDto {
     })
     @IsNotEmpty()
     @IsString()
-    description: string; //Description
+    description?: string; //Description
 
     @ApiProperty({
         description: "URL of the multimedia file",
@@ -46,15 +46,13 @@ export class CreateMediaDto {
     })
     @IsNotEmpty()
     @IsString()
-    duration: string; //Duration
+    duration?: string; //Duration
 
     @ApiProperty({
         description: "Upload date of the multimedia content",
         example: "2023-08-03T12:34:56Z",
         type: Date,
     })
-    @IsNotEmpty()
-   @IsDateString()
     uploadDate?: Date; //UploadDate
 
     @ApiProperty({
@@ -74,7 +72,7 @@ export class CreateMediaDto {
     })
     @IsNotEmpty()
     @IsString()
-    public publisher: string;
+    public publisher?: string;
 
 
     @ApiProperty({
@@ -89,7 +87,6 @@ export class CreateMediaDto {
         example: "https://file_url.mp3",
         type: String,
     })
-    @IsUrl()
     public vimeoVideo?: string;
 
 }

@@ -13,27 +13,35 @@ export class UpdateCouponDto {
         example: 'SUMMER2023',
         type: String,
     })
-    code?: string;
+    @IsNotEmpty()
+    @IsString()
+    public code?: string;
 
     @ApiProperty({
         description: 'Coupon description',
         example: 'Summer Discount',
         type: String,
     })
-    description?: string;
+    @IsNotEmpty()
+    @IsString()
+    public description?: string;
 
     @ApiProperty({
         description: 'Type of discount',
         enum: DiscountType,
     })
+    @IsNotEmpty()
+    @IsEnum(DiscountType)
+    public discountType?: DiscountType;
 
     @ApiProperty({
         description: 'Discount amount',
         example: 15,
         type: Number,
     })
+    @IsNotEmpty()
     @IsNumber()
-    discountAmount?: number;
+    public discountAmount?: number;
 
     @ApiProperty({
         description: 'Expiry date of the coupon',
@@ -42,16 +50,17 @@ export class UpdateCouponDto {
         required: false,
     })
     @IsOptional()
-    expiryDate?: Date | null;
+    public expiryDate?: Date | null;
 
     @ApiProperty({
         description: 'Maximum number of uses for the coupon',
         example: 100,
         type: Number,
     })
+    @IsNotEmpty()
     @IsNumber()
     @Min(1)
-    maxUses?: number;
+    public maxUses?: number;
 
     @ApiProperty({
         description: 'Maximum number of uses per user for the coupon',
@@ -60,8 +69,7 @@ export class UpdateCouponDto {
     })
     @IsNotEmpty()
     @IsNumber()
-    @Min(1)
-    maxUsesPerUser?: number;
+    public maxUsesPerUser?: number;
 
     @ApiProperty({
         description: 'Coupon status',
@@ -69,5 +77,30 @@ export class UpdateCouponDto {
     })
     @IsNotEmpty()
     @IsEnum(CouponStatus)
-    public status?: CouponStatus;
+    public status: CouponStatus;
+
+
+
+
+    @ApiProperty({
+        description: 'Max current number of uses for the coupon from all users',
+        example: 1,
+        type: Number,
+        default: 0,
+    })
+    @IsNumber()
+    public currentUses?: number = 0;
+
+
+    @ApiProperty({
+        description: 'Id of the asset eligible for the coupon discount',
+        example: '515dfds2fergf6b4fg8b4c6s4',
+        type: String,
+    })
+    @IsNotEmpty()
+    @IsString()
+    public assetId?: string;
+
+  
+
 }

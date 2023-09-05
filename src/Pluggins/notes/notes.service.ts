@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
-import { admin } from 'src/main';
 import { ConfigService } from '@nestjs/config';
+import { admin } from '../../main';
 
 @Injectable()
 export class NotesService {
