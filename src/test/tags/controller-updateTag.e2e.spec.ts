@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../../app.module';
+import { UpdateTagDto } from '../../tags/dto/updateTag.dto';
 
 describe('TagsController (E2E)', () => {
     let app: INestApplication;
@@ -19,18 +20,18 @@ describe('TagsController (E2E)', () => {
         await app.close();
     });
 
-    it('/tags (POST)', async () => {
-        const createTagDto = {
-            name: 'urgent', 
-            username: 'Mary.123', 
+    it('/tags (PUT)', async () => {
+        const id = '4f331bbc-f89e-4250-9709-bdc87548bfcf'; 
+        const updateTagDto: UpdateTagDto = {
+            name: 'UpdatedTagName', 
+            active: true, 
         };
 
         const response = await request(app.getHttpServer())
-            .post('/tags')
-            .send(createTagDto);
+            .put(`/tags?id=${id}`)
+            .send(updateTagDto);
 
-        expect(response.status).toBe(HttpStatus.CREATED);
-        expect(response.body).toHaveProperty('statusCode', HttpStatus.CREATED);
-        expect(response.body).toHaveProperty('description', 'The tag has been successfully created.');
+        expect(response.status).toBe(HttpStatus.OK); 
+        expect(response.body).toHaveProperty('statusCode', HttpStatus.OK); 
     });
 });

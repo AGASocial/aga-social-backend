@@ -20,8 +20,6 @@ import { RolesModule } from './roles/roles.module';
 import { UnauthenticatedMiddleware } from './session/middleware/unauthenticated.middleware';
 import { DataFiltererService } from './utils/dataFilterer.service';
 import { HashService } from './utils/hash.service';
-import { CsrfValidationMiddleware } from './session/middleware/csrfValidation.middleware';
-import { CsrfProtectionMiddleware } from './session/middleware/csrfProtection.middleware';
 import { MediaController } from './media/media.controller';
 import { MediaModule } from './media/media.module';
 import { MediaService } from './media/media.service';

@@ -1,63 +1,54 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Request } from 'express';
-import { AuthController } from '../../../auth/auth.controller';
-import { AuthService } from '../../../auth/auth.service';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../../../app.module';
 import { GetUsersResponseDto } from '../../../auth/dto/getUsersResponse.dto';
 import { DocResult } from '../../../utils/docResult.entity';
 
-describe('AuthController', () => {
-    let authController: AuthController;
-    let authService: AuthService;
+describe('AuthController (e2e)', () => {
+    let app: INestApplication;
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            controllers: [AuthController],
-            providers: [
-                {
-                    provide: AuthService,
-                    useValue: {
-                        getUsers: jest.fn(),
-                    },
-                },
-            ],
+    beforeAll(async () => {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
         }).compile();
 
-        authController = module.get<AuthController>(AuthController);
-        authService = module.get<AuthService>(AuthService);
+        app = moduleFixture.createNestApplication();
+        await app.init();
     });
 
+    afterAll(async () => {
+        await app.close();
+    });
 
-    const mockUsersFound: DocResult[] = [
-        {
-            id: '1',
-            name: 'User 1',
-        },
-        {
-            id: '2',
-            name: 'User 2',
-        },
-    ];
+    it('/users (GET) all users', async () => {
+        const response = await request(app.getHttpServer())
+            .get('/users')
+            .expect(HttpStatus.OK);
 
+        const expectedResponse: GetUsersResponseDto = {
+            statusCode: expect.any(Number),
+            message: 'USERSRETRIEVEDSUCCESSFULLY',
+            usersFound: expect.any(Array),
+            earningsFound: expect.any(Array),
+        };
 
-    describe('getUsers', () => {
-        it('should return users response', async () => {
-            // Arrange
-            const mockResponse: GetUsersResponseDto = {
-                statusCode: 200,
-                message: 'USERSFETCHED',
-                usersFound: mockUsersFound,
-            };
+        expect(response.body).toMatchObject(expectedResponse);
+    });
 
-            const mockReq = {} as Request;
+    it('/users (GET) single user', async () => {
+        const id = '1w54iIFPN0M7YNgo10XuLIVUkJk2';
+        const response = await request(app.getHttpServer())
+            .get(`/users?id=${id}`)
+            .expect(HttpStatus.OK);
 
-            authService.getUsers = jest.fn().mockResolvedValue(mockResponse);
+        const expectedResponse: GetUsersResponseDto = {
+            statusCode: expect.any(Number),
+            message: 'USERSRETRIEVEDSUCCESSFULLY',
+            usersFound: expect.arrayContaining([expect.any(DocResult)]),
+            earningsFound: expect.arrayContaining([expect.any(DocResult)]),
+        };
 
-            // Act
-            const result = await authController.getUsers(mockReq);
-
-            // Assert
-            expect(result).toEqual(mockResponse);
-            expect(authService.getUsers).toHaveBeenCalled();
-        });
+        expect(response.body).toMatchObject(expectedResponse);
     });
 });

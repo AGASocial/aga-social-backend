@@ -55,9 +55,9 @@ export class TagsController {
     @ApiOperation({ summary: 'Get tags associated with a user' })
     @ApiOkResponse({ description: 'Tags retrieved successfully', type: GetTagsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getTagsByUsername(@Query('id') id: string): Promise<GetTagsResponseDto> {
+    async getTagsById(@Query('id') id: string): Promise<GetTagsResponseDto> {
         try {
-             return await this.tagService.getTagsByUsername(id);
+             return await this.tagService.getTagsById(id);
         } catch (error) {
             throw new Error(`Error retrieving tags: ${error.message}`);
         }

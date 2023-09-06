@@ -1,65 +1,52 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { AuthService } from '../../../auth/auth.service';
 import { AuthController } from '../../../auth/auth.controller';
-import { SignUpDtoResponse } from '../../../auth/dto/signupResponse.dto';
+import { AuthService } from '../../../auth/auth.service';
 import { SignUpDto } from '../../../auth/dto/signup.dto';
+import { SignUpDtoResponse } from '../../../auth/dto/signupResponse.dto';
 
 describe('AuthController', () => {
-    let app: INestApplication;
+    let authController: AuthController;
     let authService: AuthService;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [AuthController],
-            providers: [
-                {
-                    provide: AuthService,
-                    useValue: {
-                        firebaseSignUp: jest.fn(),
-                    },
-                },
-            ],
+            providers: [AuthService],
         }).compile();
 
-        app = module.createNestApplication();
-        await app.init();
-
+        authController = module.get<AuthController>(AuthController);
         authService = module.get<AuthService>(AuthService);
     });
 
-    afterAll(async () => {
-        await app.close();
-    });
-
     describe('firebaseSignup', () => {
-        it('should return status code and message from authService', async () => {
-            const mockResponse: SignUpDtoResponse = {
+        it('should return a valid response on successful signup', async () => {
+            const signUpDto: SignUpDto = {
+                email: 'test123456@gmail.com',
+                username: 'Test.7778',
+                password: 'Vitra/?13',
+            };
+
+            const signUpDtoResponse: SignUpDtoResponse = {
                 statusCode: 201,
                 message: 'SIGNUPSUCCESSFUL',
+                userId: 'anUserId',
             };
 
-            authService.firebaseSignUp = jest.fn().mockResolvedValue(mockResponse);
+            jest.spyOn(authService, 'firebaseSignUp').mockResolvedValue(signUpDtoResponse);
 
-            const signUpDto: SignUpDto = {
-                email: 'b1@example.com',
-                username: 'TestUser',
-                password: 'Vitra/?123',
-                name: 'Juan Lopez',
-                security_answer: 'perfect blue',
+            const res: Partial<Response> = {
+                send: jest.fn(),
             };
 
-            const response = await request(app.getHttpServer())
-                .post('/auth/firebase/signup')
-                .send(signUpDto);
+            await authController.firebaseSignup(signUpDto, res as Response);
 
-            expect(response.status).toBe(HttpStatus.CREATED);
-            expect(response.body).toEqual({
-                statusCode: mockResponse.statusCode,
-                message: mockResponse.message,
+            expect(res.send).toHaveBeenCalledWith({
+                statusCode: signUpDtoResponse.statusCode,
+                message: signUpDtoResponse.message,
+                userId: signUpDtoResponse.userId,
             });
         });
+
     });
 });
