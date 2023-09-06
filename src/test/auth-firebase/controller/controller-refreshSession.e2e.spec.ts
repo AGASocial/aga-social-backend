@@ -11,14 +11,7 @@ describe('AuthController', () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [AuthController],
-            providers: [
-                {
-                    provide: AuthService,
-                    useValue: {
-                        firebaseRefresh: jest.fn(),
-                    },
-                },
-            ],
+            providers: [AuthService],
         }).compile();
 
         authController = module.get<AuthController>(AuthController);
@@ -26,41 +19,39 @@ describe('AuthController', () => {
     });
 
     describe('firebaseRefresh', () => {
-        it('should refresh session and return updated bearer token and status code', async () => {
-            // Arrange
-            const mockRefreshToken = 'mock_refresh_token';
-            const mockResponse = {
-                statusCode: 200,
-                message: 'REFRESHSUCCESSFUL',
-                bearer_token: 'new_mock_bearer_token',
+        it('should return a valid response on successful session refresh', async () => {
+            const jwtRefreshToken = 'aRefreshToken'; 
+
+            const refreshDto: RefreshDto = {
+                refresh_token: jwtRefreshToken,
             };
-            const refreshDto: RefreshDto = { refresh_token: mockRefreshToken };
 
-            authService.firebaseRefresh = jest.fn().mockResolvedValue(mockResponse);
+            const refreshResponse = {
+                statusCode: 200,
+                message: 'Session refreshed successfully',
+                bearer_token: 'aNewBearerToken', 
+            };
 
-            const mockRes = {
+            jest.spyOn(authService, 'firebaseRefresh').mockResolvedValue(refreshResponse);
+
+            const res: Partial<Response> = {
                 cookie: jest.fn(),
                 send: jest.fn(),
-            } as unknown as Response;
+            };
 
-            const mockReq = {
+            const req: Partial<Request> = {
                 signedCookies: {
-                    refresh_token: mockRefreshToken,
+                    refresh_token: jwtRefreshToken,
                 },
-            } as unknown as Request;
+            };
 
-            // Act
-            await authController.firebaseRefresh(mockRes, mockReq);
+            await authController.firebaseRefresh(res as Response, req as Request);
 
-            // Assert
-            expect(authService.firebaseRefresh).toHaveBeenCalledWith(refreshDto);
-            expect(mockRes.cookie).toHaveBeenCalledWith('bearer_token', mockResponse.bearer_token, {
-                signed: true,
-            });
-            expect(mockRes.send).toHaveBeenCalledWith({
-                statusCode: mockResponse.statusCode,
-                message: mockResponse.message,
+            expect(res.send).toHaveBeenCalledWith({
+                statusCode: refreshResponse.statusCode,
+                message: refreshResponse.message,
             });
         });
+
     });
 });

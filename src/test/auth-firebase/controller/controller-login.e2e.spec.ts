@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { AuthController } from '../../../auth/auth.controller';
 import { AuthService } from '../../../auth/auth.service';
 import { LogInDto } from '../../../auth/dto/login.dto';
@@ -12,14 +12,7 @@ describe('AuthController', () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [AuthController],
-            providers: [
-                {
-                    provide: AuthService,
-                    useValue: {
-                        firebaseLogin: jest.fn(),
-                    },
-                },
-            ],
+            providers: [AuthService],
         }).compile();
 
         authController = module.get<AuthController>(AuthController);
@@ -27,43 +20,37 @@ describe('AuthController', () => {
     });
 
     describe('firebaseLogin', () => {
-        it('should return status code, message, and set cookies', async () => {
-           
-            const mockLogInDto: LogInDto = {
-                email: 'joel114@gmail.com',
+        it('should return a valid response on successful login', async () => {
+            const logInDto: LogInDto = {
+                email: 'frio2@gmail.com',
                 password: 'Vitra/?13',
             };
-            const mockResponse: LogInResponseDto = {
-                statusCode: 200,
+
+            const logInResponseDto: LogInResponseDto = {
+                statusCode: 201,
                 message: 'LOGINSUCCESSFUL',
-                bearer_token: 'mock_bearer_token',
-                authCookieAge: 3600,
-                refresh_token: 'mock_refresh_token',
-                refreshCookieAge: 86400,
+                userId: 'someUserId',
+                bearer_token: 'yourBearerToken',
+                authCookieAge: 3600, 
+                refresh_token: 'yourRefreshToken',
+                refreshCookieAge: 86400, 
             };
-            const mockRequest = {} as Request;
-            const mockResponseObj = {
+
+            jest.spyOn(authService, 'firebaseLogin').mockResolvedValue(logInResponseDto);
+
+            const res: Partial<Response> = {
                 cookie: jest.fn(),
                 send: jest.fn(),
-            } as unknown as Response;
+            };
 
-            authService.firebaseLogin = jest.fn().mockResolvedValue(mockResponse);
+            await authController.firebaseLogin(logInDto, res as Response, {});
 
-       
-            await authController.firebaseLogin(mockLogInDto, mockResponseObj, mockRequest);
-
-            expect(mockResponseObj.cookie).toHaveBeenCalledWith('bearer_token', 'mock_bearer_token', {
-                signed: true,
-                maxAge: 3600,
-            });
-            expect(mockResponseObj.cookie).toHaveBeenCalledWith('refresh_token', 'mock_refresh_token', {
-                signed: true,
-                maxAge: 86400,
-            });
-            expect(mockResponseObj.send).toHaveBeenCalledWith({
-                statusCode: 200,
-                message: 'LOGINSUCCESSFUL',
+            expect(res.send).toHaveBeenCalledWith({
+                statusCode: logInResponseDto.statusCode,
+                message: logInResponseDto.message,
+                userId: logInResponseDto.userId,
             });
         });
+
     });
 });

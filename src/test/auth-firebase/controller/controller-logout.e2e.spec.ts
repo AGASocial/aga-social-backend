@@ -3,7 +3,6 @@ import { Response } from 'express';
 import { AuthController } from '../../../auth/auth.controller';
 import { AuthService } from '../../../auth/auth.service';
 import { LogOutResponseDto } from '../../../auth/dto/logoutResponse.dto';
-import { csrfCookieName } from '../../../utils/constants';
 
 describe('AuthController', () => {
     let authController: AuthController;
@@ -12,14 +11,7 @@ describe('AuthController', () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [AuthController],
-            providers: [
-                {
-                    provide: AuthService,
-                    useValue: {
-                        firebaseLogout: jest.fn(),
-                    },
-                },
-            ],
+            providers: [AuthService],
         }).compile();
 
         authController = module.get<AuthController>(AuthController);
@@ -27,30 +19,28 @@ describe('AuthController', () => {
     });
 
     describe('logout', () => {
-        it('should return logout response and clear cookies', async () => {
-            // Arrange
-            const mockResponse: LogOutResponseDto = {
+        it('should return a valid response on successful logout', async () => {
+            const logoutResponseDto: LogOutResponseDto = {
                 statusCode: 200,
-                message: 'LOGGEDOUT',
+                message: 'User logged out successfully',
             };
 
-            const mockRes = {
+            jest.spyOn(authService, 'firebaseLogout').mockResolvedValue(logoutResponseDto);
+
+            const res: Partial<Response> = {
                 clearCookie: jest.fn(),
                 send: jest.fn(),
-            } as unknown as Response;
+            };
 
-            authService.firebaseLogout = jest.fn().mockResolvedValue(mockResponse);
+            await authController.logout(res as Response);
 
-            // Act
-            await authController.logout(mockRes);
+            expect(res.clearCookie).toHaveBeenCalledWith('connect.sid');
+            expect(res.clearCookie).toHaveBeenCalledWith('bearer_token', { signed: true });
+            expect(res.clearCookie).toHaveBeenCalledWith('refresh_token', { signed: true });
+            expect(res.clearCookie).toHaveBeenCalledWith('csrfCookieName');
 
-            // Assert
-            expect(mockRes.clearCookie).toHaveBeenCalledTimes(4);
-            expect(mockRes.clearCookie).toHaveBeenCalledWith('connect.sid');
-            expect(mockRes.clearCookie).toHaveBeenCalledWith('bearer_token');
-            expect(mockRes.clearCookie).toHaveBeenCalledWith('refresh_token');
-            expect(mockRes.clearCookie).toHaveBeenCalledWith(csrfCookieName);
-            expect(mockRes.send).toHaveBeenCalledWith(mockResponse);
+            expect(res.send).toHaveBeenCalledWith(logoutResponseDto);
         });
+
     });
 });

@@ -137,7 +137,7 @@ export class TagsService {
     @ApiOperation({ summary: 'Get tags associated with a user' })
     @ApiOkResponse({ description: 'Tags retrieved successfully', type: GetTagsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getTagsByUsername(userId: string): Promise<GetTagsResponseDto> {
+    async getTagsById(userId: string): Promise<GetTagsResponseDto> {
         try {
             console.log('Initializing getTagsByUsername...');
 

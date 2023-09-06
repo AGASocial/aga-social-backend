@@ -26,8 +26,6 @@ import { UsersService } from '../users/users.service';
 import { User } from '../users/users.entity';
 import { SessionService } from '../session/session.service';
 import { cookieTimeMultiplier, jwtSecret, refreshSecret } from '../utils/constants';
-import { ChangeEmailDto } from './dto/changeEmail.dto';
-import { ChangeEmailDtoResponse } from './dto/changeEmailResponse.dto';
 import { ChangeSecurityAnswerDto } from './dto/changeSecurityAnswer.dto';
 import { ChangeSecurityAnswerDtoResponse } from './dto/changeSecurityAnswerResponse.dto';
 import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
@@ -549,7 +547,7 @@ export class AuthService {
    
 
 
-
+    /*
     @ApiOkResponse({ description: 'Email changed successfully', type: ChangeEmailDtoResponse })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
@@ -615,7 +613,7 @@ export class AuthService {
             throw new BadRequestException('An error occurred while trying to change the email.');
         }
     }
-
+    */
 
 
     @ApiOkResponse({ description: 'Security answer changed successfully', type: ChangeSecurityAnswerDtoResponse })
