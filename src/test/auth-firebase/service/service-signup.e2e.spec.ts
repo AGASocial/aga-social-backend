@@ -1,18 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AuthModule } from '../../../auth/auth.module';
+import { AuthService } from '../../../auth/auth.service';
+import { AppModule } from '../../../app.module';
+import { SignUpDto } from '../../../auth/dto/signup.dto';
+import { SignUpDtoResponse } from '../../../auth/dto/signupResponse.dto';
 
 describe('AuthService (e2e)', () => {
     let app: INestApplication;
+    let authService: AuthService;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthModule],
+            imports: [AppModule],
+            providers: [AuthService],
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe());
+        authService = moduleFixture.get<AuthService>(AuthService);
         await app.init();
     });
 
@@ -20,40 +25,24 @@ describe('AuthService (e2e)', () => {
         await app.close();
     });
 
-    it('/auth/firebase/signup (POST)', async () => {
-        const signUpDto = {
-            email: 'test477@example.com',
-            username: 'testuser.12',
-            password: 'testpassword/?1',
-            name: 'Test User',
-            security_answer: 'securityanswer22',
+    it('/auth/users (POST) should return a valid signup response', async () => {
+        const signUpDto: SignUpDto = {
+            email: 'test4546@example.com',
+            username: 'testuser222',
+            password: 'password123',
         };
 
         const response = await request(app.getHttpServer())
-            .post('/auth/firebase/signup')
+            .post('/auth/users')
             .send(signUpDto)
+            .expect(HttpStatus.CREATED);
 
+        const expectedResponse: SignUpDtoResponse = {
+            statusCode: expect.any(Number),
+            message: 'User registration successful',
+            userId: expect.any(String),
+        };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(response.body.statusCode).toEqual(400);
+        expect(response.body).toMatchObject(expectedResponse);
     });
 });

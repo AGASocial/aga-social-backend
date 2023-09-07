@@ -24,14 +24,16 @@ describe('AuthService (e2e)', () => {
         await app.close();
     });
 
-    it('/auth/users (GET) should retrieve users', async () => {
+    it('/auth/getSingleUser/:id (GET) should retrieve a single user', async () => {
+        const userId = 'tu_user_id_de_prueba'; 
+
         const response = await request(app.getHttpServer())
-            .get('/auth/getUsers')
+            .get(`/auth/getSingleUser/${userId}`)
             .expect(HttpStatus.OK);
 
         const expectedResponse: GetUsersResponseDto = {
             statusCode: expect.any(Number),
-            message: 'USERSRETRIEVEDSUCCESSFULLY',
+            message: expect.stringMatching(/^(USER_ACCOUNT_INFORMATION_RETRIEVED|USERNOTFOUND)$/),
             usersFound: expect.arrayContaining([expect.objectContaining({
                 id: expect.any(String),
                 name: expect.any(String),
@@ -48,7 +50,7 @@ describe('AuthService (e2e)', () => {
                 profilePicture: expect.any(String),
             })]),
             earningsFound: expect.arrayContaining([expect.objectContaining({
-               
+
             })]),
         };
 

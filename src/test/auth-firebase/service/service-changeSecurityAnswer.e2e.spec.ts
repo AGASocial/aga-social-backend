@@ -1,19 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, BadRequestException } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import { AppModule } from '../../../app.module';
 import * as request from 'supertest';
-import { AuthModule } from '../../../auth/auth.module';
+import { AuthService } from '../../../auth/auth.service';
 import { ChangeSecurityAnswerDto } from '../../../auth/dto/changeSecurityAnswer.dto';
+import { ChangeSecurityAnswerDtoResponse } from '../../../auth/dto/changeSecurityAnswerResponse.dto';
 
 describe('AuthService (e2e)', () => {
     let app: INestApplication;
+    let authService: AuthService;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthModule],
+            imports: [AppModule],
+            providers: [AuthService],
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe());
+        authService = moduleFixture.get<AuthService>(AuthService);
         await app.init();
     });
 
@@ -21,55 +25,24 @@ describe('AuthService (e2e)', () => {
         await app.close();
     });
 
-    it('/auth/firebase/users/security-answer (PUT)', async () => {
-        const jwtToken = 'valid-jwt-token-here';
-
+    it('/auth/users (PATCH) should change the security answer successfully', async () => {
+        const jwtToken = 'token123';
         const changeSecurityAnswerDto: ChangeSecurityAnswerDto = {
-            email: 'user@example.com',
-            password: 'OldPassword12/',
-            new_security_answer: 'NewSecurityAnswer',
+            password: 'NewPass123/.',
+            new_security_answer: 'perfect blue',
         };
 
         const response = await request(app.getHttpServer())
-            .put('/auth/firebase/users/security-answer')
+            .patch('/auth/users')
             .set('Authorization', `Bearer ${jwtToken}`)
-            .send(changeSecurityAnswerDto);
+            .send(changeSecurityAnswerDto)
+            .expect(HttpStatus.OK);
 
+        const expectedResponse: ChangeSecurityAnswerDtoResponse = {
+            statusCode: expect.any(Number),
+            message: expect.any(String),
+        };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(response.status).toBe(500);
-        });
-
-
-   
-
-    
+        expect(response.body).toMatchObject(expectedResponse);
+    });
 });

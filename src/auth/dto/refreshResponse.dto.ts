@@ -14,8 +14,8 @@ export class RefreshResponseDto {
     public statusCode: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "LOGINSUCCESSFUL"',
-        default: "LOGINSUCCESSFUL",
+        description: 'Descriptive response message, it should return "SESSIONREFRESHED"',
+        default: "SESSIONREFRESHED",
         type: String
     })
     @IsString()

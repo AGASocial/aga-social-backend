@@ -28,7 +28,7 @@ export class UsersService {
                 throw new BadRequestException('WRONGCREDENTIALS');
             }
             else if (isEmailWanted == false){
-                throw new BadRequestException('EMAILEXISTS');
+                throw new BadRequestException('The email is already registered in another account');
             }
         }
         console.log('Email Checker - Email:', email);
