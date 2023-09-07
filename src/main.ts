@@ -8,9 +8,8 @@ import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import * as admin from 'firebase-admin';
-import * as dotenv from 'dotenv';
 import { ConfigService } from '@nestjs/config';
-
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 async function bootstrap() {

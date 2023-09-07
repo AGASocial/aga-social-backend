@@ -1,11 +1,18 @@
 {
-  "usernameValidation": {
+  "username": {
     "minLength": 6,
     "maxLength": 30,
     "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
   },
-  "passwordValidation": {
+  "password": {
     "minLength": 8,
     "maxLength": 30
+  },
+
+  "email": {
+    "minLength": 1,
+    "maxLength": 2000,
+    "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,10}$"
   }
+
 }

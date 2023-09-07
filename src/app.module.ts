@@ -57,6 +57,7 @@ import { NotesController } from './Pluggins/notes/notes.controller';
 import { PlugginController } from './Pluggins/pluggin/pluggin.controller';
 import { StripeController } from './Pluggins/stripe/stripe.controller';
 import { TodoController } from './Pluggins/todo/todo.controller';
+import { ValidationController } from './validations/validations.controller';
 
 
 @Module({
@@ -67,7 +68,7 @@ import { TodoController } from './Pluggins/todo/todo.controller';
         secret: process.env.jwtConstants,
         signOptions: { expiresIn: '60s' }
     })],
-    controllers: [TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController,LikesController,NotesController, PlugginController, StripeController, TodoController],
+    controllers: [ValidationController, TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController,LikesController,NotesController, PlugginController, StripeController, TodoController],
     providers: [
         AppService,
         DataFiltererService,
