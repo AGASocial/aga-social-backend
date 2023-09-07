@@ -1,18 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AuthModule } from '../../../auth/auth.module';
+import { AuthService } from '../../../auth/auth.service';
+import { AppModule } from '../../../app.module';
+import { ChangePasswordDto } from '../../../auth/dto/changePassword.dto';
+import { ChangePasswordDtoResponse } from '../../../auth/dto/changePasswordResponse.dto';
 
 describe('AuthService (e2e)', () => {
     let app: INestApplication;
+    let authService: AuthService;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthModule],
+            imports: [AppModule],
+            providers: [AuthService],
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe());
+        authService = moduleFixture.get<AuthService>(AuthService);
         await app.init();
     });
 
@@ -20,38 +25,27 @@ describe('AuthService (e2e)', () => {
         await app.close();
     });
 
-    it('/auth/firebase/credentials (PUT)', async () => {
-        const jwtToken = 'your-valid-jwt-token';
-
-        const changePasswordDto = {
-            password: 'Vitra/?13',
-            new_password: 'Vitra/?134',
+    it('/auth/users (PATCH) should change the password', async () => {
+        const changePasswordDto: ChangePasswordDto = {
+            password: 'NewPass123/.',
+            new_password: 'NewPass1234',
         };
 
+        const jwtToken = 'token123';
+
         const response = await request(app.getHttpServer())
-            .put('/auth/firebase/credentials')
-            .set('Authorization', `Bearer ${jwtToken}`)
+            .patch('/auth/users')
             .send(changePasswordDto)
+            .set('Authorization', `Bearer ${jwtToken}`)
+            .expect(HttpStatus.OK);
 
+        const expectedResponse: ChangePasswordDtoResponse = {
+            statusCode: expect.any(Number),
+            message: 'NEWPASSWORDASSIGNED',
+        };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(response.body.statusCode).toBe(500);
+        expect(response.body).toMatchObject(expectedResponse);
     });
+
+ 
 });

@@ -150,7 +150,7 @@ export class AuthService {
 
 
     @ApiCreatedResponse({ description: 'User registration successful', type: SignUpDtoResponse })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or username already exists' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or username/email already exists' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseSignUp(signUpDto: SignUpDto): Promise<SignUpDtoResponse> {
         const roleId = process.env.SUBSCRIBER_ID;
@@ -169,8 +169,11 @@ export class AuthService {
         signUpDto.password = hashedPassword;
 
         console.log('Before emailChecker...');
-        await this.usersService.emailChecker(email, false);
+        const emailExists = await this.usersService.emailChecker(email, false);
         console.log('After emailChecker...');
+
+
+      
 
         const usersRef = collection(this.firebaseService.fireStore, 'users');
 
@@ -440,7 +443,7 @@ export class AuthService {
 
             const getUsersDtoResponse: GetUsersResponseDto = {
                 statusCode: 200,
-                message: "USERSGOT",  //REVISAR
+                message: "USERSRETRIEVED",  //REVISAR
                 usersFound: queryResult,
             };
             console.log('Response created.');
@@ -471,7 +474,7 @@ export class AuthService {
                 const filteredUser = cachedUsers[cachedUserIndex];
                 const getSingleUserDtoResponse: GetUsersResponseDto = {
                     statusCode: 200,
-                    message: "USERSGOT",
+                    message: "USERINFORMATIONRETRIEVED",
                     usersFound: [filteredUser],
                 };
                 return getSingleUserDtoResponse;

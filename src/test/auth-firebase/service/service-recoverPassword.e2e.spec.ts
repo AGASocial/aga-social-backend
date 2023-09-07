@@ -1,18 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AuthModule } from '../../../auth/auth.module';
+import { AuthService } from '../../../auth/auth.service';
+import { AppModule } from '../../../app.module';
+import { RecoverPasswordDto } from '../../../auth/dto/recoverPassword.dto';
+import { RecoverPasswordDtoResponse } from '../../../auth/dto/recoverPasswordResponse.dto';
 
 describe('AuthService (e2e)', () => {
     let app: INestApplication;
+    let authService: AuthService;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthModule],
+            imports: [AppModule],
+            providers: [AuthService],
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe());
+        authService = moduleFixture.get<AuthService>(AuthService);
         await app.init();
     });
 
@@ -20,31 +25,25 @@ describe('AuthService (e2e)', () => {
         await app.close();
     });
 
-    it('/auth/firebase/credentials (POST)', async () => {
-        const recoverPasswordDto = {
-            user: 'joel113@gmail.com',
+    it('/auth/users (PATCH) should recover the password', async () => {
+        const recoverPasswordDto: RecoverPasswordDto = {
+            
             security_answer: 'perfect blue',
-            new_password: 'newpassword123?/',
+            new_password: 'NewPass123/.',
         };
 
+        const jwtToken = 'token123';
+
         const response = await request(app.getHttpServer())
-            .post('/auth/firebase/credentials')
+            .patch('/auth/users')
             .send(recoverPasswordDto)
-            .expect(201);
+            .set('Authorization', `Bearer ${jwtToken}`)
 
+        const expectedResponse: RecoverPasswordDtoResponse = {
+            statusCode: expect.any(Number),
+            message: expect.any(String),
+        };
 
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(response.body.statusCode).toEqual(201);
+        expect(response.body).toMatchObject(expectedResponse);
     });
 });

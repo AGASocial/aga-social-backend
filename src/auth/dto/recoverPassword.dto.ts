@@ -7,7 +7,7 @@ export class RecoverPasswordDto {
         example: 'abcdef123456',
         type: String
     })
-    id: string;
+    id?: string;
 
 
 
