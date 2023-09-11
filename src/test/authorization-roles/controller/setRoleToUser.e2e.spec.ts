@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import { AppModule } from '../../../app.module';
 import * as request from 'supertest';
-import { AuthorizationModule } from '../../../authorization/authorization.module'; 
-import { SetRoleToUserResponseDto } from '../../../authorization/dto/setRoleToUserResponse.dto'; 
+import { SetRoleToUserResponseDto } from '../../../authorization/dto/setRoleToUserResponse.dto';
 
-describe('AuthorizationController (e2e)', () => {
+describe('RoleController (e2e)', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthorizationModule],
+            imports: [AppModule],
         }).compile();
 
         app = moduleFixture.createNestApplication();
@@ -20,47 +20,22 @@ describe('AuthorizationController (e2e)', () => {
         await app.close();
     });
 
-    it('/authorization/firebase/users/:email/roles/:roleName (PUT)', async () => {
-        const email = 'joel114@gmail.com'; 
-        const roleName = 'Publisher';
+    it('/users/roles (PUT) should set a role to a user successfully', async () => {
+        const userDto = {
+            id: 'XUG7QW1LkJVHXHZXeJtO30IqDjW2', 
+            role: 'Subscriber123', 
+        };
+
         const response = await request(app.getHttpServer())
-            .put(`/authorization/firebase/users/${email}/roles/${roleName}`)
+            .put('/users/roles')
+            .send(userDto)
+            .expect(HttpStatus.OK);
 
-        const responseBody: SetRoleToUserResponseDto = response.body;
+        const expectedResponse: SetRoleToUserResponseDto = {
+            statusCode: 200,
+            message: 'ROLESETTOUSER',
+        };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(responseBody.statusCode).toEqual(500);
+        expect(response.body).toEqual(expectedResponse);
     });
 });

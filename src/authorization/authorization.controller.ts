@@ -81,7 +81,7 @@ export class AuthorizationController {
             const response = await this.authorizationService.updateRole(roleName, updateRoleDto);
             return response;
         } catch (error) {
-            console.error('Error al actualizar los datos del rol:', error);
+            console.error('There was an error updating the role:', error);
             throw error;
         }
     }

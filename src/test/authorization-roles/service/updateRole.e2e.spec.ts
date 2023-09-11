@@ -1,65 +1,38 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, NotFoundException, InternalServerErrorException } from '@nestjs/common';
-import * as request from 'supertest';
-import { AuthorizationService } from '../../../authorization/authorization.service';
-import { AuthorizationModule } from '../../../authorization/authorization.module';
+import { AppModule } from 'src/app.module';
+import { AuthorizationService } from 'src/authorization/authorization.service';
+import { UpdateRoleDto } from '../../../authorization/dto/updateRole.dto';
+import { UpdateRoleResponseDto } from '../../../authorization/dto/updateRoleResponse.dto';
 
-describe('AuthorizationController (e2e)', () => {
-    let app: INestApplication;
-    let authorizationService: AuthorizationService;
+describe('AuthorizationService', () => {
+    let service: AuthorizationService;
 
-    beforeAll(async () => {
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthorizationModule],
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
         }).compile();
 
-        app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe());
-        await app.init();
-
-        authorizationService = moduleFixture.get<AuthorizationService>(AuthorizationService);
+        service = module.get<AuthorizationService>(AuthorizationService);
     });
 
-    afterAll(async () => {
-        await app.close();
+    it('should be defined', () => {
+        expect(service).toBeDefined();
     });
 
-    it('/authorization/firebase/roles/:name (PUT)', async () => {
-        const roleName = 'Subscriber'; 
-        const newData = {
-            description: 'Updated role description',
-            isDefault: true,
-            isActive: false,
-        };
+    describe('updateRole', () => {
+        it('should update a role successfully', async () => {
+            const roleName = 'TestRole566';
+            const newData: UpdateRoleDto = {
+                description: 'Updated Role Description',
+                default: false,
+                active: false,
+            };
 
-        const response = await request(app.getHttpServer())
-            .put(`/authorization/firebase/roles/${roleName}`)
-            .send(newData)
+            const result: UpdateRoleResponseDto = await service.updateRole(roleName, newData);
 
+            expect(result).toBeDefined();
+            expect(result.message).toBe('ROLEUPDATED');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(response.body.statusCode).toBe(500);
+        });
     });
 });

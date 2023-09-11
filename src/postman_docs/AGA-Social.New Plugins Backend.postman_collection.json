@@ -1,0 +1,28 @@
+{
+	"info": {
+		"_postman_id": "51fce747-fe52-489b-a7a6-f78aa0d65d92",
+		"name": "New Plugins Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "Consultar Emails de Usuarios",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}todos/users/emails",
+					"host": [
+						"{{server}}todos"
+					],
+					"path": [
+						"users",
+						"emails"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

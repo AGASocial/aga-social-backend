@@ -73,14 +73,14 @@ export class CouponController {
     }
 
 
-
+    /*
     @ApiOperation({ summary: 'Delete expired coupons from firebase' })
     @ApiOkResponse({ description: 'Coupons deleted successfully ' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
     @Delete('coupons')
     async deleteExpiredCouponsFromFirebase(): Promise<DeleteCouponResponseDto> {
         return this.couponService.deleteExpiredCouponsFromFirebase();
-    }
+    }*/
 
 
 
@@ -101,9 +101,7 @@ export class CouponController {
 
         else if (code) {
             return this.couponService.getCouponByCode(code);
-        } /*else if (status && id) {
-            return this.couponService.filterCouponsByStatus(status, id);
-        } */else if (id) {
+        } else if (id) {
             return this.couponService.getCouponsCreatedByUser(id);
         } else {
             throw new BadRequestException('Invalid parameters');

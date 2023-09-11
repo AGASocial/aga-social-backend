@@ -1,61 +1,38 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, BadRequestException } from '@nestjs/common';
-import * as request from 'supertest';
-import { AuthorizationService } from '../../../authorization/authorization.service';
-import { AuthorizationModule } from '../../../authorization/authorization.module';
+import { AppModule } from 'src/app.module';
+import { AuthorizationService } from 'src/authorization/authorization.service';
+import { CreateNewRoleDto } from '../../../authorization/dto/createNewRole.dto';
+import { CreateNewRoleResponseDto } from '../../../authorization/dto/createNewRoleResponse.dto';
 
-describe('AuthorizationService (e2e)', () => {
-    let app: INestApplication;
-    let authorizationService: AuthorizationService;
+describe('AuthorizationService', () => {
+    let service: AuthorizationService;
 
-    beforeAll(async () => {
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthorizationModule],
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
         }).compile();
 
-        app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe());
-        await app.init();
-
-        authorizationService = moduleFixture.get<AuthorizationService>(AuthorizationService);
+        service = module.get<AuthorizationService>(AuthorizationService);
     });
 
-    afterAll(async () => {
-        await app.close();
+    it('should be defined', () => {
+        expect(service).toBeDefined();
     });
 
-    it('/authorization/firebase/roles (POST)', async () => {
-        const createNewRoleDto = {
-            name: 'TestRole',
-            description: 'Test role description',
-            isDefault: true,
-            isActive: true,
-        };
+    describe('createNewRole', () => {
+        it('should create a new role', async () => {
+            const createNewRoleDto: CreateNewRoleDto = {
+                name: 'TestRole566',
+                description: 'Test Role Description',
+                default: true,
+                active: true,
+            };
 
-        const response = await request(app.getHttpServer())
-            .post('/authorization/firebase/roles')
-            .send(createNewRoleDto)
+            const result: CreateNewRoleResponseDto = await service.createNewRole(createNewRoleDto);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            .expect(500); 
+            expect(result).toBeDefined();
+            expect(result.message).toBe('ROLECREATED');
+            expect(result.roleId).toBeDefined();
+        });
     });
-
 });

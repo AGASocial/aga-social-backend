@@ -180,6 +180,29 @@
 			"response": []
 		},
 		{
+			"name": "Consultar Course Por Id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}assets/courses?id=05283b65-00ae-4aa0-9b38-02b043d574b8",
+					"host": [
+						"{{server}}assets"
+					],
+					"path": [
+						"courses"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "05283b65-00ae-4aa0-9b38-02b043d574b8"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Comprar Course Stripe",
 			"request": {
 				"method": "POST",
