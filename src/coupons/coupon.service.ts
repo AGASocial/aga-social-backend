@@ -509,7 +509,7 @@ export class CouponService {
 
 
 
-
+    /*
     @ApiOperation({ summary: 'Delete expired coupons from firebase' })
     @ApiOkResponse({ description: 'Coupons deleted successfully' })
     @ApiBadRequestResponse({ description: 'Bad request' })
@@ -554,7 +554,7 @@ export class CouponService {
             console.warn(`[ERROR]: ${error}`);
             throw new InternalServerErrorException('INTERNALERROR');
         }
-    }
+    }*/
 
 
 

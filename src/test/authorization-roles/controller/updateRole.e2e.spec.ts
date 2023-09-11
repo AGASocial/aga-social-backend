@@ -1,15 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import { AppModule } from '../../../app.module';
 import * as request from 'supertest';
-import { AuthorizationModule } from '../../../authorization/authorization.module'; 
-import { UpdateRoleDto } from '../../../authorization/dto/updateRole.dto'; 
+import { UpdateRoleDto } from '../../../authorization/dto/updateRole.dto';
+import { UpdateRoleResponseDto } from '../../../authorization/dto/updateRoleResponse.dto';
 
-describe('AuthorizationController (e2e)', () => {
+describe('RoleController (e2e)', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthorizationModule],
+            imports: [AppModule],
         }).compile();
 
         app = moduleFixture.createNestApplication();
@@ -20,39 +21,24 @@ describe('AuthorizationController (e2e)', () => {
         await app.close();
     });
 
-    it('/authorization/firebase/roles/:name (PUT)', async () => {
-        const roleName = 'Admin';
-
-        const updateRoleDto: Partial<UpdateRoleDto> = {
+    it('/roles (PUT) should update a role successfully', async () => {
+        const roleName = 'Subscriber123'; 
+        const updateRoleDto: UpdateRoleDto = {
             description: 'Updated role description',
-            isDefault: true,
-           
+            default: false,
+            active: false,
         };
 
         const response = await request(app.getHttpServer())
-            .put(`/authorization/firebase/roles/${roleName}`)
+            .put(`/roles?name=${roleName}`)
             .send(updateRoleDto)
+            .expect(HttpStatus.OK);
 
-        const responseBody: any = response.body; 
+        const expectedResponse: UpdateRoleResponseDto = {
+            statusCode: 200,
+            message: 'ROLEUPDATED',
+        };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(responseBody.statusCode).toEqual(500);
+        expect(response.body).toEqual(expectedResponse);
     });
 });

@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import { AppModule } from '../../../app.module';
 import * as request from 'supertest';
-import { AuthorizationModule } from '../../../authorization/authorization.module'; 
 import { DeleteRoleOfUserResponseDto } from '../../../authorization/dto/deleteRoleOfUserResponse.dto';
 
-describe('AuthorizationController (e2e)', () => {
+describe('RoleController (e2e)', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthorizationModule],
+            imports: [AppModule],
         }).compile();
 
         app = moduleFixture.createNestApplication();
@@ -20,34 +20,19 @@ describe('AuthorizationController (e2e)', () => {
         await app.close();
     });
 
-    it('/authorization/firebase/users/:email/roles/:roleName (DELETE)', async () => {
-        const email = 'joel114@gmail.com';
-        const roleName = 'Publisher';
+    it('/users/roles (DELETE) should delete a role from a user successfully', async () => {
+        const userId = 'XUG7QW1LkJVHXHZXeJtO30IqDjW2';
+        const roleName = 'Subscriber123';
+
         const response = await request(app.getHttpServer())
-            .delete(`/authorization/firebase/users/${email}/roles/${roleName}`)
+            .delete(`/users/roles?id=${userId}&roleName=${roleName}`)
+            .expect(HttpStatus.OK);
 
-        const responseBody: DeleteRoleOfUserResponseDto = response.body;
+        const expectedResponse: DeleteRoleOfUserResponseDto = {
+            statusCode: 200,
+            message: 'ROLEREVOKED' as any,
+        };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(responseBody.statusCode).toEqual(500);
+        expect(response.body).toEqual(expectedResponse);
     });
 });

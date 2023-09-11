@@ -16,6 +16,7 @@ import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerEr
 import { v4 as uuidv4 } from 'uuid';
 import { StripeService } from "../Pluggins/stripe/stripe.service";
 import { PurchaseCourseResponseDto } from "./dto/purchaseCourseResponse.dto";
+import { DocResult } from "../utils/docResult.entity";
 
 
 @Injectable()
@@ -608,6 +609,52 @@ export class CourseService {
 
 
 
+    @ApiOperation({ summary: 'Get course by ID' })
+    @ApiOkResponse({ description: 'Course retrieved successfully', type: GetCoursesResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async getCourseById(courseId: string): Promise<GetCoursesResponseDto> {
+        try {
+            console.log('Initializing getCourseById...');
+
+            const coursesRef = this.firebaseService.coursesCollection;
+            const courseQuery = query(coursesRef, where('id', '==', courseId));
+            const courseQuerySnapshot = await getDocs(courseQuery);
+
+            if (courseQuerySnapshot.size > 0) {
+                const courseDoc = courseQuerySnapshot.docs[0];
+                const courseData = courseDoc.data();
+
+                const courseResult: DocResult = {
+                    title: courseData.title,
+                    description: courseData.description,
+                    publisher: courseData.publisher,
+                    price: courseData.price,
+                    sections: courseData.sections,
+                    tags: courseData.tags,
+                    releaseDate: courseData.releaseDate,
+                    instructorList: courseData.instructorList,
+                    language: courseData.language,
+                    offersCertificate: courseData.offersCertificate,
+                    salesCount: courseData.salesCount,
+                    active: courseData.active,
+                    titlePage: courseData.titlePage,
+                };
+
+                const getCourseResponse: GetCoursesResponseDto = {
+                    statusCode: 200,
+                    message: 'COURSESRETRIEVEDSUCCESSFULLY',
+                    coursesFound: [courseResult],
+                };
+                console.log('Response created.');
+                return getCourseResponse;
+            } else {
+                throw new Error(`Course with ID ${courseId} not found.`);
+            }
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the course.');
+        }
+    }
 
 
 }

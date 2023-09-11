@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import { AppModule } from '../../../app.module';
 import * as request from 'supertest';
-import { AuthorizationModule } from '../../../authorization/authorization.module'; 
-import { CreateNewRoleDto } from '../../../authorization/dto/createNewRole.dto'; 
+import { CreateNewRoleDto } from '../../../authorization/dto/createNewRole.dto';
 
-describe('AuthorizationController (e2e)', () => {
+describe('RoleController (e2e)', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthorizationModule],
+            imports: [AppModule],
         }).compile();
 
         app = moduleFixture.createNestApplication();
@@ -20,40 +20,25 @@ describe('AuthorizationController (e2e)', () => {
         await app.close();
     });
 
-    it('/authorization/firebase/roles (POST)', async () => {
+    it('/roles (POST) should create a new role successfully', async () => {
         const createNewRoleDto: CreateNewRoleDto = {
-            name: 'newRole',
-            description: 'New role description',
-            isDefault: false,
-            isActive: true,
+            name: 'Subscriber123',
+            description: 'Subscribers are users that can buy courses and e-books offered by Publishers',
+            default: true,
+            active: true,
         };
 
         const response = await request(app.getHttpServer())
-            .post('/authorization/firebase/roles')
+            .post('/roles')
             .send(createNewRoleDto)
+            .expect(HttpStatus.OK);
 
-        const responseBody: any = response.body; 
+        const expectedResponse = {
+            statusCode: 201,
+            message: 'ROLECREATED',
+            roleId: expect.any(String), 
+        };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        expect(responseBody.statusCode).toEqual(500);
+        expect(response.body).toMatchObject(expectedResponse);
     });
 });

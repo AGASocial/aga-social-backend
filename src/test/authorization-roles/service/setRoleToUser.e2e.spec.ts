@@ -1,54 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, NotFoundException, InternalServerErrorException } from '@nestjs/common';
-import * as request from 'supertest';
 import { AuthorizationService } from '../../../authorization/authorization.service';
-import { AuthorizationModule } from '../../../authorization/authorization.module';
+import { SetRoleToUserDto } from '../../../authorization/dto/setRoleToUser.dto';
+import { SetRoleToUserResponseDto } from '../../../authorization/dto/setRoleToUserResponse.dto';
 
-describe('AuthorizationService (e2e)', () => {
-    let app: INestApplication;
-    let authorizationService: AuthorizationService;
+describe('AuthorizationService', () => {
+    let service: AuthorizationService;
 
-    beforeAll(async () => {
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AuthorizationModule],
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [AuthorizationService],
         }).compile();
 
-        app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe());
-        await app.init();
-
-        authorizationService = moduleFixture.get<AuthorizationService>(AuthorizationService);
+        service = module.get<AuthorizationService>(AuthorizationService);
     });
 
-    afterAll(async () => {
-        await app.close();
-    });
+    it('should set a role to a user', async () => {
+        const userId = 'XUG7QW1LkJVHXHZXeJtO30IqDjW2';
 
-    it('/authorization/firebase/users/:email/roles/:roleName (PUT)', async () => {
-        const email = 'joel114@gmail.com';
-        const roleName = 'Publisher';
+        const setRoleDto = {
+            role: 'Subscriber123',
+        };
 
-        const response = await request(app.getHttpServer())
-            .put(`/authorization/firebase/users/${email}/roles/${roleName}`)
+        const expectedResponse: SetRoleToUserResponseDto = {
+            statusCode: 200,
+            message: 'ROLESETTOUSER',
+        };
 
+        const result = await service.setRoleToUser(userId, setRoleDto.role);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            .expect(500); 
+        expect(result).toEqual(expectedResponse);
     });
 });

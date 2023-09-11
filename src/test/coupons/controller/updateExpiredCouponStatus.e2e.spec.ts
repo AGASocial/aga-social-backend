@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { GetRolesResponseDto } from '../../../roles/dto/getRolesResponse.dto';
-import { AppModule } from '../../../app.module';
+import { AppModule } from 'src/app.module';
+import { SetCouponAsExpiredResponseDto } from '../../../coupons/dto/setCouponAsExpiredResponse.dto';
 
-describe('AppController (e2e)', () => {
+describe('CouponController (e2e)', () => {
     let app: INestApplication;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule],
         }).compile();
@@ -16,18 +16,14 @@ describe('AppController (e2e)', () => {
         await app.init();
     });
 
-    it('/roles (GET)', () => {
-        const expectedResponse: GetRolesResponseDto = {
-            statusCode: 200,
-            message: 'ROLESGOT',
-            rolesFound: [
-            ] as any[],
-        };
-
+    it('should set coupons as expired', () => {
         return request(app.getHttpServer())
-            .get('/roles')
+            .patch(`/coupons`)
             .expect(200)
-            .expect(expectedResponse);
+            .expect((response) => {
+                const setCouponAsExpiredResponseDto: SetCouponAsExpiredResponseDto = response.body;
+                expect(setCouponAsExpiredResponseDto.statusCode).toBe(200);
+            });
     });
 
     afterAll(async () => {

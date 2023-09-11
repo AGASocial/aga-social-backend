@@ -51,14 +51,19 @@ export class CourseController {
     @Get('assets/courses')
     async getCourses(
         @Query('keywords') keywords?: string[],
-        @Query('tags') tags?: string[]
+        @Query('tags') tags?: string[],
+        @Query('id') id?: string
     ): Promise<GetCoursesResponseDto> {
         if (keywords) {
             const response = await this.courseService.getCoursesByKeywords(keywords);
             return response;
         } else if (tags) {
             return await this.courseService.getCoursesByTags(tags);
-        } else {
+        } else if (id) {
+            return await this.courseService.getCourseById(id);
+        }
+
+        else {
             return this.courseService.getCourses();
         }
     }

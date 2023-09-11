@@ -45,7 +45,6 @@ import { LikesModule } from './Pluggins/likes/likes.module';
 import { NotesModule } from './Pluggins/notes/notes.module';
 import { PlugginModule } from './Pluggins/pluggin/pluggin.module';
 import { StripeModule } from './Pluggins/stripe/stripe.module';
-import { TodoModule } from './Pluggins/todo/todo.module';
 import { LikesService } from './Pluggins/likes/likes.service';
 import { NotesService } from './Pluggins/notes/notes.service';
 import { PlugginService } from './Pluggins/pluggin/pluggin.service';
@@ -58,6 +57,7 @@ import { PlugginController } from './Pluggins/pluggin/pluggin.controller';
 import { StripeController } from './Pluggins/stripe/stripe.controller';
 import { TodoController } from './Pluggins/todo/todo.controller';
 import { ValidationController } from './validations/validations.controller';
+import { TodoModule } from './Pluggins/todo/todo.module';
 
 
 @Module({
