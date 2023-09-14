@@ -27,6 +27,14 @@ export class GetCoursesResponseDto {
 
 
     @ApiProperty({
+        description: 'Profile Picture of the publisher of the course',
+        type: String,
+    })
+    public userPicture?: string;
+
+
+
+    @ApiProperty({
         description: 'Array containing the info of every course found'
     })
     public coursesFound: DocResult[]

@@ -139,6 +139,29 @@
 			"response": []
 		},
 		{
+			"name": "Consultar Ebook por Id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}assets/ebooks?id=65c8cf10-3726-4776-a35a-b0e5867dcf64",
+					"host": [
+						"{{server}}assets"
+					],
+					"path": [
+						"ebooks"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "65c8cf10-3726-4776-a35a-b0e5867dcf64"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Consultar Ebooks Por Palabras Clave",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true

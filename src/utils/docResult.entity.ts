@@ -24,6 +24,9 @@ export class DocResult {
     public titlePage?: string
     public active?: boolean
     public userEmails?: string[]
+    public author?: string
+    public url?: string
+
 
    
 }

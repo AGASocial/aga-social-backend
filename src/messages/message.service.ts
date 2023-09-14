@@ -4,19 +4,12 @@ import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, QueryFieldF
 import { FirebaseService } from "../firebase/firebase.service";
 import { CreateMessageDto, MessageType } from "./dto/createMessage.dto";
 import { CreateMessageResponseDto } from "./dto/createMessageResponse.dto";
-import { DeleteMessageResponseDto } from "./dto/deleteMessageResponse.dto";
-import { GetMessagesByKeywordsDto } from "./dto/getMessagesByKeywords.dto";
 import { GetMessagesByUserResponseDto } from "./dto/getMessagesByUserResponse.dto";
-import { MarkAsArchivedResponseDto } from "./dto/markAsArchivedResponse.dto";
-import { MarkAsReadResponseDto } from "./dto/markAsReadResponse.dto";
 import { UpdateMessageStatusDto } from "./dto/updateMessageStatus.dto";
 import { UpdateMessageStatusResponseDto } from "./dto/updateMessageStatusResponse.dto";
 import * as admin from 'firebase-admin';
-import {GetMessagesFilteredDto } from "./dto/getMessagesFiltered.dto";
-import { DocResult } from "../utils/docResult.entity";
 import { v4 as uuidv4 } from 'uuid';
 import { AddTagsResponseDto } from "./dto/addTagsResponse.dto";
-import { Message } from "./entities/message.entity";
 
 
 
