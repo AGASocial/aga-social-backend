@@ -130,7 +130,7 @@ export class Ebook {
         type: Date,
     })
     @IsNotEmpty()
-   public releaseDate: Date;
+   public releaseDate: Date | string;
 
     @ApiProperty({
         description: 'Languages in which the ebook is available',

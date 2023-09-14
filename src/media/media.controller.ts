@@ -12,6 +12,7 @@ import { FileFields } from 'formidable';
 import { Readable } from 'stream';
 import { UploadMediaResponseDto } from './dto/uploadMediaFileResponse.dto';
 import { ApiBadRequestResponse, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { GetMediaByIdResponseDto } from './dto/getMediaByIdResponse.dto';
 
 
 @Controller()
@@ -44,12 +45,19 @@ export class MediaController {
     @ApiOkResponse({ description: 'Successfully retrieved media resources.', type: GetMediaResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
     async getMedia(
-        @Query('keywords') keywords?: string[]
-    ): Promise<GetMediaResponseDto> {
+        @Query('keywords') keywords?: string[],
+        @Query('id') id?: string
+    ): Promise<GetMediaResponseDto | GetMediaByIdResponseDto> {
         if (keywords) {
             const response = await this.mediaService.getMediaByKeywords(keywords);
             return response;
-        } else {
+        } else if (id) {
+            const response = await this.mediaService.getMediaById(id);
+            return response;
+
+        }
+
+        else {
             return this.mediaService.getMedia();
         }
     }

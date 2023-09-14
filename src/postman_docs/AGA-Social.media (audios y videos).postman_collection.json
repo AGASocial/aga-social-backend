@@ -109,6 +109,29 @@
 			"response": []
 		},
 		{
+			"name": "Consultar Media Por Id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}assets/media?id=e19e073f-cdde-4b96-a3b2-c0aba097dbbc",
+					"host": [
+						"{{server}}assets"
+					],
+					"path": [
+						"media"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "e19e073f-cdde-4b96-a3b2-c0aba097dbbc"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Consultar Media Por Palabras Clave",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true

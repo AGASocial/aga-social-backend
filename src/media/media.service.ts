@@ -17,6 +17,7 @@ import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorRespon
 import { v4 as uuidv4 } from 'uuid';
 import { convertFirestoreTimestamp } from '../utils/timeUtils.dto';
 import { VimeoService } from '../vimeo/vimeo.service';
+import { GetMediaByIdResponseDto } from './dto/getMediaByIdResponse.dto';
 
 
 
@@ -500,6 +501,54 @@ export class MediaService {
         } catch (error) {
             console.error('Error uploading the file or creating media:', error);
             throw new Error(`Error uploading the file or creating media: ${error.message}`);
+        }
+    }
+
+
+
+
+
+    @ApiOperation({ summary: 'Get a specific media resource from Firestore by ID' })
+    @ApiOkResponse({ description: 'Media resource retrieved successfully', type: GetMediaByIdResponseDto })
+    @ApiNotFoundResponse({ description: 'Media resource not found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async getMediaById(mediaId: string): Promise<GetMediaByIdResponseDto> {
+        try {
+            const mediaRef = this.firebaseService.mediaCollection;
+            const mediaQuery = query(mediaRef, where("id", "==", mediaId));
+
+            const mediaQuerySnapshot = await getDocs(mediaQuery);
+
+            if (!mediaQuerySnapshot.empty) {
+                const mediaDocSnapshot = mediaQuerySnapshot.docs[0];
+
+                const mediaData = mediaDocSnapshot.data();
+                const uploadTimestamp: Timestamp = mediaData.uploadDate;
+
+
+                const mediaFound: Media = {
+                    publisher: mediaData.publisher,
+                    description: mediaData.description,
+                    duration: mediaData.duration,
+                    title: mediaData.title,
+                    type: mediaData.type,
+                    uploadDate: uploadTimestamp.toDate(), 
+                    url: mediaData.url,
+                    active: mediaData.active,
+                };
+
+                const mediaResponse: GetMediaByIdResponseDto = {
+                    statusCode: 200,
+                    message: "MEDIARETRIEVEDSUCCESSFULLY",
+                    mediaFound: mediaFound,
+                };
+
+                return mediaResponse;
+            } else {
+                throw new Error(`Media resource with ID ${mediaId} not found.`);
+            }
+        } catch (error) {
+            throw new Error('There was an error retrieving the media resource by ID.');
         }
     }
 

@@ -38,9 +38,8 @@ export class UpdateMediaDto {
         example: "https://file_url.mp3",
         type: String,
     })
-    @IsNotEmpty()
     @IsUrl()
-    url: string;
+    url?: string;
 
     @ApiProperty({
         description: "Duration of the multimedia content",

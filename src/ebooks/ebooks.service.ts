@@ -17,6 +17,7 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import { PersonalizeEbookResponseDto } from './dto/personalizeEbookResponse.dto';
 import { StripeService } from '../Pluggins/stripe/stripe.service';
 import { PurchaseEbookResponseDto } from './dto/purchaseEbookResponse.dto';
+import { GetEbookByIdResponseDto } from './dto/getEbookByIdResponse.dto';
 
 
 
@@ -547,7 +548,55 @@ export class EbookService {
 
 
 
+    @ApiOperation({ summary: 'Get a specific ebook from Firestore by ID' })
+    @ApiOkResponse({ description: 'Ebook retrieved successfully', type: GetEbookByIdResponseDto })
+    @ApiNotFoundResponse({ description: 'Ebook not found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async getEbookById(ebookId: string): Promise<GetEbookByIdResponseDto> {
+        try {
+            const ebooksRef = this.firebaseService.ebooksCollection;
+            const ebooksQuery = query(ebooksRef, where("id", "==", ebookId));
 
+            const ebooksQuerySnapshot = await getDocs(ebooksQuery);
+
+            if (!ebooksQuerySnapshot.empty) {
+                const ebookDocSnapshot = ebooksQuerySnapshot.docs[0];
+
+                const ebookData = ebookDocSnapshot.data();
+                const releaseTimestamp: Timestamp = ebookData.releaseDate;
+                const releaseDate = convertFirestoreTimestamp(releaseTimestamp);
+
+                const ebookFound: Ebook = {
+                    title: ebookData.title,
+                    publisher: ebookData.publisher,
+                    author: ebookData.author,
+                    description: ebookData.description,
+                    titlePage: ebookData.titlePage,
+                    url: ebookData.url,
+                    releaseDate: releaseDate,
+                    price: ebookData.price,
+                    language: ebookData.language,
+                    pageCount: ebookData.pageCount,
+                    genres: ebookData.genres,
+                    format: ebookData.format,
+                    salesCount: ebookData.salesCount,
+                    active: ebookData.active,
+                };
+
+                const ebookResponse: GetEbookByIdResponseDto = {
+                    statusCode: 200,
+                    message: "EBOOKRETRIEVEDSUCCESSFULLY",
+                    ebookFound: ebookFound,
+                };
+
+                return ebookResponse;
+            } else {
+                throw new Error(`Ebook with ID ${ebookId} not found.`);
+            }
+        } catch (error) {
+            throw new Error('There was an error retrieving the ebook by ID.');
+        }
+    }
 
 
 

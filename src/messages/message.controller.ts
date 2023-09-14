@@ -36,25 +36,7 @@ export class MessageController {
         }
     }
 
-    /*
-    //NOT IN USE
-    @ApiOperation({ summary: 'Delete messages from firebase (Not in use)' })
-    @ApiNotFoundResponse({ description: 'Message not found.' })
-    @ApiBadRequestResponse({ description: 'Bad request.' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-    @Delete('messages')
-    async deleteMessage(@Body() deleteMessageDto: DeleteMessageDto): Promise<DeleteMessageResponseDto> {
-        try {
-            const responseDto = await this.messageService.deleteMessage(deleteMessageDto);
-            return responseDto;
-        } catch (error) {
-            console.error('Error:', error);
-            if (error instanceof NotFoundException) {
-                throw new NotFoundException(error.message);
-            }
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }*/
+  
 
 
 
@@ -62,10 +44,10 @@ export class MessageController {
     @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
     @Get('messages')
     async getMessages(
-        @Query('filter') filter: string,
-        @Query('id') id: string,
-        @Query('keywords') keywords: string[],
-        @Query('tags') tags: string[], 
+        @Query('filter') filter?: string,
+        @Query('id') id?: string,
+        @Query('keywords') keywords?: string[],
+        @Query('tags') tags?: string[], 
     ): Promise<GetMessagesByUserResponseDto> {
         if (filter && id) {
             return await this.messageService.getFilteredMessages(filter, id);

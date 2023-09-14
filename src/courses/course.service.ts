@@ -114,6 +114,7 @@ export class CourseService {
                 const data = doc.data();
                 if (data.active) {
                     queryResult.push({
+                        id: data.id,
                         title: data.title,
                         description: data.description,
                         publisher: data.publisher,
@@ -195,6 +196,7 @@ export class CourseService {
             coursesQuerySnapshot.forEach(doc => {
                 const data = doc.data();
                 queryResult.push({
+                    id: data.id,
                     title: data.title,
                     description: data.description,
                     publisher: data.publisher,
@@ -299,6 +301,7 @@ export class CourseService {
             coursesQuerySnapshot.forEach(doc => {
                 const data = doc.data();
                 queryResult.push({
+                    id: data.id,
                     title: data.title,
                     description: data.description,
                     publisher: data.publisher,
@@ -624,6 +627,23 @@ export class CourseService {
                 const courseDoc = courseQuerySnapshot.docs[0];
                 const courseData = courseDoc.data();
 
+
+                const publisher = courseData.publisher;
+
+                const usersRef = this.firebaseService.usersCollection;
+                const userQuery = query(usersRef, where('username', '==', publisher));
+                const userQuerySnapshot = await getDocs(userQuery);
+
+                let profilePicture = ''; 
+
+                if (userQuerySnapshot.size > 0) {
+                    const userDoc = userQuerySnapshot.docs[0];
+                    const userData = userDoc.data();
+                    profilePicture = userData.profilePicture;
+                }
+
+
+
                 const courseResult: DocResult = {
                     title: courseData.title,
                     description: courseData.description,
@@ -643,6 +663,7 @@ export class CourseService {
                 const getCourseResponse: GetCoursesResponseDto = {
                     statusCode: 200,
                     message: 'COURSESRETRIEVEDSUCCESSFULLY',
+                    userPicture: profilePicture,
                     coursesFound: [courseResult],
                 };
                 console.log('Response created.');

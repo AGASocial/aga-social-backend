@@ -13,6 +13,7 @@ import { UploadEbookResponseDto } from './dto/uploadEbookResponse.dto';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PurchaseEbookResponseDto } from './dto/purchaseEbookResponse.dto';
 import { PurchaseEbookDto } from './dto/purchaseEbook.dto';
+import { GetEbookByIdResponseDto } from './dto/getEbookByIdResponse.dto';
 
 
 
@@ -93,11 +94,16 @@ export class EbookController {
     @Get('assets/ebooks')
     async getEbooks(
         @Query('keywords') keywords?: string[],
-        @Query('userId') userId?: string,
-        @Query('ebookId') ebookId?: string
-    ): Promise<GetEbooksResponseDto> {
+       // @Query('userId') userId?: string,
+        @Query('id') id?: string
+    ): Promise<GetEbooksResponseDto | GetEbookByIdResponseDto> {
         if (keywords) {
             const response = await this.ebookService.getEbooksByKeywords(keywords);
+            return response;
+        }
+
+        else if (id){
+            const response = await this.ebookService.getEbookById(id);
             return response;
         }
 
