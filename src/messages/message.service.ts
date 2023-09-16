@@ -10,6 +10,7 @@ import { UpdateMessageStatusResponseDto } from "./dto/updateMessageStatusRespons
 import * as admin from 'firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
 import { AddTagsResponseDto } from "./dto/addTagsResponse.dto";
+import { GetMessageByIdResponseDto } from "./dto/getMessageByIdResponse.dto";
 
 
 
@@ -223,6 +224,26 @@ export class MessageService {
                 throw new NotFoundException('Recipient email not found');
             }
 
+            const userCollectionRef = collection(this.firebaseService.fireStore, 'users');
+            const q = query(userCollectionRef, where('email', '==', senderEmail));
+
+            let profilePicture: string | undefined;
+
+
+            try {
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const doc = querySnapshot.docs[0];
+                    profilePicture = doc.data().profilePicture;
+                }
+            } catch (error) {
+                console.error('There was an error obtaining the picture of the sender:', error);
+                throw error;
+            }
+         
+
+
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
             const currentDate = new Date();
@@ -274,7 +295,7 @@ export class MessageService {
             console.log('Message added to cache successfully.');
 
             console.log('Message created and sent successfully.');
-            const responseDto = new CreateMessageResponseDto(201, 'MESSAGECREATEDSUCCESSFULLY', newMessageId);
+            const responseDto = new CreateMessageResponseDto(201, 'MESSAGECREATEDSUCCESSFULLY', newMessageId, profilePicture);
             return responseDto;
         } catch (error) {
             console.error('Error:', error);
@@ -1472,7 +1493,70 @@ export class MessageService {
 
 
 
+    async getMessageById(messageId: string): Promise<GetMessageByIdResponseDto> {
+        try {
+            const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
+            const messageQuery = query(
+                messageRef,
+                where('id', '==', messageId)
+            );
+
+            const messageQuerySnapshot = await getDocs(messageQuery);
+
+            if (messageQuerySnapshot.empty) {
+                throw new NotFoundException(`Message with ID ${messageId} not found.`);
+            }
+
+            const messageDoc = messageQuerySnapshot.docs[0];
+            const messageData = messageDoc.data();
+
+
+            const userRef = collection(this.firebaseService.fireStore, 'users');
+            const userQuery = query(
+                userRef,
+                where('email', '==', messageData.senderEmail)
+            );
+
+            const userQuerySnapshot = await getDocs(userQuery);
+
+            let profilePicture: string | null = null;
+
+            if (!userQuerySnapshot.empty) {
+                const userDoc = userQuerySnapshot.docs[0];
+                const userData = userDoc.data();
+                profilePicture = userData.profilePicture;
+            }
+
+
+
+
+            const messageDto: GetMessageByIdResponseDto = {
+                statusCode: 200,
+                message: 'MESSAGERETRIEVEDSUCCESSFULLY',
+                senderPicture: profilePicture,
+                messageFound: {
+                    id: messageData.id,
+                    senderEmail: messageData.senderEmail,
+                    recipientEmail: messageData.recipientEmail,
+                    content: messageData.content,
+                    read: messageData.read,
+                    highlighted: messageData.highlighted,
+                    archived: messageData.archived,
+                    attachmentUrls: messageData.attachmentUrls,
+                    subject: messageData.subject,
+                    type: messageData.type,
+                    receivedDate: this.transformTimestamp(messageData.receivedDate),
+                    sentDate: this.transformTimestamp(messageData.sentDate),
+                    readDate: this.transformTimestamp(messageData.readDate),
+                },
+            };
+
+            return messageDto;
+        } catch (error: unknown) {
+            throw new InternalServerErrorException('INTERNALERROR');
+        }
+    }
 
 
 

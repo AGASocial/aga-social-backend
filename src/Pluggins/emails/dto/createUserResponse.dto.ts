@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
 
-export class CreateMessageResponseDto {
+export class CreateUserResponseDto {
 
     @ApiProperty({
         description: 'HTTP response status code',
@@ -14,8 +14,8 @@ export class CreateMessageResponseDto {
     public statusCode: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "MESSAGECREATEDSUCCESSFULLY"',
-        default: 'MESSAGECREATEDSUCCESSFULLY',
+        description: 'Descriptive response message, should return "USERREGISTEREDSUCCESSFULLY"',
+        default: 'USERREGISTEREDSUCCESSFULLY',
         type: String,
     })
     @IsString()
@@ -25,24 +25,18 @@ export class CreateMessageResponseDto {
     public message: string;
 
 
-    @ApiProperty({
-        description: 'ID of the created role',
-        type: String
-    })
-    public messageId?: string;
 
     @ApiProperty({
-        description: 'Picture of the user who sent the email',
+        description: 'ID of the user',
         type: String
     })
-    public senderPicture?: string;
+    public userId?: string;
 
 
 
-    constructor(statusCode: number, message: string, messageId: string, senderPicture: string) {
+    constructor(statusCode: number, message: string, userId: string) {
         this.statusCode = statusCode;
         this.message = message;
-        this.messageId = messageId;
-        this.senderPicture = senderPicture;
+        this.userId = userId;
     }
 }

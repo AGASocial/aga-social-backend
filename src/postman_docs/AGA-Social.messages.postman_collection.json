@@ -212,6 +212,14 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Consultar un Mensaje por su Id",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
 		}
 	]
 }
