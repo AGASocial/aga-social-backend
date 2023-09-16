@@ -7,18 +7,103 @@
 	},
 	"item": [
 		{
-			"name": "Consultar Emails de Usuarios",
+			"name": "Registrar Plugin en Firebase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{server}}plugins",
+					"host": [
+						"{{server}}plugins"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registrar Email de Usuario",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"email\": \"emailtest5@gmail.com\",\r\n\"pluginId\":\"4IFsckFjVBxh0dk3EraE\"\r\n\r\n}\r\n\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}plugins/emails",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"emails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registrar Usuario",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"pruebita@gmail.com\",\r\n  \"username\": \"pruebita\",\r\n  \"password\": \"pruebita123456\",\r\n  \"name\": \"pruebita\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}plugins/users?pluginId=cUyTYJELpSRwZcQ12gBn",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "pluginId",
+							"value": "cUyTYJELpSRwZcQ12gBn"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener Emails de Usuarios",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener Usuarios",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}todos/users/emails",
+					"raw": "{{server}}plugins/users?pluginId=cUyTYJELpSRwZcQ12gBn",
 					"host": [
-						"{{server}}todos"
+						"{{server}}plugins"
 					],
 					"path": [
-						"users",
-						"emails"
+						"users"
+					],
+					"query": [
+						{
+							"key": "pluginId",
+							"value": "cUyTYJELpSRwZcQ12gBn"
+						}
 					]
 				}
 			},

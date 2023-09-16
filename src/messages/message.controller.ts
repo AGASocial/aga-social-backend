@@ -4,6 +4,7 @@ import { AddTagsResponseDto } from "./dto/addTagsResponse.dto";
 import { CreateMessageDto } from "./dto/createMessage.dto";
 import { CreateMessageResponseDto } from "./dto/createMessageResponse.dto";
 import { DeleteMessageResponseDto } from "./dto/deleteMessageResponse.dto";
+import { GetMessageByIdResponseDto } from "./dto/getMessageByIdResponse.dto";
 import { GetMessagesByKeywordsDto } from "./dto/getMessagesByKeywords.dto";
 import { GetMessagesByUserResponseDto } from "./dto/getMessagesByUserResponse.dto";
 import {GetMessagesFilteredDto } from "./dto/getMessagesFiltered.dto";
@@ -46,9 +47,10 @@ export class MessageController {
     async getMessages(
         @Query('filter') filter?: string,
         @Query('id') id?: string,
+        @Query('messageId') messageId?: string,
         @Query('keywords') keywords?: string[],
         @Query('tags') tags?: string[], 
-    ): Promise<GetMessagesByUserResponseDto> {
+    ): Promise<GetMessagesByUserResponseDto | GetMessageByIdResponseDto> {
         if (filter && id) {
             return await this.messageService.getFilteredMessages(filter, id);
         } else if (id && keywords) {
@@ -57,7 +59,12 @@ export class MessageController {
             return await this.messageService.searchMessagesByTags(id, tags);
         } else if (id) {
             return this.messageService.getUserMessages(id);
-        } else {
+        }
+
+        else if (messageId) {
+            return this.messageService.getMessageById(messageId);
+        }
+        else {
             throw new BadRequestException('Invalid parameters');
         }
     }

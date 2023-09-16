@@ -58,17 +58,20 @@ import { StripeController } from './Pluggins/stripe/stripe.controller';
 import { TodoController } from './Pluggins/todo/todo.controller';
 import { ValidationController } from './validations/validations.controller';
 import { TodoModule } from './Pluggins/todo/todo.module';
+import { EmailsModule } from './Pluggins/emails/pluginEmails.module';
+import { EmailsController } from './Pluggins/emails/pluginsEmails.controller';
+import { EmailsService } from './Pluggins/emails/pluginEmails.service';
 
 
 @Module({
-    imports: [TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [EmailsModule, TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
     }), SessionModule, RolesModule, JwtModule.register({
         secret: process.env.jwtConstants,
         signOptions: { expiresIn: '60s' }
     })],
-    controllers: [ValidationController, TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController,LikesController,NotesController, PlugginController, StripeController, TodoController],
+    controllers: [EmailsController, ValidationController, TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController,LikesController,NotesController, PlugginController, StripeController, TodoController],
     providers: [
         AppService,
         DataFiltererService,
@@ -89,6 +92,7 @@ import { TodoModule } from './Pluggins/todo/todo.module';
         PlugginService,
         StripeService,
         TodoService,
+        EmailsService,
         
         {
             provide: APP_GUARD,

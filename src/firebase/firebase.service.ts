@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { Auth, getAuth } from 'firebase/auth'
-import { CollectionReference, Firestore, getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore'
+import { CollectionReference, Firestore, getFirestore, collection, query, where, getDocs, limit, DocumentReference, doc } from 'firebase/firestore'
 import { ConfigService } from '@nestjs/config';
 import { Config } from 'src/models/config.model';
 import * as admin from 'firebase-admin';
@@ -27,7 +27,12 @@ export class FirebaseService {
     public messagesCollection: CollectionReference;
     public couponsCollection: CollectionReference;
     public tagsCollection: CollectionReference;
+    public pluginsCollection: CollectionReference;
+    public emailsSubcollection: CollectionReference;
+    public usersSubcollection: CollectionReference;
 
+
+  
 
 
 
@@ -43,6 +48,7 @@ export class FirebaseService {
         messages: [],
         coupons: [],
         tags: [],
+       // plugins: []
 
     };
 
@@ -53,7 +59,7 @@ export class FirebaseService {
                 projectId: process.env.FIREBASE_PROJECT_ID,
                 clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
                 privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-            }), //databaseURL: configService.get<string>('FIREBASE_DATA_URL'),
+            }), 
             storageBucket: configService.get<string>('FIREBASE_STORAGE_BUCKET'),
             databaseAuthVariableOverride: {
                 uid: configService.get<string>('FIREBASE_AUTH_UID')
@@ -81,6 +87,7 @@ export class FirebaseService {
         this._createMessagesCollection();
         this._createCouponsCollection();
         this._createTagsCollection();
+        this._createPluginsCollection();
 
 
 
@@ -92,6 +99,16 @@ export class FirebaseService {
        
     }
 
+
+
+
+    private _createPluginsCollection() {
+        const pluginsCollectionRef = collection(this.fireStore, 'newPlugins');    
+        const pluginDocumentRef: DocumentReference = doc(pluginsCollectionRef);
+        const emailsCollectionRef = collection(pluginDocumentRef, 'emails')
+        const usersCollectionRef = collection(pluginDocumentRef, 'pluginUsers')
+
+    }
 
 
 
@@ -162,7 +179,6 @@ export class FirebaseService {
             this.messagesCollection,
             this.couponsCollection,
             this.tagsCollection,
-
 
 
         ];
