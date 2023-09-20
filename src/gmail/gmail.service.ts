@@ -4,6 +4,9 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+/*
+
+
 @Injectable()
 export class GmailService {
     private oAuth2Client: Auth.OAuth2Client;
@@ -63,3 +66,4 @@ export class GmailService {
 
 
 }
+*/
