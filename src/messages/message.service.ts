@@ -43,6 +43,7 @@ export class MessageService {
                 const message = doc.data();
                 if (message.active === true) {
                     archivedMessages.push({
+                        id: message.id,
                         senderEmail: message.senderEmail,
                         recipientEmail: message.recipientEmail,
                         content: message.content,
@@ -103,6 +104,7 @@ export class MessageService {
                 const message = doc.data();
                 if (message.active === true) {
                     readMessages.push({
+                        id: message.id,
                         highlighted: message.highlighted,
                         senderEmail: message.senderEmail,
                         recipientEmail: message.recipientEmail,
@@ -162,6 +164,7 @@ export class MessageService {
                 const message = doc.data();
                 if (message.active === true) {
                     unreadMessages.push({
+                        id: message.id,
                         senderEmail: message.senderEmail,
                         recipientEmail: message.recipientEmail,
                         content: message.content,
@@ -354,6 +357,7 @@ export class MessageService {
             senderMessagesQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 userMessages.push({
+                    id: data.id,
                     senderEmail: data.senderEmail,
                     recipientEmail: data.recipientEmail,
                     content: data.content,
@@ -373,6 +377,7 @@ export class MessageService {
             recipientMessagesQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 userMessages.push({
+                    id: data.id,
                     senderEmail: data.senderEmail,
                     recipientEmail: data.recipientEmail,
                     content: data.content,
@@ -438,6 +443,7 @@ export class MessageService {
             recipientMessagesQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 userMessages.push({
+                    id: data.id,
                     senderEmail: data.senderEmail,
                     recipientEmail: data.recipientEmail,
                     content: data.content,
@@ -502,6 +508,7 @@ export class MessageService {
             senderMessagesQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 userMessages.push({
+                    id: data.id,
                     senderEmail: data.senderEmail,
                     recipientEmail: data.recipientEmail,
                     content: data.content,
@@ -595,6 +602,7 @@ export class MessageService {
                     message.active === true
                 ) {
                     matchedMessages.push({
+                        id: message.id,
                         senderEmail: message.senderEmail,
                         recipientEmail: message.recipientEmail,
                         content: message.content,
@@ -1452,6 +1460,7 @@ export class MessageService {
                     message.active === true
                 ) {
                     matchedMessages.push({
+                        id: message.id,
                         senderEmail: message.senderEmail,
                         recipientEmail: message.recipientEmail,
                         content: message.content,
@@ -1521,11 +1530,15 @@ export class MessageService {
             const userQuerySnapshot = await getDocs(userQuery);
 
             let profilePicture: string | null = null;
+            let username: string | null = null;
+
 
             if (!userQuerySnapshot.empty) {
                 const userDoc = userQuerySnapshot.docs[0];
                 const userData = userDoc.data();
                 profilePicture = userData.profilePicture;
+                username = userData.username;
+
             }
 
 
@@ -1535,6 +1548,7 @@ export class MessageService {
                 statusCode: 200,
                 message: 'MESSAGERETRIEVEDSUCCESSFULLY',
                 senderPicture: profilePicture,
+                username: username,
                 messageFound: {
                     id: messageData.id,
                     senderEmail: messageData.senderEmail,

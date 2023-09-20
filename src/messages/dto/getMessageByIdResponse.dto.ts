@@ -38,5 +38,11 @@ export class GetMessageByIdResponseDto {
     })
     public senderPicture?: string;
 
+    @ApiProperty({
+        description: 'Username of the user who sent the email',
+        type: String
+    })
+    public username?: string;
+
 
 }

@@ -12,13 +12,17 @@ import { UsersService } from "../../users/users.service";
 import { HashService } from "../../utils/hash.service";
 import { GetEmailsResponseDto } from "./dto/getEmailsResponse.dto";
 import { GetUsersByPluginIdResponseDto } from "./dto/getUsersResponse.dto";
-
+import * as nodemailer from 'nodemailer';
+import { SendEmailResponseDto } from "./dto/sendEmailToAllResponse.dto";
+import { GmailService } from "../../gmail/gmail.service";
+import { SendMessageToAllDto } from "./dto/sendMessageToAll.dto";
+import { google, Auth } from 'googleapis';
 
 
 
 @Injectable()
 export class EmailsService {
-    constructor(private firebaseService: FirebaseService, private hashService: HashService) { }
+    constructor(private firebaseService: FirebaseService, private hashService: HashService, private gmailService: GmailService) { }
 
 
     @ApiOperation({ summary: 'Register an email in Firestore subcollection' })
@@ -171,6 +175,73 @@ export class EmailsService {
         }
     }
 
+
+
+
+    /////////////////
+
+
+
+
+
+    async sendEmailsByPluginId(pluginId: string, sendMessageToAllDto: SendMessageToAllDto, tokens: Auth.Credentials): Promise<SendEmailResponseDto> {
+        try {
+            const emailsResponse = await this.getEmailsByPluginId(pluginId);
+            const emailsList = emailsResponse.emailList;
+
+
+            const oAuth2Client = this.gmailService.createOAuth2Client();
+            oAuth2Client.setCredentials(tokens);
+
+
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    type: 'OAuth2',
+                    user: sendMessageToAllDto.senderEmail,
+                    clientId: process.env.GOOGLE_CLIENT_ID,
+                    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                    refreshToken: tokens.refresh_token,
+                    accessToken: tokens.access_token,
+                },
+            });
+
+
+
+            const failedEmails: string[] = [];
+
+            for (const email of emailsList) {
+                const mailOptions = {
+                    from: sendMessageToAllDto.senderEmail,
+                    subject: sendMessageToAllDto.subject,
+                    text: sendMessageToAllDto.content,
+                    to: email,
+                };
+
+                try {
+                    await transporter.sendMail(mailOptions);
+                    console.log(`Email sent to: ${email}`);
+                } catch (error) {
+                    console.error(`Error sending email to: ${email}`, error);
+                    failedEmails.push(email);
+                }
+            }
+
+            console.log('Emails sent.');
+
+            if (failedEmails.length > 0) {
+                console.log(`The following emails couldn't receive the message: ${failedEmails.join(', ')}`);
+            }
+
+            const responseDto = new SendEmailResponseDto(201, 'EMAILSENTSUCCESSFULLY');
+            responseDto.failedEmails = failedEmails;
+            return responseDto;
+        } catch (error) {
+            console.error('Error sending emails:', error);
+            throw new Error(`Error sending emails: ${error.message}`);
+        }
+    }
 
 
 

@@ -1,11 +1,13 @@
 import { BadRequestException, Body, Controller, Get, Post, Query } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateEmailResponseDto } from "./dto/createEmailResponse.dto";
 import { CreatePluginResponseDto } from "./dto/createPluginResponse.dto";
 import { CreateUserDto } from "./dto/createUser.dto";
 import { CreateUserResponseDto } from "./dto/createUserResponse.dto";
 import { GetEmailsResponseDto } from "./dto/getEmailsResponse.dto";
 import { GetUsersByPluginIdResponseDto } from "./dto/getUsersResponse.dto";
+import { SendEmailResponseDto } from "./dto/sendEmailToAllResponse.dto";
+import { SendMessageToAllDto } from "./dto/sendMessageToAll.dto";
 import { EmailsService } from "./pluginEmails.service";
 
 
@@ -73,7 +75,11 @@ export class EmailsController {
 
 
 
-
+    @ApiOperation({ summary: 'Get emails by plugin ID' })
+    @ApiQuery({ name: 'pluginId', type: String, description: 'Plugin ID' })
+    @ApiResponse({ status: 200, description: 'Success in retrieving emails', type: GetEmailsResponseDto })
+    @ApiResponse({ status: 404, description: 'Plugin not found' })
+    @ApiResponse({ status: 500, description: 'Internal server error' })
     @Get('plugins/emails')
     async getEmailsByPluginId(@Query('pluginId') pluginId: string): Promise<GetEmailsResponseDto> {
         try {
@@ -86,7 +92,11 @@ export class EmailsController {
 
 
 
-
+    @ApiOperation({ summary: 'Get users by plugin ID' })
+    @ApiQuery({ name: 'pluginId', type: String, description: 'Plugin ID' })
+    @ApiResponse({ status: 200, description: 'Success in retrieving users', type: GetUsersByPluginIdResponseDto })
+    @ApiResponse({ status: 404, description: 'Plugin not found' })
+    @ApiResponse({ status: 500, description: 'Internal server error' })
     @Get('plugins/users')
     async getUsersByPluginId(@Query('pluginId') pluginId: string): Promise<GetUsersByPluginIdResponseDto> {
         try {
@@ -97,6 +107,25 @@ export class EmailsController {
             throw new Error(`Error getting users by pluginId: ${error.message}`);
         }
     }
+
+
+    /*
+    @ApiOperation({ summary: 'Send emails by plugin ID' })
+    @ApiQuery({ name: 'pluginId', type: String, description: 'Plugin ID' })
+    @ApiBody({ type: SendMessageToAllDto, description: 'Data to send to all users' })
+    @ApiResponse({ status: 200, description: 'Success in sending emails', type: SendEmailResponseDto })
+    @ApiResponse({ status: 400, description: 'Bad request' })
+    @ApiResponse({ status: 404, description: 'Plugin not found' })
+    @ApiResponse({ status: 500, description: 'Internal server error' })
+    @Post('plugins/messages')
+    async sendEmails(@Query('pluginId') pluginId: string, @Body() sendMessageToAllDto: SendMessageToAllDto): Promise<SendEmailResponseDto> {
+        try {
+            const response = await this.pluginsEmailsService.sendEmailsByPluginId(pluginId, sendMessageToAllDto);
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    }*/
 
 
 
