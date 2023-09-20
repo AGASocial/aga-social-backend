@@ -61,6 +61,7 @@ import { TodoModule } from './Pluggins/todo/todo.module';
 import { EmailsModule } from './Pluggins/emails/pluginEmails.module';
 import { EmailsController } from './Pluggins/emails/pluginsEmails.controller';
 import { EmailsService } from './Pluggins/emails/pluginEmails.service';
+import { GmailService } from './gmail/gmail.service';
 
 
 @Module({
@@ -93,6 +94,7 @@ import { EmailsService } from './Pluggins/emails/pluginEmails.service';
         StripeService,
         TodoService,
         EmailsService,
+        GmailService,
         
         {
             provide: APP_GUARD,
