@@ -183,7 +183,7 @@ export class EmailsService {
 
 
 
-
+    /*
     async sendEmailsByPluginId(pluginId: string, sendMessageToAllDto: SendMessageToAllDto, tokens: Auth.Credentials): Promise<SendEmailResponseDto> {
         try {
             const emailsResponse = await this.getEmailsByPluginId(pluginId);
@@ -242,7 +242,7 @@ export class EmailsService {
             throw new Error(`Error sending emails: ${error.message}`);
         }
     }
-
+    */
 
 
 
