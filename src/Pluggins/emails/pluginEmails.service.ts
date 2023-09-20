@@ -14,15 +14,14 @@ import { GetEmailsResponseDto } from "./dto/getEmailsResponse.dto";
 import { GetUsersByPluginIdResponseDto } from "./dto/getUsersResponse.dto";
 import * as nodemailer from 'nodemailer';
 import { SendEmailResponseDto } from "./dto/sendEmailToAllResponse.dto";
-import { GmailService } from "../../gmail/gmail.service";
 import { SendMessageToAllDto } from "./dto/sendMessageToAll.dto";
-import { google, Auth } from 'googleapis';
+/*import { google, Auth } from 'googleapis';*/
 
 
 
 @Injectable()
 export class EmailsService {
-    constructor(private firebaseService: FirebaseService, private hashService: HashService, private gmailService: GmailService) { }
+    constructor(private firebaseService: FirebaseService, private hashService: HashService) { }
 
 
     @ApiOperation({ summary: 'Register an email in Firestore subcollection' })

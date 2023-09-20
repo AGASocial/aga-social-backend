@@ -1,3 +1,7 @@
+/*
+
+
+
 import { Injectable } from '@nestjs/common';
 import { google, Auth } from 'googleapis';
 import * as dotenv from 'dotenv';
@@ -66,3 +70,4 @@ export class GmailService {
 
 
 }
+*/
