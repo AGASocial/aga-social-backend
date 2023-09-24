@@ -30,7 +30,7 @@ export class CreateSectionDto {
     @ApiProperty({
         description: 'Media (audios or videos) and Ebooks associated with the section.',
     })
-    content: any[];
+    content?: any[];
 
     @ApiProperty({
         description: 'Tags or keywords describing the section content.',
