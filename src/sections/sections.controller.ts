@@ -191,7 +191,7 @@ export class SectionController {
     @ApiResponse({ status: 201, description: 'Resource status updated successfully', type: ManageResourceStatusInSectionResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @ApiBadRequestResponse({ description: 'Invalid input data' })
-    @ApiBody({ type: ManageResourceStatusInSectionDto })
+    @ApiBody({ type: ManageResourceStatusInSubsectionDto })
     @Patch('sections/subsections')
     async manageResourceStatusForSubsections(
         @Body() manageResourceStatusDto: ManageResourceStatusInSubsectionDto,

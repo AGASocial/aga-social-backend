@@ -109,6 +109,28 @@ export class EmailsController {
     }
 
 
+
+
+
+
+
+    @Post('plugins/jsons')
+    async registerJson(
+        @Query('pluginId') pluginId: string,
+        @Query('username') username: string,
+        @Body() jsonData: any,
+    ): Promise<void> {
+        try {
+            await this.pluginsEmailsService.registerJson(pluginId, username, jsonData);
+        } catch (error) {
+            throw new BadRequestException(`Error registering JSON: ${error.message}`);
+        }
+    }
+
+
+
+
+
     /*
     @ApiOperation({ summary: 'Send emails by plugin ID' })
     @ApiQuery({ name: 'pluginId', type: String, description: 'Plugin ID' })

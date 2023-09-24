@@ -15,7 +15,7 @@ import { GetUsersByPluginIdResponseDto } from "./dto/getUsersResponse.dto";
 import * as nodemailer from 'nodemailer';
 import { SendEmailResponseDto } from "./dto/sendEmailToAllResponse.dto";
 import { SendMessageToAllDto } from "./dto/sendMessageToAll.dto";
-/*import { google, Auth } from 'googleapis';*/
+import { CreateJsonResponseDto } from "./dto/createJsonResponse.dto";
 
 
 
@@ -173,6 +173,104 @@ export class EmailsService {
             throw new BadRequestException(`Error fetching users: ${error.message}`);
         }
     }
+
+
+    async registerJson(pluginId: string, username: string, jsonData: any): Promise<CreateJsonResponseDto> {
+        try {
+            const usernameQuery = query(
+                collection(this.firebaseService.fireStore, 'newPlugins', pluginId, 'pluginUsers'),
+                where('username', '==', username)
+            );
+            const usernameQuerySnapshot = await getDocs(usernameQuery);
+
+            if (usernameQuerySnapshot.empty) {
+                throw new BadRequestException('Username does not exist');
+            }
+
+            if (this.hasDuplicateSections(jsonData)) {
+                throw new BadRequestException('Duplicate section names are not allowed');
+            }
+
+            const userJsonsCollectionRef = collection(
+                this.firebaseService.fireStore,
+                'newPlugins',
+                pluginId,
+                'usersJsons'
+            );
+            const newJsonDocRef = await addDoc(userJsonsCollectionRef, { data: jsonData });
+
+            console.log(`JSON registered with ID: ${newJsonDocRef.id}`);
+
+            return new CreateJsonResponseDto(201, 'JSONREGISTEREDSUCCESSFULLY', newJsonDocRef.id);
+        } catch (error) {
+            console.error('Error registering JSON:', error);
+            throw new BadRequestException(`Error registering JSON: ${error.message}`);
+        }
+    }
+
+    private hasDuplicateSections(jsonData: any): boolean {
+        const keySet = new Set<string>();
+
+        for (const key in jsonData) {
+            if (keySet.has(key)) {
+                return true;
+            } else {
+                keySet.add(key);
+            }
+        }
+
+        return false; 
+    }
+
+
+
+
+
+
+
+
+
+
+
+    /*
+    private hasDuplicateSections(jsonData: any): boolean {
+        const sectionNames = new Set<string>();
+        const queue = [jsonData];
+
+        while (queue.length > 0) {
+            const currentObject = queue.pop();
+
+            for (const key in currentObject) {
+                if (typeof currentObject[key] === 'object') {
+                    queue.push(currentObject[key]);
+                } else if (key === 'title') {
+                    const sectionName = currentObject[key];
+                    if (sectionNames.has(sectionName)) {
+                        return true; 
+                    } else {
+                        sectionNames.add(sectionName);
+                    }
+                }
+            }
+        }
+
+        return false; 
+    }*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,25 +1,27 @@
-/*
-
-
-
 import { Injectable } from '@nestjs/common';
-import { google, Auth } from 'googleapis';
+import * as axios from 'axios';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-
-
-
 @Injectable()
 export class GmailService {
-    private oAuth2Client: Auth.OAuth2Client;
-    private tokens: Auth.Credentials | null = null;
-    constructor() {
-        this.oAuth2Client = this.createOAuth2Client();
+    private tokens: any | null = null;
+
+    getAuthorizationUrl(): string {
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+        if (!clientId || !redirectUri) {
+            throw new Error('Missing or Incorrect credentials.');
+        }
+
+        const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=https://www.googleapis.com/auth/gmail.send&access_type=offline&response_type=code`;
+
+        return authUrl;
     }
 
-     createOAuth2Client(): Auth.OAuth2Client {
+    async getTokensFromCode(code: string): Promise<any> {
         const clientId = process.env.GOOGLE_CLIENT_ID;
         const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
         const redirectUri = process.env.GOOGLE_REDIRECT_URI;
@@ -28,46 +30,56 @@ export class GmailService {
             throw new Error('Missing or Incorrect credentials. Make sure to define GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI in the .env file.');
         }
 
-        const oauth2Client = new google.auth.OAuth2(
-            clientId,
-            clientSecret,
-            redirectUri
-        );
+        const tokenUrl = 'https://accounts.google.com/o/oauth2/token';
+        const data = {
+            code,
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri,
+            grant_type: 'authorization_code',
+        };
 
-        return oauth2Client;
+        try {
+            const response = await axios.default.post(tokenUrl, null, {
+                params: data,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            });
+            const tokens = response.data;
+            this.tokens = tokens;
+            return tokens;
+        } catch (error) {
+            throw new Error('Error getting access tokens: ' + error.message);
+        }
     }
 
-    // Method to get the authorization URL
-    getAuthorizationUrl(): string {
-        const SCOPES = ['https://www.googleapis.com/auth/gmail.send']; // Permission to send emails
-
-        const authUrl = this.oAuth2Client.generateAuthUrl({
-            access_type: 'offline', 
-            scope: SCOPES,
-        });
-
-        return authUrl;
-    }
-
-    // Method to exchange the authorization code for access and refresh tokens
-    async getTokensFromCode(code: string): Promise<Auth.Credentials> {
-        const { tokens } = await this.oAuth2Client.getToken(code);
+    setCredentials(tokens: any) {
         this.tokens = tokens;
-        return tokens;
     }
 
+    async sendEmail(subject: string, message: string, to: string): Promise<any> {
+        if (!this.tokens) {
+            throw new Error('Access tokens not available. Make sure to obtain tokens first.');
+        }
 
-    setCredentials(tokens: Auth.Credentials) {
-        this.oAuth2Client.setCredentials(tokens);
+        const email = {
+            to,
+            subject,
+            message,
+        };
+
+        const apiUrl = 'https://www.googleapis.com/gmail/v1/users/me/messages/send';
+        const headers = {
+            Authorization: `Bearer ${this.tokens.access_token}`,
+            'Content-Type': 'application/json',
+        };
+
+        try {
+            const response = await axios.default.post(apiUrl, email, {
+                headers,
+            });
+            return response.data;
+        } catch (error) {
+            throw new Error('Error sending email: ' + error.message);
+        }
     }
-
-
-
-    getStoredTokens(): Auth.Credentials | null {
-        return this.tokens;
-    }
-
-
-
 }
-*/
