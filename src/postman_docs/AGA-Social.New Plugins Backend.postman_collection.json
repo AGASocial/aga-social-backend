@@ -108,6 +108,192 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Enviar Mensaje",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Registrar Json",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"glossary\": {\r\n    \"HTTP\": {\r\n      \"title\": \"Protocol\"\r\n    },\r\n    \"HTTP GET\": {\r\n      \"title\": \"Method\"\r\n    }\r\n  },\r\n\r\n\r\n    \"glossary\": {\r\n    \"HTTP\": {\r\n      \"title\": \"Protocol\"\r\n    },\r\n    \"HTTP GET\": {\r\n      \"title\": \"Method\"\r\n    }\r\n  },\r\n  \"features\": {\r\n    \"1\": {\r\n      \"title\": \"Dynamic\"\r\n    },\r\n    \"2\": {\r\n      \"title\": \"Configurable\"\r\n    }\r\n  },\r\n  \"cars\": [\"Ford\", \"BMW\", \"Fiat\"],\r\n  \"models\": [\r\n    {\r\n      \"Fiesta\": \"\"\r\n    },\r\n    {\r\n      \"Focus\": \"\"\r\n    },\r\n    {\r\n      \"Uno\": \"\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}plugins/jsons?pluginId=cUyTYJELpSRwZcQ12gBn&username=pruebita",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"jsons"
+					],
+					"query": [
+						{
+							"key": "pluginId",
+							"value": "cUyTYJELpSRwZcQ12gBn"
+						},
+						{
+							"key": "username",
+							"value": "pruebita"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener JSON Completo",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}plugins/jsons?pluginId=cUyTYJELpSRwZcQ12gBn&jsonId=yBn3zU628p5VengC1e93",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"jsons"
+					],
+					"query": [
+						{
+							"key": "pluginId",
+							"value": "cUyTYJELpSRwZcQ12gBn"
+						},
+						{
+							"key": "jsonId",
+							"value": "yBn3zU628p5VengC1e93"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener Seccion de un JSON",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}plugins/jsons/sections?pluginId=cUyTYJELpSRwZcQ12gBn&jsonId=yBn3zU628p5VengC1e93&sectionName=glossary",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"jsons",
+						"sections"
+					],
+					"query": [
+						{
+							"key": "pluginId",
+							"value": "cUyTYJELpSRwZcQ12gBn"
+						},
+						{
+							"key": "jsonId",
+							"value": "yBn3zU628p5VengC1e93"
+						},
+						{
+							"key": "sectionName",
+							"value": "glossary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Agregar Secciones a un JSON",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"pluginId\": \"cUyTYJELpSRwZcQ12gBn\",\r\n    \"jsonId\": \"yBn3zU628p5VengC1e93\",\r\n    \"newSections\": {\r\n        \"agregar\": {\r\n                \"bebida\": {\r\n                    \"nombre\": \"Pepsi\"\r\n                },\r\n                \"comida\": {\r\n                    \"nombre\": \"Cachapa\"\r\n                }\r\n            },\r\n        \"quitar\": {\r\n            \"Refresco\": {\r\n                    \"nombre\": \"Chinoto\"\r\n                },\r\n                \"Pescado\": {\r\n                    \"nombre\": \"Jurel\"\r\n                }\r\n            }\r\n    }\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}plugins/jsons",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"jsons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar Secciones a un JSON",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{server}}plugins/jsons?pluginId=cUyTYJELpSRwZcQ12gBn&jsonId=yBn3zU628p5VengC1e93&sectionName=agregar",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"jsons"
+					],
+					"query": [
+						{
+							"key": "pluginId",
+							"value": "cUyTYJELpSRwZcQ12gBn"
+						},
+						{
+							"key": "jsonId",
+							"value": "yBn3zU628p5VengC1e93"
+						},
+						{
+							"key": "sectionName",
+							"value": "agregar"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Seccion a un JSON",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"pluginId\": \"cUyTYJELpSRwZcQ12gBn\",\r\n    \"jsonId\": \"yBn3zU628p5VengC1e93\",\r\n    \"sectionName\": \"cars\",\r\n    \"updatedData\": {\r\n        \"cars\": [\r\n            \"Carro\"\r\n        ]\r\n    }\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}plugins/jsons",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"jsons"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
