@@ -1,13 +1,18 @@
-import { BadRequestException, Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Patch, Post, Put, Query } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { AddJsonSectionsResponseDto } from "./dto/addJsonSectionsResponse.dto";
 import { CreateEmailResponseDto } from "./dto/createEmailResponse.dto";
+import { CreateJsonResponseDto } from "./dto/createJsonResponse.dto";
 import { CreatePluginResponseDto } from "./dto/createPluginResponse.dto";
 import { CreateUserDto } from "./dto/createUser.dto";
 import { CreateUserResponseDto } from "./dto/createUserResponse.dto";
+import { DeleteJsonSectionsResponseDto } from "./dto/deleteJsonSectionsResponse.dto";
+import { GetJsonByIdResponseDto } from "./dto/getCompleteJsonByIdResponse.dto";
 import { GetEmailsResponseDto } from "./dto/getEmailsResponse.dto";
 import { GetUsersByPluginIdResponseDto } from "./dto/getUsersResponse.dto";
 import { SendEmailResponseDto } from "./dto/sendEmailToAllResponse.dto";
 import { SendMessageToAllDto } from "./dto/sendMessageToAll.dto";
+import { UpdateJsonResponseDto } from "./dto/updateJsonResponse.dto";
 import { EmailsService } from "./pluginEmails.service";
 
 
@@ -119,13 +124,102 @@ export class EmailsController {
         @Query('pluginId') pluginId: string,
         @Query('username') username: string,
         @Body() jsonData: any,
-    ): Promise<void> {
+    ): Promise<CreateJsonResponseDto> {
         try {
-            await this.pluginsEmailsService.registerJson(pluginId, username, jsonData);
+            return this.pluginsEmailsService.registerJson(pluginId, username, jsonData);
         } catch (error) {
             throw new BadRequestException(`Error registering JSON: ${error.message}`);
         }
     }
+
+
+
+
+
+    @Get('plugins/jsons')
+    async getJsonById(
+        @Query('pluginId') pluginId: string,
+        @Query('jsonId') jsonId: string,
+    ): Promise<GetJsonByIdResponseDto> {
+        try {
+           return this.pluginsEmailsService.getJsonById(pluginId, jsonId);
+        } catch (error) {
+            throw new BadRequestException(`Error retrieving JSON: ${error.message}`);
+            }
+    }
+
+
+
+    @Get('plugins/jsons/sections')
+    async getJsonSectionById(
+        @Query('pluginId') pluginId: string,
+        @Query('jsonId') jsonId: string,
+        @Query('sectionName') sectionName: string,
+    ): Promise<GetJsonByIdResponseDto> {
+
+        try {
+            const response = await this.pluginsEmailsService.getJsonSectionById(pluginId, jsonId, sectionName);
+            return response;
+        } catch (error) {
+            throw new BadRequestException(`Error retrieving JSON: ${error.message}`);
+        }
+    }
+
+
+
+    @Put('plugins/jsons')
+    async addJsonSections(
+        @Body('pluginId') pluginId: string,
+        @Body('jsonId') jsonId: string,
+        @Body('newSections') newSections: any
+    ): Promise<AddJsonSectionsResponseDto> {
+        try {
+            const response = await this.pluginsEmailsService.addJsonSections(pluginId, jsonId, newSections);
+            return response;
+        } catch (error) {
+            throw new BadRequestException(`Error adding JSON sections: ${error.message}`);
+        }
+    }
+
+
+
+    @Delete('plugins/jsons')
+    async deleteJsonSectionById(
+        @Query('pluginId') pluginId: string,
+        @Query('jsonId') jsonId: string,
+        @Query('sectionName') sectionName: string
+    ): Promise<DeleteJsonSectionsResponseDto> {
+        try {
+            return await this.pluginsEmailsService.deleteJsonSectionById(pluginId, jsonId, sectionName);
+        } catch (error) {
+            throw new BadRequestException(`Error deleting JSON sections: ${error.message}`);
+        }
+    }
+
+
+
+
+
+    @Patch('plugins/jsons')
+    async updateJsonSection(@Body() requestPayload: any): Promise<UpdateJsonResponseDto> {
+        try {
+            const { pluginId, jsonId, sectionName, updatedData } = requestPayload;
+            return this.pluginsEmailsService.updateJsonSection(pluginId, jsonId, sectionName, updatedData);
+        } catch (error) {
+            throw new BadRequestException(`Error updating JSON section: ${error.message}`);
+        }
+    }
+
+
+
+
+
+
+    }
+
+
+
+
 
 
 
@@ -153,7 +247,6 @@ export class EmailsController {
 
 
 
-}
 
 
 
