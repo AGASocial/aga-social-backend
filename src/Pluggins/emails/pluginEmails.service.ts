@@ -1,25 +1,16 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ApiBadRequestResponse, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from "@nestjs/swagger";
 import { addDoc, collection, CollectionReference, doc, DocumentReference, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../../firebase/firebase.service";
 import { CreateEmailResponseDto } from "./dto/createEmailResponse.dto";
 import { CreatePluginResponseDto } from "./dto/createPluginResponse.dto";
 import { v4 as uuidv4 } from 'uuid';
-import { CreateUserDto } from "./dto/createUser.dto";
-import { CreateUserResponseDto } from "./dto/createUserResponse.dto";
-import { UsersService } from "../../users/users.service";
 import { HashService } from "../../utils/hash.service";
 import { GetEmailsResponseDto } from "./dto/getEmailsResponse.dto";
-import { GetUsersByPluginIdResponseDto } from "./dto/getUsersResponse.dto";
 import * as nodemailer from 'nodemailer';
 import { SendEmailResponseDto } from "./dto/sendEmailToAllResponse.dto";
 import { SendMessageToAllDto } from "./dto/sendMessageToAll.dto";
-import { CreateJsonResponseDto } from "./dto/createJsonResponse.dto";
-import { GetJsonByIdResponseDto } from "./dto/getCompleteJsonByIdResponse.dto";
-import { AddJsonSectionsResponseDto } from "./dto/addJsonSectionsResponse.dto";
-import { DeleteJsonSectionsResponseDto } from "./dto/deleteJsonSectionsResponse.dto";
-import { UpdateJsonResponseDto } from "./dto/updateJsonResponse.dto";
 
 
 
@@ -79,49 +70,17 @@ export class EmailsService {
 
 
 
-    async registerUser(createUserDto: CreateUserDto, pluginId: string): Promise<CreateUserResponseDto> {
-        try {
-            const { email, username, password, name } = createUserDto;
-
-            const emailQuery = query(
-                collection(this.firebaseService.fireStore, 'newPlugins', pluginId, 'pluginUsers'),
-                where('email', '==', email)
-            );
-            const emailQuerySnapshot = await getDocs(emailQuery);
-
-            const usernameQuery = query(
-                collection(this.firebaseService.fireStore, 'newPlugins', pluginId, 'pluginUsers'),
-                where('username', '==', username)
-            );
-            const usernameQuerySnapshot = await getDocs(usernameQuery);
-
-            if (!emailQuerySnapshot.empty) {
-                throw new BadRequestException('Email already exists');
-            }
-
-            if (!usernameQuerySnapshot.empty) {
-                throw new BadRequestException('Username already exists');
-            }
-
-            const hashedPassword = await this.hashService.hashString(password);
-            createUserDto.password = hashedPassword;
-
-            const userId = uuidv4();
-
-            const pluginDocumentRef: DocumentReference = doc(this.firebaseService.fireStore, 'newPlugins', pluginId);
-            const usersCollectionRef = collection(pluginDocumentRef, 'pluginUsers');
-
-            await addDoc(usersCollectionRef, { email, username, hashedPassword, name, userId });
-
-            return new CreateUserResponseDto(201, 'USERREGISTEREDSUCCESSFULLY', userId);
-        } catch (error) {
-            console.error('Error registering the user:', error);
-            throw new BadRequestException(`Error registering the user: ${error.message}`);
-        }
-    }
 
 
 
+
+
+    @ApiOperation({ summary: 'Retrieve emails by plugin ID' })
+    @ApiOkResponse({
+        description: 'Emails retrieved successfully.',
+        type: GetEmailsResponseDto,
+    })
+    @ApiNotFoundResponse({ description: 'Plugin not found or no emails available.' })
     async getEmailsByPluginId(pluginId: string): Promise<GetEmailsResponseDto> {
         try {
             const pluginDocumentRef = doc(this.firebaseService.fireStore, 'newPlugins', pluginId);
@@ -147,300 +106,6 @@ export class EmailsService {
             throw new Error(`Error fetching emails: ${error.message}`);
         }
     }
-
-
-
-
-    async getUsersByPluginId(pluginId: string): Promise<GetUsersByPluginIdResponseDto> {
-        try {
-            const pluginDocumentRef = doc(this.firebaseService.fireStore, 'newPlugins', pluginId);
-            const usersCollectionRef = collection(pluginDocumentRef, 'pluginUsers');
-            const querySnapshot = await getDocs(usersCollectionRef);
-
-            const users: Record<string, any>[] = [];
-
-            querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                const { hashedPassword, ...userWithoutPassword } = userData;
-                users.push(userWithoutPassword);
-            });
-
-            const responseDto = new GetUsersByPluginIdResponseDto(
-                200,
-                'USERSRETRIEVEDSUCCESSFULLY',
-                users,
-            );
-
-            return responseDto;
-        } catch (error) {
-            console.error('Error fetching users:', error);
-            throw new BadRequestException(`Error fetching users: ${error.message}`);
-        }
-    }
-
-
-
-    //////////////   JSON   ///////////////////////
-
-
-
-
-
-
-    //Check this
-    async registerJson(pluginId: string, username: string, jsonData: any): Promise<CreateJsonResponseDto> {
-        try {
-            const usernameQuery = query(
-                collection(this.firebaseService.fireStore, 'newPlugins', pluginId, 'pluginUsers'),
-                where('username', '==', username)
-            );
-            const usernameQuerySnapshot = await getDocs(usernameQuery);
-
-            if (usernameQuerySnapshot.empty) {
-                throw new BadRequestException('Username does not exist');
-            }
-
-            const hasDuplicateTopLevelKeys = (obj: any) => {
-                const keys = new Set<string>();
-                for (const key in obj) {
-                    if (keys.has(key)) {
-                        return true; 
-                    }
-                    keys.add(key);
-                }
-                return false; 
-            };
-
-            if (hasDuplicateTopLevelKeys(jsonData)) {
-                throw new BadRequestException('Duplicate top-level section names are not allowed');
-            }
-
-            const jsonWithUploader = { data: jsonData, uploaderUsername: username };
-
-            const userJsonsCollectionRef = collection(
-                this.firebaseService.fireStore,
-                'newPlugins',
-                pluginId,
-                'usersJsons'
-            );
-            const newJsonDocRef = await addDoc(userJsonsCollectionRef, jsonWithUploader);
-
-            console.log(`JSON registered with ID: ${newJsonDocRef.id}`);
-
-            return new CreateJsonResponseDto(201, 'JSONREGISTEREDSUCCESSFULLY', newJsonDocRef.id);
-        } catch (error) {
-            console.error('Error registering JSON:', error);
-            throw new BadRequestException(`Error registering JSON: ${error.message}`);
-        }
-    }
-
-
-
-
-
-
-    async getJsonById(pluginId: string, jsonId: string): Promise<GetJsonByIdResponseDto> {
-        try {
-            const userJsonsCollectionRef = collection(
-                this.firebaseService.fireStore,
-                'newPlugins',
-                pluginId,
-                'usersJsons'
-            );
-
-            const jsonDocRef = doc(userJsonsCollectionRef, jsonId);
-            const jsonDocSnapshot = await getDoc(jsonDocRef);
-
-            if (jsonDocSnapshot.exists()) {
-                const jsonData = jsonDocSnapshot.data();
-                return new GetJsonByIdResponseDto(200, 'JSONRETRIEVEDSUCCESSFULLY', jsonData);
-            } else {
-                throw new NotFoundException('JSON not found');
-            }
-        } catch (error) {
-            console.error('Error getting JSON:', error);
-            throw new NotFoundException(`Error getting JSON: ${error.message}`);
-        }
-    }
-
-
-
-    async getJsonSectionById(pluginId: string, jsonId: string, sectionName: string): Promise<GetJsonByIdResponseDto> {
-        try {
-            const userJsonsCollectionRef = collection(
-                this.firebaseService.fireStore,
-                'newPlugins',
-                pluginId,
-                'usersJsons'
-            );
-
-            const jsonDocRef = doc(userJsonsCollectionRef, jsonId);
-            const jsonDocSnapshot = await getDoc(jsonDocRef);
-
-            if (jsonDocSnapshot.exists()) {
-                const jsonData = jsonDocSnapshot.data()?.data;
-
-                if (jsonData) {
-                    const lowerSectionName = sectionName.toLowerCase();
-                    const jsonDataLower = Object.keys(jsonData).reduce((acc, key) => {
-                        acc[key.toLowerCase()] = jsonData[key];
-                        return acc;
-                    }, {});
-
-                    if (jsonDataLower[lowerSectionName]) {
-                        const sectionData = jsonDataLower[lowerSectionName];
-
-                        const responsePayload = {
-                            [lowerSectionName]: sectionData,
-                        };
-
-                        const response = new GetJsonByIdResponseDto(200, 'JSONRETRIEVEDSUCCESSFULLY', responsePayload);
-
-                        return response;
-                    }
-                }
-            }
-
-            throw new NotFoundException(`Section '${sectionName}' not found in JSON`);
-        } catch (error) {
-            console.error(`Error getting section '${sectionName}':`, error);
-            throw new NotFoundException(`Error getting section '${sectionName}': ${error.message}`);
-        }
-    }
-
-
-
-
-
-    async addJsonSections(pluginId: string, jsonId: string, newSections: any): Promise<AddJsonSectionsResponseDto> {
-        try {
-            const userJsonsCollectionRef = collection(
-                this.firebaseService.fireStore,
-                'newPlugins',
-                pluginId,
-                'usersJsons'
-            );
-
-            const jsonDocRef = doc(userJsonsCollectionRef, jsonId);
-            const jsonDocSnapshot = await getDoc(jsonDocRef);
-
-            if (jsonDocSnapshot.exists()) {
-                const jsonData = jsonDocSnapshot.data()?.data;
-
-                if (jsonData) {
-                    const existingSectionNames = Object.keys(jsonData);
-                    const newSectionNames = Object.keys(newSections);
-
-                    const intersection = existingSectionNames.filter(name => newSectionNames.includes(name));
-
-                    if (intersection.length === 0) {
-                        const updatedData = { ...jsonData, ...newSections };
-
-                        await updateDoc(jsonDocRef, { data: updatedData });
-
-                        return new AddJsonSectionsResponseDto(201, 'SECTIONSADDEDSUCCESSFULLY');
-                    } else {
-                        throw new Error('One or more sections have names that already exist.');
-                    }
-                }
-            }
-
-            throw new NotFoundException(`JSON with ID '${jsonId}' not found.`);
-        } catch (error) {
-            console.error('Error adding JSON sections:', error);
-            throw error;
-        }
-    }
-
-
-
-    async deleteJsonSectionById(pluginId: string, jsonId: string, sectionName: string): Promise<DeleteJsonSectionsResponseDto> {
-        try {
-            const userJsonsCollectionRef = collection(
-                this.firebaseService.fireStore,
-                'newPlugins',
-                pluginId,
-                'usersJsons'
-            );
-
-            const jsonDocRef = doc(userJsonsCollectionRef, jsonId);
-            const jsonDocSnapshot = await getDoc(jsonDocRef);
-
-            if (jsonDocSnapshot.exists()) {
-                const jsonData = jsonDocSnapshot.data()?.data;
-
-                if (jsonData && jsonData[sectionName]) {
-                    delete jsonData[sectionName];
-
-                    await updateDoc(jsonDocRef, { data: jsonData });
-
-                    return new DeleteJsonSectionsResponseDto(200, 'SECTIONSDELETEDSUCCESSFULLY');
-                } else {
-                    throw new NotFoundException(`Section '${sectionName}' not found in JSON`);
-                }
-            }
-
-            throw new NotFoundException(`JSON with ID '${jsonId}' not found.`);
-        } catch (error) {
-            console.error(`Error deleting section '${sectionName}':`, error);
-            throw error;
-        }
-    }
-
-
-
-    async updateJsonSection(pluginId: string, jsonId: string, sectionName: string, updatedData: any): Promise<UpdateJsonResponseDto> {
-        try {
-            const userJsonsCollectionRef = collection(
-                this.firebaseService.fireStore,
-                'newPlugins',
-                pluginId,
-                'usersJsons'
-            );
-
-            const jsonDocRef = doc(userJsonsCollectionRef, jsonId);
-            const jsonDocSnapshot = await getDoc(jsonDocRef);
-
-            if (jsonDocSnapshot.exists()) {
-                const jsonData = jsonDocSnapshot.data()?.data;
-
-                if (jsonData) {
-                    const lowerSectionName = sectionName.toLowerCase();
-                    const jsonDataLower = Object.keys(jsonData).reduce((acc, key) => {
-                        acc[key.toLowerCase()] = jsonData[key];
-                        return acc;
-                    }, {});
-
-                    if (jsonDataLower[lowerSectionName]) {
-                        jsonDataLower[lowerSectionName] = updatedData[lowerSectionName];
-
-                        await setDoc(jsonDocRef, { data: jsonDataLower }, { merge: true });
-
-                        const responsePayload = {
-                            [lowerSectionName]: jsonDataLower[lowerSectionName],
-                        };
-
-                        const response = new UpdateJsonResponseDto(200, 'JSONUPDATEDSUCCESSFULLY', responsePayload);
-
-                        return response;
-                    }
-                }
-            }
-
-            throw new NotFoundException(`Section '${sectionName}' not found in JSON`);
-        } catch (error) {
-            console.error(`Error updating section '${sectionName}':`, error);
-            throw new NotFoundException(`Error updating section '${sectionName}': ${error.message}`);
-        }
-    }
-
-
-
-
-
-
-
-
 
 
 
