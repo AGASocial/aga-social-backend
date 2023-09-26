@@ -61,17 +61,23 @@ import { TodoModule } from './Pluggins/todo/todo.module';
 import { EmailsModule } from './Pluggins/emails/pluginEmails.module';
 import { EmailsController } from './Pluggins/emails/pluginsEmails.controller';
 import { EmailsService } from './Pluggins/emails/pluginEmails.service';
+import { PluginUsersModule } from './Pluggins/users/pluginsUsers.module';
+import { PluginUsersController } from './Pluggins/users/pluginUsers.controller';
+import { PluginUsersService } from './Pluggins/users/pluginsUsers.service';
+import { PluginCollectionsModule } from './Pluggins/collections/plugincollections.module';
+import { PluginCollectionsService } from './Pluggins/collections/plugincollections.service';
+import { PluginCollectionsController } from './Pluggins/collections/plugincollections.controller';
 
 
 @Module({
-    imports: [EmailsModule, TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [PluginCollectionsModule, PluginUsersModule, EmailsModule, TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
     }), SessionModule, RolesModule, JwtModule.register({
         secret: process.env.jwtConstants,
         signOptions: { expiresIn: '60s' }
     })],
-    controllers: [EmailsController, ValidationController, TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController,LikesController,NotesController, PlugginController, StripeController, TodoController],
+    controllers: [PluginCollectionsController, PluginUsersController, EmailsController, ValidationController, TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController,LikesController,NotesController, PlugginController, StripeController, TodoController],
     providers: [
         AppService,
         DataFiltererService,
@@ -93,6 +99,8 @@ import { EmailsService } from './Pluggins/emails/pluginEmails.service';
         StripeService,
         TodoService,
         EmailsService,
+        PluginUsersService,
+        PluginCollectionsService,
         
         {
             provide: APP_GUARD,
