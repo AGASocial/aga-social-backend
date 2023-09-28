@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse } from "@nestjs/swagger";
-import { addDoc, collection, CollectionReference, doc, DocumentReference, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, CollectionReference, doc, DocumentData, DocumentReference, getDoc, getDocs, query, QuerySnapshot, setDoc, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../../firebase/firebase.service";
 import { CreateEmailResponseDto } from "./dto/createEmailResponse.dto";
 import { CreatePluginResponseDto } from "./dto/createPluginResponse.dto";
@@ -45,26 +45,31 @@ export class EmailsService {
         status: 500,
         description: 'Internal server error',
     })
-    async registerNewPlugin(domain: string): Promise<CreatePluginResponseDto> {
+    async registerNewPlugin(domain: string, userId: string): Promise<CreatePluginResponseDto> {
         try {
             const newPluginsCollectionRef: CollectionReference = collection(this.firebaseService.fireStore, 'newPlugins');
+            const usersCollectionRef: CollectionReference = collection(this.firebaseService.fireStore, 'users');
+            const userQuerySnapshot: QuerySnapshot<DocumentData> = await getDocs(usersCollectionRef);
+            const userDoc = userQuerySnapshot.docs.find((doc) => doc.data().id === userId);
 
-            const ownerId: string = uuidv4();
+            if (!userDoc) {
+                throw new BadRequestException(`User with userId ${userId} does not exist.`);
+            }
+           
 
             const pluginData = {
                 domain,
-                ownerId,
+                userId,
             };
 
             const newPluginDocumentRef: DocumentReference = await addDoc(newPluginsCollectionRef, pluginData);
 
             const newPluginId = newPluginDocumentRef.id;
 
-            return new CreatePluginResponseDto(201, 'PLUGINCREATEDSUCCESSFULLY', newPluginId, ownerId);
+            return new CreatePluginResponseDto(201, 'PLUGINCREATEDSUCCESSFULLY', newPluginId, userId);
         } catch (error) {
             console.error('Error registering the new plugin:', error);
-            throw new Error(`Error registering the new plugin: ${error.message}`);
-        }
+            return new CreatePluginResponseDto(400, error.message, undefined, undefined);        }
     }
 
 

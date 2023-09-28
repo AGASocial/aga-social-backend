@@ -11,6 +11,15 @@
 			"request": {
 				"method": "POST",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"domain\": \"midominio.com.ve\",\r\n\"userId\": \"0EwINikFVAg7jtRdkZYiTBXN4vW2\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
 					"raw": "{{server}}plugins",
 					"host": [
