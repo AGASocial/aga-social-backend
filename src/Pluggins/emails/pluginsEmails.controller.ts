@@ -18,20 +18,19 @@ export class EmailsController {
 
 
 
-
     @Post('plugins')
     @ApiOperation({ summary: 'Register a new plugin in Firestore' })
     @ApiCreatedResponse({ description: 'The plugin was created successfully', type: CreatePluginResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async registerNewPlugin(@Body() body: { domain: string;  }): Promise<CreatePluginResponseDto> {
+    async registerNewPlugin(@Body() body: { domain: string; userId: string }): Promise<CreatePluginResponseDto> {
         try {
-            const { domain} = body;
-            return await this.pluginsEmailsService.registerNewPlugin(domain);
+            const { domain, userId } = body;
+            return await this.pluginsEmailsService.registerNewPlugin(domain, userId);
         } catch (error) {
             console.error('Error registering the new plugin:', error);
             throw new Error(`Error registering the new plugin: ${error.message}`);
         }
     }
+
 
 
 

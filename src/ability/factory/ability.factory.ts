@@ -6,7 +6,7 @@ import { Policy } from "../../roles/entities/policy.entity";
 import { RolesService } from "../../roles/roles.service";
 import { UsersService } from "../../users/users.service";
 
-export type Subjects = InferSubjects<'User' | 'Role'> | 'all';  //Agregar otras entidades luego
+export type Subjects = InferSubjects<'User' | 'Role'> | 'all';  
 
 export type AppAbility = MongoAbility<[Action, Subjects]>;
 
@@ -18,7 +18,6 @@ export class AbilityFactory {
     async defineAbility(userId: string) {
         const { can, cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
 
-        // Obtener el rol del usuario directamente de su entidad
         const userSnap = await this.usersService.getUserById(userId);
         const userRole = await this.usersService.getUserRole(userSnap);
 
