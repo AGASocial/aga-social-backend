@@ -600,6 +600,77 @@ export class EbookService {
 
 
 
+    @ApiOperation({
+        summary: 'Get books purchased by the user',
+        description: 'Fetches a list of books that have been purchased by the specified user.',
+    })
+    @ApiOkResponse({
+        description: 'Books retrieved successfully',
+        type: GetEbooksResponseDto,
+    })
+    @ApiNotFoundResponse({
+        description: 'No ebooks found for the user',
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+    })
+    async getPurchasedBooks(userId: string): Promise<GetEbooksResponseDto> {
+        try {
+            const usersRef = this.firebaseService.usersCollection;
+            const usersQuery = query(usersRef, where('id', '==', userId));
+            const usersQuerySnapshot = await getDocs(usersQuery);
+            const userDoc = usersQuerySnapshot.docs[0];
+
+            if (!userDoc.exists()) {
+                return new GetEbooksResponseDto(404, 'USER_NOT_FOUND', []);
+            }
+
+            const userData = userDoc.data();
+
+            if (!userData.purchasedBooks || userData.purchasedBooks.length === 0) {
+                return new GetEbooksResponseDto(200, 'NO_EBOOKS_FOUND', []);
+            }
+
+            const purchasedEbookIds: string[] = userData.purchasedBooks;
+            const purchasedEbooksDetails: Ebook[] = [];
+
+            const ebooksRef = this.firebaseService.ebooksCollection;
+            const ebooksQuery = query(ebooksRef, where('id', 'in', purchasedEbookIds));
+            const ebooksQuerySnapshot = await getDocs(ebooksQuery);
+
+
+
+            ebooksQuerySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const releaseTimestamp: Timestamp = data.releaseDate;
+                const releaseDate = convertFirestoreTimestamp(releaseTimestamp);
+                const ebookDetails: Ebook = {
+                    title: data.title,
+                    publisher: data.publisher,
+                    author: data.author,
+                    description: data.description,
+                    titlePage: data.titlePage,
+                    url: data.url,
+                    releaseDate: releaseDate,
+                    price: data.price,
+                    language: data.language,
+                    pageCount: data.pageCount,
+                    genres: data.genres,
+                    format: data.format,
+                    salesCount: data.salesCount,
+                    active: data.active,
+                };
+                purchasedEbooksDetails.push(ebookDetails);
+            });
+
+            return new GetEbooksResponseDto(200, 'EBOOKS_RETRIEVED_SUCCESSFULLY', purchasedEbooksDetails);
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the purchased books for the user.');
+        }
+    }
+
+
    
 
 

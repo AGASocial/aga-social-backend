@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
 import { DocResult } from "../../utils/docResult.entity";
+import { Course } from "../entities/course.entity";
 
 export class GetCoursesResponseDto {
 
@@ -37,11 +38,11 @@ export class GetCoursesResponseDto {
     @ApiProperty({
         description: 'Array containing the info of every course found'
     })
-    public coursesFound: DocResult[]
+    public coursesFound: DocResult[] | Course[]
 
 
 
-    constructor(statusCode: number, message: string, coursesFound: DocResult[]) {
+    constructor(statusCode: number, message: string, coursesFound: DocResult[] | Course[]) {
         this.statusCode = statusCode;
         this.message = message;
         this.coursesFound = coursesFound;

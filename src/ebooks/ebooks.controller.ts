@@ -157,6 +157,21 @@ export class EbookController {
 
 
 
+    @ApiOperation({ summary: 'Get books purchased by the user' })
+    @ApiQuery({ name: 'userId', type: String, required: true, description: 'User ID' })
+    @ApiResponse({ status: 200, description: 'Success', type: GetEbooksResponseDto })
+    @ApiResponse({ status: 400, description: 'Bad request' })
+    @ApiResponse({ status: 500, description: 'Internal server error' })
+    @Get('users/ebooks') 
+    async getPurchasedBooks(@Query('userId') userId: string): Promise<GetEbooksResponseDto> {
+        try {
+            const result = await this.ebookService.getPurchasedBooks(userId);
+            return result;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the purchased books for the user.');
+        }
+    }
 
 
 

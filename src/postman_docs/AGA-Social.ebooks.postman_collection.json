@@ -225,6 +225,29 @@
 			"response": []
 		},
 		{
+			"name": "Consultar Ebooks de un Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}users/ebooks?userId=0EwINikFVAg7jtRdkZYiTBXN4vW2",
+					"host": [
+						"{{server}}users"
+					],
+					"path": [
+						"ebooks"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "0EwINikFVAg7jtRdkZYiTBXN4vW2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Comprar Ebook Stripe",
 			"request": {
 				"method": "POST",

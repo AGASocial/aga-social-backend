@@ -590,8 +590,71 @@ export class CourseService {
 
 
 
+    @ApiOperation({
+        summary: 'Get purchased courses from an user',
+        description: 'Fetches a list of courses that have been purchased by the specified user.',
+    })
+    @ApiOkResponse({
+        description: 'Courses retrieved successfully',
+        type: GetCoursesResponseDto,
+    })
+    @ApiNotFoundResponse({
+        description: 'No courses found for the user',
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'Internal server error',
+    })
+    async getPurchasedCourses(userId: string): Promise<GetCoursesResponseDto> {
+        try {
+            const usersRef = this.firebaseService.usersCollection;
+            const usersQuery = query(usersRef, where('id', '==', userId));
+            const usersQuerySnapshot = await getDocs(usersQuery);
+            const userDoc = usersQuerySnapshot.docs[0];
 
+            if (!userDoc.exists()) {
+                return new GetCoursesResponseDto(404, 'USER_NOT_FOUND', []);
+            }
 
+            const userData = userDoc.data();
+
+            if (!userData.purchasedCourses || userData.purchasedCourses.length === 0) {
+                return new GetCoursesResponseDto(200, 'NO_COURSES_FOUND', []);
+            }
+
+            const purchasedCourseIds: string[] = userData.purchasedCourses;
+            const purchasedCoursesDetails: Course[] = [];
+
+            const coursesRef = this.firebaseService.coursesCollection;
+            const coursesQuery = query(coursesRef, where('id', 'in', purchasedCourseIds));
+            const coursesQuerySnapshot = await getDocs(coursesQuery);
+
+            coursesQuerySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const courseDetails: Course = {
+                    id: data.id,
+                    title: data.title,
+                    description: data.description,
+                    publisher: data.publisher,
+                    price: data.price,
+                    sections: data.sections,
+                    tags: data.tags,
+                    releaseDate: data.releaseDate,
+                    instructorList: data.instructorList,
+                    language: data.language,
+                    offersCertificate: data.offersCertificate,
+                    salesCount: data.salesCount,
+                    active: data.active,
+                    titlePage: data.titlePage,
+                };
+                purchasedCoursesDetails.push(courseDetails);
+            });
+
+            return new GetCoursesResponseDto(200, 'COURSES_RETRIEVED_SUCCESSFULLY', purchasedCoursesDetails);
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the purchased courses for the user.');
+        }
+    }
 
 
 
