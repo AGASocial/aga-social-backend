@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
 import { DocResult } from "../../utils/docResult.entity";
+import { Ebook } from "../entities/ebooks.entity";
 
 export class GetEbooksResponseDto {
 
@@ -29,11 +30,10 @@ export class GetEbooksResponseDto {
     @ApiProperty({
         description: 'Array containing the info of every media found'
     })
-    public ebooksFound: DocResult[]
+    public ebooksFound: (DocResult | Ebook)[];
 
 
-
-    constructor(statusCode: number, message: string, ebooksFound: DocResult[]) {
+    constructor(statusCode: number, message: string, ebooksFound: DocResult[] | Ebook[]) {
         this.statusCode = statusCode;
         this.message = message;
         this.ebooksFound = ebooksFound;

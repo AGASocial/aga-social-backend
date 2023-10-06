@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CourseService } from "./course.service";
 import { AddSectionToCourseDto } from "./dto/addSectionToCourse.dto";
 import { AddSectionToCourseResponseDto } from "./dto/addSectionToCourseResponse.dto";
@@ -19,15 +19,21 @@ export class CourseController {
 
 
 
-    /*
-    @ApiOperation({ summary: 'Create a new course on Firestore' })
-    @ApiCreatedResponse({ description: 'Course created successfully', type: CreateCourseResponseDto })
-    @ApiBadRequestResponse({ description: 'Invalid input' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @Post('assets/courses')
-    async createNewCourse(@Body() createNewCourseDto: CreateCourseDto): Promise<CreateCourseResponseDto> {
-        return this.courseService.createNewCourse(createNewCourseDto);
-    }*/
+    @ApiOperation({ summary: 'Get purchased courses from an user' })
+    @ApiQuery({ name: 'userId', type: String, required: true, description: 'User ID' })
+    @ApiResponse({ status: 200, description: 'Success', type: GetCoursesResponseDto })
+    @ApiResponse({ status: 400, description: 'Bad request' })
+    @ApiResponse({ status: 500, description: 'Internal server error' })
+    @Get('users/courses') 
+    async getPurchasedCourses(@Query('userId') userId: string): Promise<GetCoursesResponseDto> {
+        try {
+            const result = await this.courseService.getPurchasedCourses(userId);
+            return result;
+        } catch (error) {
+            console.error('An error occurred:', error);
+            throw new Error('There was an error retrieving the purchased courses for the user.');
+        }
+    }
 
 
 

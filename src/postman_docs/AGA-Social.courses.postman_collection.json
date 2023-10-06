@@ -185,7 +185,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}assets/courses?id=05283b65-00ae-4aa0-9b38-02b043d574b8",
+					"raw": "{{server}}assets/courses?id=29427e9c-df80-404d-9e94-428647c7fa7a",
 					"host": [
 						"{{server}}assets"
 					],
@@ -195,7 +195,30 @@
 					"query": [
 						{
 							"key": "id",
-							"value": "05283b65-00ae-4aa0-9b38-02b043d574b8"
+							"value": "29427e9c-df80-404d-9e94-428647c7fa7a"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Cursos de un Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}users/courses?userId=0EwINikFVAg7jtRdkZYiTBXN4vW2",
+					"host": [
+						"{{server}}users"
+					],
+					"path": [
+						"courses"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "0EwINikFVAg7jtRdkZYiTBXN4vW2"
 						}
 					]
 				}
