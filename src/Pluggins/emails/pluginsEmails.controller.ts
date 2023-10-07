@@ -3,6 +3,7 @@ import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerEr
 import { CreateEmailResponseDto } from "./dto/createEmailResponse.dto";
 import { CreatePluginResponseDto } from "./dto/createPluginResponse.dto";
 import { GetEmailsResponseDto } from "./dto/getEmailsResponse.dto";
+import { GetPluginInfoResponseDto } from "./dto/getPluginInfoResponse.dto";
 import { SendEmailResponseDto } from "./dto/sendEmailToAllResponse.dto";
 import { SendMessageToAllDto } from "./dto/sendMessageToAll.dto";
 import { EmailsService } from "./pluginEmails.service";
@@ -66,6 +67,19 @@ export class EmailsController {
             throw new Error('Error fetching emails by pluginId.');
         }
     }
+
+
+
+    @Get('plugins')
+    async getPluginInfoByUserId(@Query('userId') userId: string): Promise<GetPluginInfoResponseDto> {
+        try {
+            const pluginInfo = await this.pluginsEmailsService.getPluginInfoByUserId(userId);
+            return pluginInfo;
+        } catch (error) {
+            console.error('Error fetching the plugin', error);
+            throw new Error('Error fetching the plugin');        }
+    }
+
 
 
 

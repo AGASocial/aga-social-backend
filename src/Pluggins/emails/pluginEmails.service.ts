@@ -11,6 +11,8 @@ import { GetEmailsResponseDto } from "./dto/getEmailsResponse.dto";
 import * as nodemailer from 'nodemailer';
 import { SendEmailResponseDto } from "./dto/sendEmailToAllResponse.dto";
 import { SendMessageToAllDto } from "./dto/sendMessageToAll.dto";
+import { GetPluginInfoResponseDto } from "./dto/getPluginInfoResponse.dto";
+import { NewPlugin } from "./entities/newPlugin.entity";
 
 
 
@@ -55,7 +57,14 @@ export class EmailsService {
             if (!userDoc) {
                 throw new BadRequestException(`User with userId ${userId} does not exist.`);
             }
-           
+
+
+            const newPluginsQuerySnapshot: QuerySnapshot<DocumentData> = await getDocs(newPluginsCollectionRef);
+            const existingPlugin = newPluginsQuerySnapshot.docs.find((doc) => doc.data().userId === userId);
+
+            if (existingPlugin) {
+                throw new BadRequestException(`A plugin with userId ${userId} already exists.`);
+            }
 
             const pluginData = {
                 domain,
@@ -71,6 +80,31 @@ export class EmailsService {
             console.error('Error registering the new plugin:', error);
             return new CreatePluginResponseDto(400, error.message, undefined, undefined);        }
     }
+
+    async getPluginInfoByUserId(userId: string): Promise<GetPluginInfoResponseDto> {
+        try {
+            const newPluginsCollectionRef: CollectionReference = collection(this.firebaseService.fireStore, 'newPlugins');
+            const querySnapshot: QuerySnapshot<DocumentData> = await getDocs(
+                query(newPluginsCollectionRef, where('userId', '==', userId))
+            );
+
+            for (const pluginDoc of querySnapshot.docs) {
+                const pluginData = pluginDoc.data();
+                const newPlugin = new NewPlugin(pluginDoc.id, pluginData.userId ,pluginData.domain);
+                const responseDto = new GetPluginInfoResponseDto(200, 'PLUGINRETRIEVEDSUCCESSFULLY', newPlugin);
+                return Promise.resolve(responseDto);
+            }
+
+            const responseDto = new GetPluginInfoResponseDto(404, 'PLUGINNOTFOUND', null);
+            return Promise.resolve(responseDto);
+        } catch (error) {
+            console.error('Error fetching plugin by userId:', error);
+            const responseDto = new GetPluginInfoResponseDto(500, error, null);
+            return Promise.resolve(responseDto);
+        }
+    }
+
+
 
 
 
