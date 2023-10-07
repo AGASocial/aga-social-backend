@@ -89,9 +89,36 @@
 		},
 		{
 			"name": "Obtener Emails de Usuarios",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}plugins/emails?pluginId=4IFsckFjVBxh0dk3EraE",
+					"host": [
+						"{{server}}plugins"
+					],
+					"path": [
+						"emails"
+					],
+					"query": [
+						{
+							"key": "pluginId",
+							"value": "4IFsckFjVBxh0dk3EraE"
+						}
+					]
+				}
 			},
 			"response": []
 		},
@@ -115,14 +142,6 @@
 						}
 					]
 				}
-			},
-			"response": []
-		},
-		{
-			"name": "Enviar Mensaje",
-			"request": {
-				"method": "GET",
-				"header": []
 			},
 			"response": []
 		},
@@ -299,6 +318,26 @@
 					],
 					"path": [
 						"jsons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Informacion de un Plugin",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}plugins?userId=9ttpIeS2mgM23fSuIbCNU0qBprF2",
+					"host": [
+						"{{server}}plugins"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "9ttpIeS2mgM23fSuIbCNU0qBprF2"
+						}
 					]
 				}
 			},
