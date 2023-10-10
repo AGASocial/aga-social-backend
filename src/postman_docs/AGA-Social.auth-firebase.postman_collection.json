@@ -17,7 +17,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"frio2@gmail.com\",\r\n  \"username\": \"Frio.223\",\r\n  \"password\": \"Vitra/?13\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"mary@gmail.com\",\r\n  \"username\": \"prueba11111\",\r\n  \"password\": \"prueba11111\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -96,6 +96,32 @@
 			"response": []
 		},
 		{
+			"name": "Cambiar Security Answer",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"password\": \"NewPass123/.\",\r\n    \"new_security_answer\": \"Perfect Green\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}auth/users",
+					"host": [
+						"{{server}}auth"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Recuperar Contrasena de Usuario Firebase",
 			"request": {
 				"method": "PATCH",
@@ -128,33 +154,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"password\": \"NewPass123/.\",\r\n    \"new_password\": \"NewPass123/.\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}auth/users",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"users"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cambiar Security Answer",
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"password\": \"NewPass123/.\",\r\n    \"new_security_answer\": \"Perfect Green\"\r\n}\r\n",
+					"raw": "{\r\n    \"password\": \"NewPass123/.\",\r\n    \"new_password\": \"NewPass123/..\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -178,31 +178,6 @@
 			"request": {
 				"method": "PUT",
 				"header": [],
-				"url": {
-					"raw": "{{server}}auth/users/sessions",
-					"host": [
-						"{{server}}auth"
-					],
-					"path": [
-						"users",
-						"sessions"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cerrar Sesion Usuario Firebase",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "{{server}}auth/users/sessions",
 					"host": [
@@ -296,6 +271,48 @@
 							"key": "id",
 							"value": "XUG7QW1LkJVHXHZXeJtO30IqDjW2"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cerrar Sesion Usuario Firebase",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{server}}auth/users/sessions",
+					"host": [
+						"{{server}}auth"
+					],
+					"path": [
+						"users",
+						"sessions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Validaciones Registro Usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}validations/signup",
+					"host": [
+						"{{server}}validations"
+					],
+					"path": [
+						"signup"
 					]
 				}
 			},

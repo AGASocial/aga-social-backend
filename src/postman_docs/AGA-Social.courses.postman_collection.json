@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"Cursito\",\r\n  \"description\": \"Cursito\",\r\n  \"publisher\": \"Mary.123\",\r\n  \"releaseDate\": \"2023-08-08\",\r\n  \"price\": 150.00,\r\n  \"language\": \"English\",\r\n  \"titlePage\":\"https://imagenPortada/curso.jpg\",\r\n   \"sectionsIds\": [\"68fb6c27-11d5-4a73-9f31-a15133d4ac55\"],\r\n  \"tags\": [\"tutorial\"],\r\n  \"instructorList\": [\"John Doe\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
+					"raw": "{\r\n  \"title\": \"Defensa\",\r\n  \"description\": \"Defensa\",\r\n  \"publisher\": \"Mary.123\",\r\n  \"releaseDate\": \"2023-10-10\",\r\n  \"price\": 150.00,\r\n  \"language\": \"English\",\r\n  \"titlePage\":\"https://imagenPortada/curso.jpg\",\r\n   \"sectionsIds\": [\"68fb6c27-11d5-4a73-9f31-a15133d4ac55\"],\r\n  \"tags\": [\"Defensa\"],\r\n  \"instructorList\": [\"John Doe\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -127,7 +127,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses?keywords=cursito",
+					"raw": "{{server}}assets/courses?keywords=defensa",
 					"host": [
 						"{{server}}assets"
 					],
@@ -137,7 +137,7 @@
 					"query": [
 						{
 							"key": "keywords",
-							"value": "cursito"
+							"value": "defensa"
 						}
 					]
 				}
@@ -162,7 +162,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses?tags=tutorial",
+					"raw": "{{server}}assets/courses?tags=defensa",
 					"host": [
 						"{{server}}assets"
 					],
@@ -172,7 +172,7 @@
 					"query": [
 						{
 							"key": "tags",
-							"value": "tutorial"
+							"value": "defensa"
 						}
 					]
 				}
@@ -220,33 +220,6 @@
 							"key": "userId",
 							"value": "0EwINikFVAg7jtRdkZYiTBXN4vW2"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Comprar Course Stripe",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"userId\": \"user123\",\r\n  \"courseId\": \"course456\",\r\n  \"paymentIntentId\": \"pi_123456789\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}assets/courses/users",
-					"host": [
-						"{{server}}assets"
-					],
-					"path": [
-						"courses",
-						"users"
 					]
 				}
 			},

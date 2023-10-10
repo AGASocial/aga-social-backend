@@ -41,7 +41,7 @@ export class TagsController {
     @ApiResponse({ status: 200, description: 'The tag information has been successfully updated.', type: UpdateTagResponseDto })
     @ApiBadRequestResponse({ description: 'Bad request. Check the parameters being used' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-    async updateTag(@Query('id') id: string, @Body() updateTagDto: UpdateTagDto): Promise<UpdateTagResponseDto> {
+    async updateTag(@Query('id') id: string, @Body() updateTagDto: Partial<UpdateTagDto>): Promise<UpdateTagResponseDto> {
         try {
             return await this.tagService.updateTag(id, updateTagDto);
         } catch (error) {

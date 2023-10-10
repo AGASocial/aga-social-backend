@@ -162,18 +162,6 @@ export class CouponService {
         try {
             console.log('Initializing getCoupons...');
 
-            // Tries to use data in cache if it exists
-            const cachedCoupons = await this.firebaseService.getCollectionData('coupons');
-            if (cachedCoupons.length > 0) {
-                console.log('Using cached coupons data.');
-                const getCouponsDtoResponse: GetCouponsResponseDto = {
-                    statusCode: 200,
-                    message: "COUPONSGOT",
-                    couponsFound: cachedCoupons,
-                };
-                return getCouponsDtoResponse;
-            }
-
             // If there is no data, it uses firestore instead
             const couponsRef = this.firebaseService.couponsCollection;
             const couponsQuery = query(couponsRef, orderBy("code"));
@@ -197,13 +185,9 @@ export class CouponService {
                     status: data.status,
                     currentUses: data.currentUses,
                     redeemedByUsers: data.redeemedByUsers
-
                 });
             });
             console.log('Coupons data collected.');
-
-            // the data is saved in cache for future queries
-            this.firebaseService.setCollectionData('coupons', queryResult);
 
             const getCouponsDtoResponse: GetCouponsResponseDto = {
                 statusCode: 200,
@@ -218,6 +202,7 @@ export class CouponService {
             throw new Error('There was an error retrieving the coupons.');
         }
     }
+
 
 
     @ApiOperation({ summary: 'Redeem a coupon' })
@@ -331,18 +316,6 @@ export class CouponService {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getCouponByCode(code: string): Promise<GetCouponsResponseDto> {
         try {
-            const cachedCoupons = await this.firebaseService.getCollectionData('coupons');
-            const cachedCoupon = cachedCoupons.find(coupon => coupon.code === code);
-            if (cachedCoupon) {
-                console.log('Using cached coupon data.');
-                const getCouponDtoResponse: GetCouponsResponseDto = {
-                    statusCode: 200,
-                    message: "COUPONSGOT",
-                    couponsFound: [cachedCoupon],
-                };
-                return getCouponDtoResponse;
-            }
-
             // If not found in cache, fetch from Firestore
             const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
             const couponQuerySnapshot = await getDocs(query(couponCollectionRef, where('code', '==', code)));
@@ -352,10 +325,6 @@ export class CouponService {
             }
 
             const couponData = couponQuerySnapshot.docs[0].data();
-
-            // Update cache with fetched coupon
-            const updatedCachedCoupons = [...cachedCoupons, couponData];
-            this.firebaseService.setCollectionData('coupons', updatedCachedCoupons);
 
             const getCouponDtoResponse: GetCouponsResponseDto = {
                 statusCode: 200,

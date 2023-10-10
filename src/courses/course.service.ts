@@ -274,22 +274,6 @@ export class CourseService {
                 tags = [tags];
             }
 
-            // Tries to use data in cache if it exists
-            const cachedCourses = await this.firebaseService.getCollectionData('courses');
-            if (cachedCourses.length > 0) {
-                console.log('Using cached courses data.');
-                const matchedCourses = cachedCourses
-                    .filter(course => course.active) // Filter only active courses
-                    .filter(course => this.courseHasAnyTag(course, tags));
-
-                const responseDto: GetCoursesResponseDto = {
-                    statusCode: 200,
-                    message: 'COURSESGOT',
-                    coursesFound: matchedCourses,
-                };
-                return responseDto;
-            }
-
             // If there is no data in cache, query Firestore
             const coursesRef = this.firebaseService.coursesCollection;
             console.log('Courses query created.');
@@ -324,9 +308,6 @@ export class CourseService {
                 .filter(course => course.active) // Filter only active courses
                 .filter(course => this.courseHasAnyTag(course, tags));
 
-            // Save the active courses data in cache for future queries
-            await this.firebaseService.setCollectionData('courses', queryResult);
-
             const responseDto: GetCoursesResponseDto = {
                 statusCode: 200,
                 message: 'COURSESGOT',
@@ -340,6 +321,7 @@ export class CourseService {
             throw new Error('There was an error retrieving the courses.');
         }
     }
+
 
     private courseHasAnyTag(course: Course, tags: string[] | string): boolean {
         if (typeof tags === 'string') {
@@ -442,7 +424,6 @@ export class CourseService {
             const { title, description, publisher, releaseDate, price, language, sectionsIds, tags, instructorList, offersCertificate, titlePage } = createNewCourseDto;
             const courseRef = collection(this.firebaseService.fireStore, 'courses');
 
-
             const newCourseId: string = uuidv4();
             const newSections = [];
 
@@ -460,32 +441,6 @@ export class CourseService {
                 } else {
                     console.log('Section not found for ID:', sectionId);
                     throw new BadRequestException('SECTION NOT FOUND: ' + sectionId);
-                }
-            }
-
-            for (const section of newSections) {
-                if (section.content && section.content.length > 0) {
-                    for (const contentItem of section.content) {
-                        const url = contentItem.url;
-                        const fileName = url.split('/').pop();
-                        const sourceFilePath = url;
-                        const destinationFilePath = `assets/${newCourseId}/${section.id}/${fileName}`;
-                        await this.copyFileToStorage(sourceFilePath, destinationFilePath);
-                    }
-                }
-
-                if (section.subsections && section.subsections.length > 0) {
-                    for (const subsection of section.subsections) {
-                        if (subsection.content && subsection.content.length > 0) {
-                            for (const contentItem of subsection.content) {
-                                const url = contentItem.url;
-                                const fileName = url.split('/').pop();
-                                const sourceFilePath = url;
-                                const destinationFilePath = `assets/${newCourseId}/${section.id}/${subsection.id}/${fileName}`;
-                                await this.copyFileToStorage(sourceFilePath, destinationFilePath);
-                            }
-                        }
-                    }
                 }
             }
 

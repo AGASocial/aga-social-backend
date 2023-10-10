@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Test\",\r\n  \"username\": \"Joel.123\"\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Defensa\",\r\n  \"username\": \"Joel.123\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,7 +37,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"active\": true,\r\n    \"name\": \"Nuevo\"\r\n}\r\n",
+					"raw": "{\r\n    \"active\": false,\r\n    \"name\": \"Nuevo\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,14 +45,14 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}tags?id=b3fc6dab-dc51-4526-ba89-fd367e17e709",
+					"raw": "{{server}}tags?id=46a119f4-48ef-4eb3-8b5e-a4ab80ae8011",
 					"host": [
 						"{{server}}tags"
 					],
 					"query": [
 						{
 							"key": "id",
-							"value": "b3fc6dab-dc51-4526-ba89-fd367e17e709"
+							"value": "46a119f4-48ef-4eb3-8b5e-a4ab80ae8011"
 						}
 					]
 				}

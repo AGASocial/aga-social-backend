@@ -1563,6 +1563,7 @@ export class MessageService {
                     receivedDate: this.transformTimestamp(messageData.receivedDate),
                     sentDate: this.transformTimestamp(messageData.sentDate),
                     readDate: this.transformTimestamp(messageData.readDate),
+                    tags: messageData.tags
                 },
             };
 
