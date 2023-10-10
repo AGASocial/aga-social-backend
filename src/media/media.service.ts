@@ -535,6 +535,7 @@ export class MediaService {
                     uploadDate: uploadTimestamp.toDate(), 
                     url: mediaData.url,
                     active: mediaData.active,
+                    vimeoVideo: mediaData.vimeoVideo,
                 };
 
                 const mediaResponse: GetMediaByIdResponseDto = {

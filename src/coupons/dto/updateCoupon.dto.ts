@@ -13,8 +13,6 @@ export class UpdateCouponDto {
         example: 'SUMMER2023',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
     public code?: string;
 
     @ApiProperty({
@@ -97,8 +95,6 @@ export class UpdateCouponDto {
         example: '515dfds2fergf6b4fg8b4c6s4',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
     public assetId?: string;
 
   

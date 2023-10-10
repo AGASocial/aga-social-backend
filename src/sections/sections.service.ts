@@ -667,34 +667,6 @@ export class SectionService {
             // Convert tags to an array if it's not already
             const lowercaseTags = Array.isArray(tags) ? tags.map(tag => tag.toLowerCase()) : [tags.toLowerCase()];
 
-            // Tries to use data in cache if it exists
-            const cachedSections = await this.firebaseService.getCollectionData('sections');
-            if (cachedSections.length > 0) {
-                console.log('Using cached sections data.');
-                const matchedSections = cachedSections.filter(section =>
-                    section.isActive && lowercaseTags.every(tag => section.tags.includes(tag))
-                );
-
-
-                const formattedSections = matchedSections.map(section => {
-                    return {
-                        ...section,
-                        subsections: section.subsections.filter(subsection => subsection.active)
-                            .map(subsection => ({
-                                ...subsection,
-                                content: subsection.content.filter(item => item.active)
-                            }))
-                    };
-                });
-
-                const responseDto: GetSectionsResponseDto = {
-                    statusCode: 200,
-                    message: 'SECTIONSGOT',
-                    sectionsFound: formattedSections,
-                };
-                return responseDto;
-            }
-
             // If there is no data in cache, query Firestore
             const sectionsRef = this.firebaseService.sectionsCollection;
             const sectionsQuery = query(sectionsRef, where('active', '==', true));
@@ -722,7 +694,6 @@ export class SectionService {
                 section.active && lowercaseTags.every(tag => section.tags.includes(tag))
             );
 
-
             const formattedSections = matchedSections.map(section => {
                 return {
                     ...section,
@@ -733,9 +704,6 @@ export class SectionService {
                         }))
                 };
             });
-
-            // Save the data in cache for future queries
-            await this.firebaseService.setCollectionData('sections', queryResult);
 
             const responseDto: GetSectionsResponseDto = {
                 statusCode: 200,
@@ -750,6 +718,7 @@ export class SectionService {
             throw new Error('There was an error retrieving the sections.');
         }
     }
+
 
 
 

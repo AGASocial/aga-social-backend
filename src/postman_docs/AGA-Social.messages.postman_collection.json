@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"senderEmail\": \"joel123@gmail.com\",\r\n  \"recipientEmail\": \"mary@gmail.com\",\r\n  \"content\": \"...\",\r\n  \"read\": false,\r\n  \"attachmentUrls\": [\r\n    \"https://example.com/attachment1.pdf\",\r\n    \"https://example.com/attachment2.jpg\"\r\n  ],\r\n  \"subject\": \"Testing\",\r\n  \"type\": \"Inquiry\"\r\n}\r\n",
+					"raw": "{\r\n  \"senderEmail\": \"joel123@gmail.com\",\r\n  \"recipientEmail\": \"mary@gmail.com\",\r\n  \"content\": \"Defensa\",\r\n  \"read\": false,\r\n  \"attachmentUrls\": [\r\n    \"https://example.com/attachment1.pdf\",\r\n    \"https://example.com/attachment2.jpg\"\r\n  ],\r\n  \"subject\": \"Defensa\", //asunto\r\n  \"type\": \"Inquiry\" // o Complaint\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -25,6 +25,35 @@
 					"raw": "{{server}}messages",
 					"host": [
 						"{{server}}messages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Estado Mensaje",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n  \"read\": true,\r\n  \"active\": true, // if active = false, message is eliminated\r\n  \"highlighted\": true,\r\n   \"archived\": true\r\n\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{server}}messages?id=5a72a5e8-d88a-462f-9fa3-6573c5caa082",
+					"host": [
+						"{{server}}messages"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "5a72a5e8-d88a-462f-9fa3-6573c5caa082"
+						}
 					]
 				}
 			},
@@ -80,7 +109,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}messages?id=1w54iIFPN0M7YNgo10XuLIVUkJk2&keywords=vero",
+					"raw": "{{server}}messages?id=1w54iIFPN0M7YNgo10XuLIVUkJk2&keywords=defensa",
 					"host": [
 						"{{server}}messages"
 					],
@@ -91,7 +120,7 @@
 						},
 						{
 							"key": "keywords",
-							"value": "vero"
+							"value": "defensa"
 						}
 					]
 				}
@@ -128,35 +157,6 @@
 						{
 							"key": "id",
 							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Actualizar Estado Mensaje",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\r\n  \"read\": true,\r\n  \"active\": false,\r\n  \"highlighted\": false,\r\n   \"archived\": false\r\n\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}messages?id=b510328a-928d-45f7-8040-50568a6542a4",
-					"host": [
-						"{{server}}messages"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "b510328a-928d-45f7-8040-50568a6542a4"
 						}
 					]
 				}
@@ -217,7 +217,19 @@
 			"name": "Consultar un Mensaje por su Id",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "{{server}}messages?messageId=ad72b757-a6f1-43ed-995d-ba419eacc0ea",
+					"host": [
+						"{{server}}messages"
+					],
+					"query": [
+						{
+							"key": "messageId",
+							"value": "ad72b757-a6f1-43ed-995d-ba419eacc0ea"
+						}
+					]
+				}
 			},
 			"response": []
 		}

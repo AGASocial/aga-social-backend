@@ -22,12 +22,12 @@
 						},
 						{
 							"key": "title",
-							"value": "Hiya",
+							"value": "Defensa",
 							"type": "text"
 						},
 						{
 							"key": "description",
-							"value": "...",
+							"value": "Defensa",
 							"type": "text"
 						},
 						{
@@ -42,7 +42,7 @@
 						},
 						{
 							"key": "releaseDate",
-							"value": "2022-08-12",
+							"value": "2023-10-10",
 							"type": "text"
 						},
 						{
@@ -96,7 +96,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n \"isActive\": true,\r\n \"title\": \"New Title\",\r\n \"author\": \"New Author\",\r\n \"price\": 100.00,\r\n \"description\": \"New Description\",\r\n \"pageCount\": 100,\r\n \"genres\": \"Technology\"\r\n}\r\n",
+					"raw": "{\r\n \"active\": true,\r\n \"title\": \"New Title\",\r\n \"author\": \"New Author\",\r\n \"price\": 100.00,\r\n \"description\": \"New Description\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -242,33 +242,6 @@
 							"key": "userId",
 							"value": "0EwINikFVAg7jtRdkZYiTBXN4vW2"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Comprar Ebook Stripe",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"userId\": \"user123\",\r\n  \"ebookId\": \"ebook456\",\r\n  \"paymentIntentId\": \"pi_123456789\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}assets/ebooks/users",
-					"host": [
-						"{{server}}assets"
-					],
-					"path": [
-						"ebooks",
-						"users"
 					]
 				}
 			},

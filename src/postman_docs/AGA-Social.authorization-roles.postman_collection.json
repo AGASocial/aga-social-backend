@@ -40,7 +40,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Subscriber\",\r\n  \"description\":\"holaaaa\",\r\n  \"isDefault\": true,\r\n  \"isActive\": true\r\n}\r\n",
+					"raw": "{\r\n  \"description\":\"Defensa\",\r\n  \"default\": true,\r\n  \"active\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"

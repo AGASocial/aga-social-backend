@@ -465,22 +465,7 @@ export class AuthService {
         try {
             console.log('Initializing getSingleUser...');
 
-            // Tries to use data in cache if it exists
-            const cachedUsers = await this.firebaseService.getCollectionData('users');
-            const cachedUserIndex = cachedUsers.findIndex(user => user.id === id);
-
-            if (cachedUserIndex !== -1) {
-                console.log('Using cached user data.');
-                const filteredUser = cachedUsers[cachedUserIndex];
-                const getSingleUserDtoResponse: GetUsersResponseDto = {
-                    statusCode: 200,
-                    message: "USERINFORMATIONRETRIEVED",
-                    usersFound: [filteredUser],
-                };
-                return getSingleUserDtoResponse;
-            }
-
-            // If there is no data in cache or user not found in cache, query Firestore
+            // Query Firestore directly to retrieve user data
             const usersRef = this.firebaseService.usersCollection;
             const usersQuery = query(usersRef, where("id", "==", id));
             console.log('User query created.');
@@ -516,24 +501,13 @@ export class AuthService {
             };
             console.log('Response created.');
 
-            // Update cache with newly retrieved user data
-            if (getSingleUserDtoResponse.statusCode === 200 && getSingleUserDtoResponse.usersFound.length > 0) {
-                cachedUsers.push(getSingleUserDtoResponse.usersFound[0]);
-                await this.firebaseService.setCollectionData('users', cachedUsers);
-            } else {
-                // If the user was not found, update cache with an empty array to avoid querying Firestore repeatedly
-                await this.firebaseService.setCollectionData('users', []);
-            }
-
-
-
-
             return getSingleUserDtoResponse;
         } catch (error) {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving the user.');
         }
     }
+
 
 
 
@@ -639,7 +613,11 @@ export class AuthService {
                 const userQuerySnapshot = await getDocs(userQuery);
 
                 if (!userQuerySnapshot.empty) {
-                    throw new BadRequestException('USERNAMEEXISTS');
+                    const response: UpdateUserResponseDto = {
+                        statusCode: 400,
+                        message: 'USERNAME ALREADY EXISTS',
+                    };
+                    return response;
                 }
             }
 

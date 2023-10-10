@@ -85,52 +85,45 @@ export class TagsService {
 
 
 
-    @ApiOperation({ summary: 'Update tag information by id' })
-    @ApiOkResponse({
-        description: 'Tag information has been successfully updated on Firestore.',
-        type: UpdateTagResponseDto,
-    })
-    @ApiBadRequestResponse({ description: 'Tag with the given id does not exist' })
-    async updateTag(id: string, newData: Partial<UpdateTagDto>): Promise<UpdateTagResponseDto> {
-        try {
-            console.log('Initializing updateTag...');
-            const tagCollectionRef = admin.firestore().collection('tags');
+   @ApiOperation({ summary: 'Update tag information by id' })
+@ApiOkResponse({
+    description: 'Tag information has been successfully updated on Firestore.',
+    type: UpdateTagResponseDto,
+})
+@ApiBadRequestResponse({ description: 'Tag with the given id does not exist' })
+async updateTag(id: string, newData: Partial<UpdateTagDto>): Promise<UpdateTagResponseDto> {
+       try {
+        console.log(newData)
+        console.log('Initializing updateTag...');
+        const tagCollectionRef = admin.firestore().collection('tags');
 
-            const querySnapshot = await tagCollectionRef.where('id', '==', id).get();
+        const querySnapshot = await tagCollectionRef.where('id', '==', id).get();
 
-            if (querySnapshot.empty) {
-                console.log(`The tag with the id "${id}" does not exist.`);
-                throw new Error('TAGDOESNOTEXIST.');
-            }
-
-            const batch = admin.firestore().batch();
-            querySnapshot.forEach((doc) => {
-                batch.update(doc.ref, newData);
-            });
-
-            await batch.commit();
-            console.log(`Updated info for tag with id "${id}"`);
-
-            // Updates the cache
-            const cachedTags = await this.firebaseService.getCollectionData('tags');
-            const updatedTagIndex = cachedTags.findIndex((tag) => tag.id === id);
-            if (updatedTagIndex !== -1) {
-                cachedTags[updatedTagIndex] = { ...cachedTags[updatedTagIndex], ...newData };
-                await this.firebaseService.setCollectionData('tags', cachedTags);
-                console.log('Tag updated in cache successfully.');
-            }
-
-            const response: UpdateTagResponseDto = {
-                statusCode: 200,
-                message: 'TAGUPDATEDSUCCESSFULLY',
-            };
-
-            return response;
-        } catch (error) {
-            console.error('There was an error updating the tag data:', error);
-            throw error;
+        if (querySnapshot.empty) {
+            console.log(`The tag with the id "${id}" does not exist.`);
+            throw new Error('TAGDOESNOTEXIST.');
         }
+
+        const batch = admin.firestore().batch();
+        querySnapshot.forEach((doc) => {
+            batch.update(doc.ref, newData);
+        });
+
+        await batch.commit();
+        console.log(`Updated info for tag with id "${id}"`);
+
+        const response: UpdateTagResponseDto = {
+            statusCode: 200,
+            message: 'TAGUPDATEDSUCCESSFULLY',
+        };
+
+        return response;
+    } catch (error) {
+        console.error('There was an error updating the tag data:', error);
+        throw error;
     }
+}
+
 
 
 
@@ -155,20 +148,6 @@ export class TagsService {
                 throw new Error('User not found');
             }
 
-            // Tries to use data in cache if it exists
-            const cachedTags = await this.firebaseService.getCollectionData('tags');
-            if (cachedTags.length > 0) {
-                console.log('Using cached tags data.');
-                const activeTags = cachedTags.filter(tag => tag.active);
-
-                const getTagsDtoResponse: GetTagsResponseDto = {
-                    statusCode: 200,
-                    message: 'TAGSRETRIEVEDSUCCESSFULLY',
-                    tagsFound: activeTags,
-                };
-                return getTagsDtoResponse;
-            }
-
             // If there is no data in cache, query Firestore
             const tagRef = this.firebaseService.tagsCollection;
             const tagQuery = query(tagRef, where('username', '==', username));
@@ -190,10 +169,6 @@ export class TagsService {
             });
             console.log('Active tags collected.');
 
-            // Save the data in cache for future queries
-            await this.firebaseService.setCollectionData('tags', activeTags);
-            console.log('Tags data added to cache.');
-
             const responseDto: GetTagsResponseDto = {
                 statusCode: 200,
                 message: 'TAGSRETRIEVEDSUCCESSFULLY',
@@ -207,6 +182,7 @@ export class TagsService {
             throw new Error(`Error retrieving tags: ${error.message}`);
         }
     }
+
 
 
 

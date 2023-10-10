@@ -311,18 +311,6 @@ export class AuthorizationService {
             const roleQuery = query(rolesRef, orderBy("name"));
             console.log('Role query created.');
 
-            // Tries to use data in cache if it exists
-            const cachedRoles = await this.firebaseService.getCollectionData('roles');
-            if (cachedRoles.length > 0) {
-                console.log('Using cached roles data.');
-                const getRolesDtoResponse: GetRolesResponseDto = {
-                    statusCode: 200,
-                    message: "ROLESGOT",
-                    rolesFound: cachedRoles,
-                };
-                return getRolesDtoResponse;
-            }
-
             const roleQuerySnapshot = await getDocs(roleQuery);
             console.log('Role query snapshot obtained.');
 
@@ -332,14 +320,11 @@ export class AuthorizationService {
                 queryResult.push({
                     name: data.name,
                     description: data.description,
-                    isActive: data.isActive,
-                    isDefault: data.isDefault,
+                    active: data.active,
+                    default: data.default,
                 });
             });
             console.log('Roles data collected.');
-
-            // Update cache with newly retrieved roles
-            await this.firebaseService.setCollectionData('roles', queryResult);
 
             const getRolesDtoResponse: GetRolesResponseDto = {
                 statusCode: 200,
@@ -354,6 +339,7 @@ export class AuthorizationService {
             throw new Error('Error al obtener los roles.');
         }
     }
+
 
 
    

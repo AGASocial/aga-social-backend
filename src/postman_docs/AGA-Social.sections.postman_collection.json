@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Vero-Prueba\",\r\n  \"description\": \" Vero-Prueba\",\r\n  \"assetsIds\": [\"2d9909c1-5d9c-4419-a4f1-59bf3c03b502\", \"de2c550f-796a-4e07-a06a-0ee2e47499d4\"],\r\n  \"tags\": [\"Vero-Prueba\"]\r\n  \r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Defensa\",\r\n  \"description\": \"Defensa\",\r\n  \"assetsIds\": [\"2d9909c1-5d9c-4419-a4f1-59bf3c03b502\", \"de2c550f-796a-4e07-a06a-0ee2e47499d4\"],\r\n  \"tags\": [\"Defensa\"]\r\n  \r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -225,14 +225,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}sections?keywords=hello",
+					"raw": "{{server}}sections?keywords=defensa",
 					"host": [
 						"{{server}}sections"
 					],
 					"query": [
 						{
 							"key": "keywords",
-							"value": "hello"
+							"value": "defensa"
 						}
 					]
 				}
@@ -253,42 +253,6 @@
 						{
 							"key": "sectionId",
 							"value": "68fb6c27-11d5-4a73-9f31-a15133d4ac55"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Consultar Section por Tags",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{server}}sections?tags=1&tags=2",
-					"host": [
-						"{{server}}sections"
-					],
-					"query": [
-						{
-							"key": "tags",
-							"value": "1"
-						},
-						{
-							"key": "tags",
-							"value": "2"
 						}
 					]
 				}
