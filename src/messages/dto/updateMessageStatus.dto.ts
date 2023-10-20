@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsEmail, IsString } from "class-validator";
+import { IsBoolean, IsEmail, IsNotEmpty, IsString } from "class-validator";
 import { Tags } from "../../tags/entities/tags.entity";
 import { MessageType } from "./createMessage.dto";
 
@@ -8,6 +8,14 @@ import { MessageType } from "./createMessage.dto";
 
 export class UpdateMessageStatusDto {
 
+
+    @ApiProperty({
+        description: 'Firestore ID of the message',
+        example: 'abcdef123456',
+        type: String
+    })
+    @IsNotEmpty()
+    id: string;
 
 
     @ApiProperty({

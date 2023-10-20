@@ -128,16 +128,21 @@ export class AuthController {
     @UseInterceptors(FileInterceptor('profilePicture')) 
     @Put('users') 
     async updateUser(
-        @Query('id') id: string, 
         @Body() newData?: Partial<UpdateUserDto>,
+        @Body('id') id?: string,
         @UploadedFile() profilePicture?: any
     ): Promise<UpdateUserResponseDto> {
         try {
+        //    const jwtToken = req.signedCookies.refresh_token;
+
+
             if (!profilePicture && newData) {
-                const response = await this.authService.updateUser(id, newData);
+                const response = await this.authService.updateUser(newData);
+
+
                 return response;
             }
-            else if (profilePicture) {
+            else if (profilePicture && id) {
                 const response = await this.authService.uploadProfilePicture(id, profilePicture);
                 return response;
 
@@ -151,8 +156,8 @@ export class AuthController {
     @ApiOperation({ summary: 'Get user by id or get all users' })
     @ApiParam({ name: 'id', description: 'Id of the user', type: String, required: false })
     @ApiOkResponse({ description: 'User(s) retrieved successfully', type: GetUsersResponseDto })
-    @Get('users')
-    async getUsersOrSingleUserById(@Query('id') id: string, @Query('email') email: string, @Req() req: Request): Promise<GetUsersResponseDto> {
+    @Get('users/:id')
+    async getUsersOrSingleUserById(@Param('id') id: string, @Req() req: Request): Promise<GetUsersResponseDto> {
         if (id) {
             return this.authService.getSingleUser(id);
         }

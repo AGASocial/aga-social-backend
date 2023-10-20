@@ -27,10 +27,12 @@ export class MediaController {
     @ApiBadRequestResponse({ description: 'Bad request. Check the parameters' })
     @ApiNotFoundResponse({ description: 'Media not found.' })
     async updateMedia(
-        @Query('id') id: string,
         @Body() updateMediaDto: Partial<UpdateMediaDto>
     ): Promise<UpdateMediaResponseDto> {
         try {
+
+            const id = updateMediaDto.id
+
             const response = await this.mediaService.updateMedia(id, updateMediaDto);
             return response;
         } catch (error) {
@@ -46,20 +48,24 @@ export class MediaController {
     @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
     async getMedia(
         @Query('keywords') keywords?: string[],
-        @Query('id') id?: string
-    ): Promise<GetMediaResponseDto | GetMediaByIdResponseDto> {
+    ): Promise<GetMediaResponseDto> {
         if (keywords) {
             const response = await this.mediaService.getMediaByKeywords(keywords);
             return response;
-        } else if (id) {
-            const response = await this.mediaService.getMediaById(id);
-            return response;
-
-        }
+        } 
 
         else {
             return this.mediaService.getMedia();
         }
+    }
+
+    @Get('assets/media/:id')
+    @ApiOperation({ summary: 'Get a media resource by ID' })
+    @ApiOkResponse({ description: 'Media resource retrieved successfully', type: GetMediaByIdResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async getMediaById(@Param('id') id: string): Promise<GetMediaByIdResponseDto> {
+        const response = await this.mediaService.getMediaById(id);
+        return response;
     }
 
 
@@ -107,7 +113,7 @@ export class MediaController {
     ): Promise<CreateMediaResponseDto> {
         try {
 
-            await this.mediaService.registerMedia(
+            const responseDto =   await this.mediaService.registerMedia(
                 createMediaDto.type,
                 createMediaDto.title,
                 createMediaDto.description,
@@ -117,7 +123,6 @@ export class MediaController {
                 createMediaDto.uploadDate
             );
 
-            const responseDto = new CreateMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY');
             return responseDto;
         } catch (error) {
             console.error('Error registering media:', error);

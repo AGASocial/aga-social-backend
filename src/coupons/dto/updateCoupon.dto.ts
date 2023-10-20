@@ -13,7 +13,8 @@ export class UpdateCouponDto {
         example: 'SUMMER2023',
         type: String,
     })
-    public code?: string;
+    @IsNotEmpty()
+    public code: string;
 
     @ApiProperty({
         description: 'Coupon description',

@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Test\",\r\n  \"description\": \"Test\",\r\n  \"isDefault\": false,\r\n  \"isActive\": false\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Admin\",\r\n  \"description\": \"Defensa\",\r\n  \"default\": false,\r\n  \"active\": false\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -40,7 +40,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"description\":\"Defensa\",\r\n  \"default\": true,\r\n  \"active\": true\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Publisher\",\r\n  \"description\":\"Publishers can offer courses and ebooks to Subscribers\",\r\n  \"default\": false,\r\n  \"active\": true\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -48,18 +48,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/roles?name=Subscriber",
+					"raw": "{{server}}authorization/roles",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
 						"roles"
-					],
-					"query": [
-						{
-							"key": "name",
-							"value": "Subscriber"
-						}
 					]
 				}
 			},
@@ -96,7 +90,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "",
+					"raw": "{\r\n    \"id\": \"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2\",\r\n    \"roleName\": \"Publisher\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -104,23 +98,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/users/roles?id=5sXP5IJENVTrCUECYOICe3Gl0VK2&roleName=Publisher",
+					"raw": "{{server}}authorization/users/roles",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
 						"users",
 						"roles"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "5sXP5IJENVTrCUECYOICe3Gl0VK2"
-						},
-						{
-							"key": "roleName",
-							"value": "Publisher"
-						}
 					]
 				}
 			},
@@ -133,7 +117,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "",
+					"raw": "{\r\n    \"id\": \"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2\",\r\n    \"roleName\": \"Test\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -141,23 +125,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/users/roles?email=joel123@gmail.com&roleName=Publisher",
+					"raw": "{{server}}authorization/users/roles",
 					"host": [
 						"{{server}}authorization"
 					],
 					"path": [
 						"users",
 						"roles"
-					],
-					"query": [
-						{
-							"key": "email",
-							"value": "joel123@gmail.com"
-						},
-						{
-							"key": "roleName",
-							"value": "Publisher"
-						}
 					]
 				}
 			},

@@ -17,7 +17,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"mary@gmail.com\",\r\n  \"username\": \"prueba11111\",\r\n  \"password\": \"prueba11111\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"defensa123@gmail.com\",\r\n  \"username\": \"defensa444\",\r\n  \"password\": \"prueba11111\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -43,7 +43,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"cory@gmail.com\",\r\n  \"password\": \"Viztrak/?1344\"\r\n}",
+					"raw": "{\r\n  \"email\": \"defensa123@gmail.com\",\r\n  \"password\": \"pepito.\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -70,7 +70,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n     \r\n    \"active\": false,\r\n    \"description\": \"hola\",\r\n    \"username\": \"UserNuevo.123\",\r\n    \"name\": \"Nombre Nuevo\",\r\n    \"country\": \"Colombia\",\r\n    \"phoneNumber\": \"04145708990\"\r\n   \r\n}\r\n",
+					"raw": "{\r\n    \"id\": \"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2\",\r\n    \"active\": true,\r\n    \"description\": \"222\",\r\n    //\"username\": \"defensa444\",\r\n    \"name\": \"Nombre Nuevo\",\r\n    \"country\": \"Ecuador\",\r\n    \"phoneNumber\": \"04145708990\"\r\n   \r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -78,18 +78,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/users?id=nyoBoIroCqNTL7FnInQohxF7t7I2",
+					"raw": "{{server}}auth/users",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
 						"users"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "nyoBoIroCqNTL7FnInQohxF7t7I2"
-						}
 					]
 				}
 			},
@@ -226,18 +220,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}auth/users?id=1w54iIFPN0M7YNgo10XuLIVUkJk2",
+					"raw": "{{server}}auth/users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
-						"users"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
-						}
+						"users",
+						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2"
 					]
 				}
 			},
@@ -254,23 +243,22 @@
 						{
 							"key": "profilePicture",
 							"type": "file",
-							"src": "/C:/Users/veron/Downloads/duck-animate-1-500x500.png"
+							"src": "/C:/Users/veron/Downloads/Defensa/duck-animate-1-500x500.png"
+						},
+						{
+							"key": "id",
+							"value": "FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
+							"type": "text"
 						}
 					]
 				},
 				"url": {
-					"raw": "{{server}}auth/users?id=XUG7QW1LkJVHXHZXeJtO30IqDjW2",
+					"raw": "{{server}}auth/users",
 					"host": [
 						"{{server}}auth"
 					],
 					"path": [
 						"users"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "XUG7QW1LkJVHXHZXeJtO30IqDjW2"
-						}
 					]
 				}
 			},

@@ -326,13 +326,18 @@ export class MessageService {
             let userEmail: string | null = null;
             userQuerySnapshot.forEach((doc) => {
                 const userData = doc.data();
-                userEmail = userData.email; // Assuming you have an 'email' field in your user data
+                userEmail = userData.email; 
             });
 
             if (!userEmail) {
                 console.log('User not found.');
-                throw new NotFoundException('User not found.');
-            }
+                const responseDto = new GetMessagesByUserResponseDto(
+                    404,
+                    'USER NOT FOUND',
+                    null
+                );
+
+                return responseDto;            }
 
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
@@ -665,8 +670,12 @@ export class MessageService {
 
             if (messagesQuerySnapshot.empty) {
                 console.log('No messages found for the given ID.');
-                throw new NotFoundException('Message not found');
-            }
+                const response: UpdateMessageStatusResponseDto = {
+                    statusCode: 404,
+                    message: 'MESSAGE NOT FOUND',
+                };
+
+                return response;            }
 
             const messageDocRef = messagesQuerySnapshot.docs[0].ref;
 
@@ -1363,8 +1372,12 @@ export class MessageService {
             const messagesQuerySnapshot = await getDocs(messagesQuery);
 
             if (messagesQuerySnapshot.empty) {
-                throw new NotFoundException('Message not found');
-            }
+                const responseDto: AddTagsResponseDto = {
+                    statusCode: 404,
+                    message: 'MESSAGES NOT FOUND',
+                };
+
+                return responseDto;            }
 
             const messageDocRef = messagesQuerySnapshot.docs[0].ref;
             const messageDocSnapshot = await getDoc(messageDocRef);
@@ -1384,6 +1397,15 @@ export class MessageService {
                             updatedTags.push(tagName);
                         }
                     }
+
+                    else if (tagQuerySnapshot.empty) {
+                        const responseDto: AddTagsResponseDto = {
+                            statusCode: 404,
+                            message: 'TAGS NOT FOUND',
+                        };
+
+                        return responseDto;
+                    }
                 }
             } else if (action === 'delete') {
                 for (const tagId of tagsIds) {
@@ -1396,6 +1418,13 @@ export class MessageService {
                         if (tagName) {
                             updatedTags = updatedTags.filter(tag => tag !== tagName);
                         }
+                    } else if (tagQuerySnapshot.empty) {
+                        const responseDto: AddTagsResponseDto = {
+                            statusCode: 404,
+                            message: 'TAGS NOT FOUND',
+                        };
+
+                        return responseDto;    
                     }
                 }
             } else {
@@ -1514,7 +1543,16 @@ export class MessageService {
             const messageQuerySnapshot = await getDocs(messageQuery);
 
             if (messageQuerySnapshot.empty) {
-                throw new NotFoundException(`Message with ID ${messageId} not found.`);
+                const response: GetMessageByIdResponseDto = {
+                    statusCode: 404,
+                    message: 'MESSAGE NOT FOUND',
+                    senderPicture: null,
+                    username: null,
+                    messageFound: null
+                }
+
+                return response;
+
             }
 
             const messageDoc = messageQuerySnapshot.docs[0];

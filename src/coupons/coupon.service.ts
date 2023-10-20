@@ -5,11 +5,11 @@ import {CreateCouponDto } from "./dto/createCoupon.dto";
 import { CreateCouponResponseDto } from "./dto/createCouponResponse.dto";
 import { UpdateCouponDto } from "./dto/updateCoupon.dto";
 import { UpdateCouponResponseDto } from "./dto/updateCouponResponse.dto";
-import { Coupon, CouponStatus } from "./entities/coupon.entity";
+import { Coupon, CouponStatus, DiscountType } from "./entities/coupon.entity";
 import * as admin from 'firebase-admin';
 import { DeleteCouponResponseDto } from "./dto/deleteCouponResponse.dto";
 import { GetCouponsResponseDto } from "./dto/getCouponsResponse.dto";
-import { RedeemCouponDto } from "./dto/redeemCoupon.dto";
+import { RedeemCouponDto, ResourceType } from "./dto/redeemCoupon.dto";
 import { RedeemCouponResponseDto } from "./dto/redeemCouponResponse.dto";
 import { AssignCouponDto } from "./dto/assignCoupon.dto";
 import { AssignCouponResponseDto } from "./dto/assignCouponResponse.dto";
@@ -33,21 +33,45 @@ export class CouponService {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async createNewCoupon(createCouponDto: CreateCouponDto): Promise<CreateCouponResponseDto> {
         try {
-            const { code, description, discountType, discountAmount, expiryDate, maxUses, maxUsesPerUser, assetId, status, createdBy } = createCouponDto;
+            const { code, description, discountType, discountAmount, expiryDate, maxUses, maxUsesPerUser, assetId, status} = createCouponDto;
+            const createdBy = createCouponDto.createdBy;
             const couponRef = collection(this.firebaseService.fireStore, 'coupons');
 
             const existingCouponQuery = query(couponRef, where('code', '==', code));
             const existingCouponQuerySnapshot = await getDocs(existingCouponQuery);
-
             if (!existingCouponQuerySnapshot.empty) {
-                throw new BadRequestException('COUPON_ALREADY_EXISTS');
+                const response: CreateCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'COUPON_ALREADY_EXISTS',
+                };
+                return response;
             }
 
             const currentDate = new Date();
             const expiryDateObj = new Date(expiryDate);
 
             if (expiryDateObj <= currentDate) {
-                throw new BadRequestException('EXPIRY_DATE_INVALID');
+                const response: CreateCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'EXPIRY_DATE_INVALID',
+                };
+                return response;
+            }
+
+            if (!Object.values(CouponStatus).includes(status)) {
+                const response: CreateCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'INVALID_STATUS',
+                };
+                return response;
+            }
+
+            if (!Object.values(DiscountType).includes(discountType)) {
+                const response: CreateCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'INVALID_DISCOUNT_TYPE',
+                };
+                return response;
             }
 
             const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
@@ -64,6 +88,8 @@ export class CouponService {
                 throw new BadRequestException('ASSET_DOES_NOT_EXIST');
             }
 
+            console.log('createCouponDto:', createCouponDto);
+            console.log(createdBy);
 
 
             const newCoupon: Coupon = {
@@ -78,7 +104,7 @@ export class CouponService {
                 currentUses: 0,
                 assetId,
                 redeemedByUsers: [],
-                createdBy
+                createdBy: createdBy,
                
             };
 
@@ -95,7 +121,11 @@ export class CouponService {
             if (error instanceof BadRequestException) {
                 throw error;
             } else {
-                throw new BadRequestException('COUPON_CREATION_FAILED');
+                const response: CreateCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'COUPON_CREATION_FAILED. INVALID INPUT',
+                };
+                return response;
             }
         }
     }
@@ -108,6 +138,23 @@ export class CouponService {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async updateCoupon(code: string, newData: Partial<UpdateCouponDto>): Promise<UpdateCouponResponseDto> {
         try {
+
+            const {
+                code: newCode,
+                description,
+                discountType,
+                discountAmount,
+                expiryDate,
+                maxUses,
+                maxUsesPerUser,
+                status,
+                currentUses,
+                assetId,
+            } = newData;
+
+
+
+
             console.log('Initializing updateCoupon...');
             const couponsCollectionRef = admin.firestore().collection('coupons');
 
@@ -115,12 +162,59 @@ export class CouponService {
 
             if (querySnapshot.empty) {
                 console.log(`The coupon with the code "${code}" does not exist.`);
-                throw new Error('COUPONDOESNOTEXIST.');
+                const response: UpdateCouponResponseDto = {
+                    statusCode: 404,
+                    message: 'Coupon not found',
+                };
+                return response;
             }
+
+
 
             const couponDoc = querySnapshot.docs[0];
 
             const couponData = couponDoc.data();
+
+
+            if (newCode !== undefined && typeof newCode === 'string') {
+                couponData.code = newCode;
+            }
+
+            if (description !== undefined && typeof description === 'string') {
+                couponData.description = description;
+            }
+
+            if (discountType !== undefined && Object.values(DiscountType).includes(discountType)) {
+                couponData.discountType = discountType;
+            }
+
+            if (discountAmount !== undefined && typeof discountAmount === 'number' && discountAmount >= 0) {
+                couponData.discountAmount = discountAmount;
+            }
+
+            if (expiryDate !== undefined && (expiryDate === null || new Date(expiryDate).toString() !== 'Invalid Date')) {
+                couponData.expiryDate = expiryDate;
+            }
+
+            if (maxUses !== undefined && typeof maxUses === 'number' && maxUses > 0) {
+                couponData.maxUses = maxUses;
+            }
+
+            if (maxUsesPerUser !== undefined && typeof maxUsesPerUser === 'number' && maxUsesPerUser > 0) {
+                couponData.maxUsesPerUser = maxUsesPerUser;
+            }
+
+            if (status !== undefined && Object.values(CouponStatus).includes(status)) {
+                couponData.status = status;
+            }
+
+            if (currentUses !== undefined && typeof currentUses === 'number' && currentUses >= 0) {
+                couponData.currentUses = currentUses;
+            }
+
+            if (assetId !== undefined && typeof assetId === 'string') {
+                couponData.assetId = assetId;
+            }
 
             // Update the coupon data
             const updatedData = { ...couponData, ...newData };
@@ -213,28 +307,53 @@ export class CouponService {
         try {
             const { couponCode, resourceType } = redeemCouponDto;
 
+            if (!Object.values(ResourceType).includes(resourceType)) {
+                const response: RedeemCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'INVALID_RESOURCE_TYPE',
+                    discountedPrice: 0,
+                    initialPrice: 0,
+                };
+                return response;
+            }
+
             // Fetch coupon data from Firestore
             const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
             const couponQuerySnapshot = await getDocs(query(couponCollectionRef, where('code', '==', couponCode)));
 
             if (couponQuerySnapshot.empty) {
-                throw new NotFoundException(`Coupon with code "${couponCode}" not found.`);
-            }
+                const response: RedeemCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'COUPON NOT FOUND',
+                    discountedPrice: 0,
+                    initialPrice: 0,
+                };
+                return response;            }
 
             const couponDoc = couponQuerySnapshot.docs[0];
             const couponData = couponDoc.data();
 
             if (couponData.status !== CouponStatus.Available) {
-                throw new BadRequestException('This coupon is not available for redemption.');
-            }
+                const response: RedeemCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'COUPON NOT AVAILABLE FOR REDEMPTION',
+                    discountedPrice: 0,
+                    initialPrice: 0,
+                };
+                return response;            }
 
             // Fetch user data from Firestore based on ID
             const userCollectionRef = collection(this.firebaseService.fireStore, 'users');
             const userQuerySnapshot = await getDocs(query(userCollectionRef, where('id', '==', userId)));
 
             if (userQuerySnapshot.empty) {
-                throw new NotFoundException(`User with ID "${userId}" not found.`);
-            }
+                const response: RedeemCouponResponseDto = {
+                    statusCode: 400,
+                    message: 'USER DOES NOT EXIST',
+                    discountedPrice: 0,
+                    initialPrice: 0,
+                };
+                return response;            }
 
             // Verify if the coupon has reached its max uses
             if (couponData.currentUses >= couponData.maxUses) {
@@ -321,8 +440,12 @@ export class CouponService {
             const couponQuerySnapshot = await getDocs(query(couponCollectionRef, where('code', '==', code)));
 
             if (couponQuerySnapshot.empty) {
-                throw new NotFoundException(`Coupon with code "${code}" not found.`);
-            }
+                const response: GetCouponsResponseDto = {
+                    statusCode: 404,
+                    message: 'COUPON NOT FOUND',
+                    couponsFound: []
+                };
+                return response;            }
 
             const couponData = couponQuerySnapshot.docs[0].data();
 
@@ -462,6 +585,16 @@ export class CouponService {
                 userCoupons.push(couponData);
             });
 
+            if (userCoupons.length === 0) {
+                const getCouponsDtoResponse: GetCouponsResponseDto = {
+                    statusCode: 404,
+                    message: "USER HAS NO REGISTERED COUPONS",
+                    couponsFound: []
+                };
+
+                return getCouponsDtoResponse;            }
+
+
             const getCouponsDtoResponse: GetCouponsResponseDto = {
                 statusCode: 200,
                 message: "COUPONSGOT",
@@ -474,57 +607,6 @@ export class CouponService {
             throw new Error(`There was an error retrieving coupons created by user "${userId}".`);
         }
     }
-
-
-
-
-    /*
-    @ApiOperation({ summary: 'Delete expired coupons from firebase' })
-    @ApiOkResponse({ description: 'Coupons deleted successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async deleteExpiredCouponsFromFirebase(): Promise<DeleteCouponResponseDto> {
-        try {
-            // Fetch coupons from Firestore
-            const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
-            const couponQuerySnapshot = await getDocs(couponCollectionRef);
-
-            // Filter coupons with status "expired"
-            const expiredCouponRefs: DocumentReference[] = [];
-
-            for (const couponDoc of couponQuerySnapshot.docs) {
-                const couponData = couponDoc.data() as Coupon;
-
-                if (couponData.status === CouponStatus.Expired) {
-                    expiredCouponRefs.push(couponDoc.ref);
-                }
-            }
-
-            // Delete expired coupons from Firestore
-            const deletionPromises = expiredCouponRefs.map(async (couponRef) => {
-                await deleteDoc(couponRef);
-            });
-
-            await Promise.all(deletionPromises);
-
-            const cachedCoupons = await this.firebaseService.getCollectionData('coupons');
-            const updatedCachedCoupons = cachedCoupons.filter((coupon) => coupon.status !== CouponStatus.Expired);
-            this.firebaseService.setCollectionData('coupons', updatedCachedCoupons);
-
-
-            const response: DeleteCouponResponseDto = {
-                statusCode: 200,
-                message: 'EXPIREDDELETEDSUCCESSFULLY',
-            };
-
-            console.log('Expired coupons have been deleted successfully.');
-            return response;
-        } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
-        }
-    }*/
-
 
 
 

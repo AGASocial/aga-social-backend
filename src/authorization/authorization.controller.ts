@@ -26,11 +26,9 @@ export class AuthorizationController {
     @ApiOkResponse({ description: 'Role set successfully ' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
     @Put('users/roles')
-    async setRoleToUser(
-        @Query('id') id: string,
-        @Query('roleName') roleName: string,
-        @Req() req: Request
-    ): Promise<SetRoleToUserResponseDto> {
+    async setRoleToUser(@Req() req: Request): Promise<SetRoleToUserResponseDto> {
+        const id = req.body.id;
+        const roleName = req.body.roleName;
         return await this.authorizationService.setRoleToUser(id, roleName);
     }
 
@@ -43,10 +41,11 @@ export class AuthorizationController {
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or user not found' })
     @Delete('users/roles')
     async deleteRoleFromUser(
-        @Query('id') id: string,
-        @Query('roleName') roleName: string,
+        
         @Req() req: Request
     ): Promise<DeleteRoleOfUserResponseDto> {
+        const id = req.body.id;
+        const roleName = req.body.roleName;
         return await this.authorizationService.deleteRoleOfUser(id, roleName);
     }
 
@@ -73,12 +72,11 @@ export class AuthorizationController {
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or role not found' })
     @Put('roles')
     async updateRole(
-        @Query('name') roleName: string,
         @Body() updateRoleDto: UpdateRoleDto,
     ): Promise<UpdateRoleResponseDto> {
         try {
-            updateRoleDto.name = roleName;
-            const response = await this.authorizationService.updateRole(roleName, updateRoleDto);
+            const name = updateRoleDto.name;
+            const response = await this.authorizationService.updateRole(name, updateRoleDto);
             return response;
         } catch (error) {
             console.error('There was an error updating the role:', error);

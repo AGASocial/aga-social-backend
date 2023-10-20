@@ -101,5 +101,11 @@ export class UpdateEbookDto {
     @IsBoolean()
     active?: boolean = true;
 
-
+    @ApiProperty({
+        description: 'Firestore ID of the ebook',
+        example: 'abcdef123456',
+        type: String
+    })
+    @IsNotEmpty()
+    id: string;
 }

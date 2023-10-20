@@ -85,6 +85,13 @@ export class UpdateUserDto {
 
 
 
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    id?: string;
+
 }
 
 

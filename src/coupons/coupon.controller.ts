@@ -40,9 +40,10 @@ export class CouponController {
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
     @Put('coupons')
     async updateCoupon(
-        @Query('code') code: string,
         @Body() updateCouponDto: UpdateCouponDto,
     ): Promise<UpdateCouponResponseDto> {
+        const { code } = updateCouponDto;
+        console.log(code)
         return this.couponService.updateCoupon(code, updateCouponDto);
     }
 
@@ -56,8 +57,9 @@ export class CouponController {
     @ApiOkResponse({ description: 'Coupon redeemed successfully ' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
     @Post('coupons/assets')
-    async redeemCoupon(@Body() redeemCouponDto: RedeemCouponDto, @Query('id') id: string): Promise<RedeemCouponResponseDto> {
-        const response = await this.couponService.redeemCoupon(redeemCouponDto, id);
+    async redeemCoupon(@Body() redeemCouponDto: RedeemCouponDto): Promise<RedeemCouponResponseDto> {
+        const { userId } = redeemCouponDto;
+        const response = await this.couponService.redeemCoupon(redeemCouponDto, userId);
         return response;
     }
 
@@ -83,30 +85,39 @@ export class CouponController {
     }*/
 
 
+    @ApiOperation({ summary: 'Retrieve coupons by code' })
+    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+    @Get('coupons/:code')
+    async getCouponByCode(@Param('code') code: string): Promise<GetCouponsResponseDto> {
+        return this.couponService.getCouponByCode(code);
+    }
+
+    @ApiOperation({ summary: 'Retrieve coupons by user ID' })
+    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+    @Get('coupons/users/:id')
+    async getCouponsCreatedByUser(@Param('id') id: string): Promise<GetCouponsResponseDto> {
+        return this.couponService.getCouponsCreatedByUser(id);
+    }
 
 
-    @ApiOperation({ summary: 'Retrieve coupons using filters or retrieve all coupons from an user' })
+
+    @ApiOperation({ summary: 'Retrieve all coupons' })
     @ApiOkResponse({ description: 'Coupons retrieved successfully' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
     @Get('coupons')
-    async getCoupons(
-        @Query('code') code: string,
-        @Query('status') status: CouponStatus,
-        @Query('id') id: string
-    ): Promise<GetCouponsResponseDto> {
-
-        if (!code && !status && !id) {
-            return this.couponService.getCoupons();
-        }
-
-        else if (code) {
-            return this.couponService.getCouponByCode(code);
-        } else if (id) {
-            return this.couponService.getCouponsCreatedByUser(id);
-        } else {
-            throw new BadRequestException('Invalid parameters');
+    async getAllCoupons(): Promise<GetCouponsResponseDto> {
+        try {
+            const coupons = await this.couponService.getCoupons();
+            return coupons;
+            
+        } catch (error) {
+            console.error('Error retrieving coupons:', error);
+            throw new BadRequestException('Error retrieving coupons');
         }
     }
+
 
 
 

@@ -101,8 +101,12 @@ async updateTag(id: string, newData: Partial<UpdateTagDto>): Promise<UpdateTagRe
 
         if (querySnapshot.empty) {
             console.log(`The tag with the id "${id}" does not exist.`);
-            throw new Error('TAGDOESNOTEXIST.');
-        }
+            const response: UpdateTagResponseDto = {
+                statusCode: 404,
+                message: 'TAG DOES NOT EXIST',
+            };
+
+            return response;        }
 
         const batch = admin.firestore().batch();
         querySnapshot.forEach((doc) => {
@@ -145,8 +149,14 @@ async updateTag(id: string, newData: Partial<UpdateTagDto>): Promise<UpdateTagRe
             });
 
             if (!username) {
-                throw new Error('User not found');
-            }
+                const responseDto: GetTagsResponseDto = {
+                    statusCode: 404,
+                    message: 'USER NOT FOUND',
+                    tagsFound: null,
+                };
+                console.log('Response created.');
+
+                return responseDto;            }
 
             // If there is no data in cache, query Firestore
             const tagRef = this.firebaseService.tagsCollection;

@@ -43,8 +43,11 @@ export class EbookService {
 
             if (querySnapshot.empty) {
                 console.log(`The ebook with the id "${id}" does not exist.`);
-                throw new Error('EBOOKDOESNOTEXIST.');
-            }
+                const response: UpdateEbookResponseDto = {
+                    statusCode: 404,
+                    message: 'EBOOK NOT FOUND',
+                };
+                return response;            }
 
             const batch = admin.firestore().batch();
             querySnapshot.forEach((doc) => {
@@ -191,10 +194,28 @@ export class EbookService {
                     releaseDate: convertFirestoreTimestamp(ebook.releaseDate),
                 }));
 
+                if (matchedEbooksWithFormattedDates.length = 0) {
+                    const responseDto: GetEbooksResponseDto = {
+                        statusCode: 404,
+                        message: 'EBOOKS NOT FOUND',
+                        ebooksFound: null,
+                    };
+                    return responseDto;
+                }
+
                 const responseDto: GetEbooksResponseDto = {
                     statusCode: 200,
-                    message: 'EBOOKSGOT',
+                    message: 'EBOOKS GOT',
                     ebooksFound: matchedEbooksWithFormattedDates,
+                };
+                return responseDto;
+            }
+
+            else if (cachedEbooks.length = 0) {
+                const responseDto: GetEbooksResponseDto = {
+                    statusCode: 404,
+                    message: 'EBOOKS NOT FOUND',
+                    ebooksFound: null,
                 };
                 return responseDto;
             }
@@ -310,7 +331,11 @@ export class EbookService {
 
 
             if (userQuerySnapshot.empty) {
-                throw new BadRequestException('PUBLISHER NOT FOUND. ENTER THE USERNAME OF A REGISTERED USER');
+                const response: UploadEbookResponseDto = {
+                    statusCode: 404,
+                    message: 'PUBLISHER NOT FOUND',
+                };
+                return response;
             }
 
 
@@ -551,7 +576,6 @@ export class EbookService {
     @ApiOperation({ summary: 'Get a specific ebook from Firestore by ID' })
     @ApiOkResponse({ description: 'Ebook retrieved successfully', type: GetEbookByIdResponseDto })
     @ApiNotFoundResponse({ description: 'Ebook not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getEbookById(ebookId: string): Promise<GetEbookByIdResponseDto> {
         try {
             const ebooksRef = this.firebaseService.ebooksCollection;
@@ -591,8 +615,12 @@ export class EbookService {
 
                 return ebookResponse;
             } else {
-                throw new Error(`Ebook with ID ${ebookId} not found.`);
-            }
+                const response: GetEbookByIdResponseDto = {
+                    statusCode: 404,
+                    message: 'EBOOK NOT FOUND',
+                    ebookFound: null
+                };
+                return response;            }
         } catch (error) {
             throw new Error('There was an error retrieving the ebook by ID.');
         }
@@ -621,15 +649,24 @@ export class EbookService {
             const usersQuerySnapshot = await getDocs(usersQuery);
             const userDoc = usersQuerySnapshot.docs[0];
 
-            if (!userDoc.exists()) {
-                return new GetEbooksResponseDto(404, 'USER_NOT_FOUND', []);
-            }
+            if (!userDoc) {
+                const response: GetEbooksResponseDto = {
+                    statusCode: 404,
+                    message: 'USER DOES NOT EXIST',
+                    ebooksFound: []
+                };
+                return response;
+}
 
             const userData = userDoc.data();
 
             if (!userData.purchasedBooks || userData.purchasedBooks.length === 0) {
-                return new GetEbooksResponseDto(200, 'NO_EBOOKS_FOUND', []);
-            }
+                const response: GetEbooksResponseDto = {
+                    statusCode: 404,
+                    message: 'USER HAS NO EBOOKS',
+                    ebooksFound: []
+                };
+                return response;            }
 
             const purchasedEbookIds: string[] = userData.purchasedBooks;
             const purchasedEbooksDetails: Ebook[] = [];

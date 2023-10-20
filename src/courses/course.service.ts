@@ -40,8 +40,11 @@ export class CourseService {
 
             if (querySnapshot.empty) {
                 console.log(`The course with the id "${id}" does not exist.`);
-                throw new Error('IDDOESNOTEXIST.');
-            }
+                const response: UpdateCourseResponseDto = {
+                    statusCode: 404,
+                    message: 'Course not found',
+                };
+                return response;            }
 
             const coursesDoc = querySnapshot.docs[0];
 
@@ -566,14 +569,27 @@ export class CourseService {
             const usersQuerySnapshot = await getDocs(usersQuery);
             const userDoc = usersQuerySnapshot.docs[0];
 
-            if (!userDoc.exists()) {
-                return new GetCoursesResponseDto(404, 'USER_NOT_FOUND', []);
+            if (!userDoc) {
+                const response: GetCoursesResponseDto = {
+                    statusCode: 404,
+                    message: 'USER NOT FOUND',
+                    coursesFound: []
+                };
+                return response;
+
             }
+
+          
 
             const userData = userDoc.data();
 
             if (!userData.purchasedCourses || userData.purchasedCourses.length === 0) {
-                return new GetCoursesResponseDto(200, 'NO_COURSES_FOUND', []);
+                const response: GetCoursesResponseDto = {
+                    statusCode: 404,
+                    message: 'USER HAS NO PURCHASED COURSES',
+                    coursesFound: []
+                };
+                return response;
             }
 
             const purchasedCourseIds: string[] = userData.purchasedCourses;
@@ -687,8 +703,14 @@ export class CourseService {
                 console.log('Response created.');
                 return getCourseResponse;
             } else {
-                throw new Error(`Course with ID ${courseId} not found.`);
-            }
+                const getCourseResponse: GetCoursesResponseDto = {
+                    statusCode: 404,
+                    message: 'COURSESNOTFOUND',
+                    userPicture: null,
+                    coursesFound: null,
+                };
+                console.log('No courses found..');
+                return getCourseResponse;            }
         } catch (error) {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving the course.');

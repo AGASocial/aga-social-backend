@@ -20,6 +20,14 @@ export class UpdateTagDto {
     @IsBoolean()
     active?: boolean = true;
 
+    @ApiProperty({
+        description: 'Firestore ID of the tag',
+        example: 'tag-abcdef123456',
+        type: String,
+    })
+    @IsNotEmpty()
+    id: string;
+
 
 
 }

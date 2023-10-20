@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
+import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive, IsOptional } from "class-validator";
 
 export class UploadMediaResponseDto {
 
@@ -31,10 +31,19 @@ export class UploadMediaResponseDto {
     })
     public mediaId?: string;
 
-    constructor(statusCode: number, message: string, mediaId: string) {
+    @ApiProperty({
+        description: 'url of the media from youtube or other platforms',
+        type: String,
+    })
+    @IsString()
+    @IsNotEmpty()
+    public url: string;
+
+    constructor(statusCode: number, message: string, mediaId: string, url: string) {
         this.statusCode = statusCode;
         this.message = message;
         this.mediaId = mediaId;
+        this.url = url
     }
 }
 

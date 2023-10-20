@@ -10,7 +10,7 @@ import { EbookService } from './ebooks.service';
 import { EbookFormat, EbookGenre } from './entities/ebooks.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadEbookResponseDto } from './dto/uploadEbookResponse.dto';
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PurchaseEbookResponseDto } from './dto/purchaseEbookResponse.dto';
 import { PurchaseEbookDto } from './dto/purchaseEbook.dto';
 import { GetEbookByIdResponseDto } from './dto/getEbookByIdResponse.dto';
@@ -76,10 +76,11 @@ export class EbookController {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @Put('assets/ebooks')
     async updateEbook(
-        @Query('id') id: string,
         @Body() updateEbookDto: Partial<UpdateEbookDto>
     ): Promise<UpdateEbookResponseDto> {
         try {
+            const id = updateEbookDto.id
+
             const response = await this.ebookService.updateEbook(id, updateEbookDto);
             return response;
         } catch (error) {
@@ -90,28 +91,29 @@ export class EbookController {
 
 
     @ApiOperation({ summary: 'Get all ebooks from Firestore or get ebooks based on keywords from their titles' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @Get('assets/ebooks')
     async getEbooks(
         @Query('keywords') keywords?: string[],
-       // @Query('userId') userId?: string,
-        @Query('id') id?: string
     ): Promise<GetEbooksResponseDto | GetEbookByIdResponseDto> {
         if (keywords) {
             const response = await this.ebookService.getEbooksByKeywords(keywords);
             return response;
         }
 
-        else if (id){
-            const response = await this.ebookService.getEbookById(id);
-            return response;
-        }
-
-
         else {
             const response =  await this.ebookService.getEbooks();
             return response;
         }
+    }
+
+
+    @ApiOperation({ summary: 'Get an ebook by ID' })
+    @ApiOkResponse({ description: 'Ebook retrieved successfully', type: GetEbookByIdResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Get('assets/ebooks/:id')
+    async getEbookById(@Param('id') id: string): Promise<GetEbookByIdResponseDto> {
+        const response = await this.ebookService.getEbookById(id);
+        return response;
     }
 
 
@@ -162,10 +164,10 @@ export class EbookController {
     @ApiResponse({ status: 200, description: 'Success', type: GetEbooksResponseDto })
     @ApiResponse({ status: 400, description: 'Bad request' })
     @ApiResponse({ status: 500, description: 'Internal server error' })
-    @Get('users/ebooks') 
-    async getPurchasedBooks(@Query('userId') userId: string): Promise<GetEbooksResponseDto> {
+    @Get('users/:id/ebooks') 
+    async getPurchasedBooks(@Param('id') id: string): Promise<GetEbooksResponseDto> {
         try {
-            const result = await this.ebookService.getPurchasedBooks(userId);
+            const result = await this.ebookService.getPurchasedBooks(id);
             return result;
         } catch (error) {
             console.error('An error occurred:', error);

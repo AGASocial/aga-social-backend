@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"code\": \"DEFENSA123\",\r\n  \"assetId\": \"65c8cf10-3726-4776-a35a-b0e5867dcf64\",\r\n  \"status\": \"available\",\r\n  \"description\": \"Sale 10$ Off\",\r\n  \"discountType\": \"nominal\", //o percentual\r\n  \"discountAmount\": 10,\r\n  \"expiryDate\": \"2023-12-12\", //optional\r\n  \"maxUses\": 1,\r\n  \"maxUsesPerUser\": 1\r\n}\r\n",
+					"raw": "{\r\n  \"createdBy\": \"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2\",\r\n  \"code\": \"CUPON12345\",\r\n  \"assetId\": \"97eecb35-810d-4945-be8f-09bb46d78c52\",\r\n  \"status\": \"available\",\r\n  \"description\": \"Defensa\",\r\n  \"discountType\": \"nominal\", //o percentual\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-11-12\", //optional\r\n  \"maxUses\": 2,\r\n  \"maxUsesPerUser\": 1\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,7 +37,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"description\": \"New Description\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-11-11\",\r\n  \"maxUses\": 2,\r\n  \"maxUsesPerUser\": 2,\r\n  \"status\": \"available\"\r\n//  \"assetId\": \"65c8cf10-3726-4776-a35a-b0e5867dcf64\"\r\n\r\n}\r\n",
+					"raw": "{\r\n  \"code\": \"DEFENSA144\",\r\n  \"description\": \"hola\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-11-11\",\r\n  \"maxUses\": 7,\r\n  \"maxUsesPerUser\": 7,\r\n  \"status\": \"available\",\r\n  \"assetId\": \"65c8cf10-3726-4776-a35a-b0e5867dcf64\"\r\n\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,15 +45,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons?code=DEFENSA144",
+					"raw": "{{server}}coupons",
 					"host": [
 						"{{server}}coupons"
-					],
-					"query": [
-						{
-							"key": "code",
-							"value": "DEFENSA144"
-						}
 					]
 				}
 			},
@@ -66,7 +60,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"couponCode\": \"VERO444\",\r\n  \"resourceType\": \"Ebook\"\r\n}\r\n",
+					"raw": "{\r\n  \"userId\": \"w7AAlcHgC4ZXl6UIZl8FDkW4aT32\",\r\n  \"couponCode\": \"DEFENSA144\",\r\n  \"resourceType\": \"Ebook\" //or Course\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -74,18 +68,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons/assets?id=SFUcEOGs1lbWj4PdVrRxjbyLOtU2",
+					"raw": "{{server}}coupons/assets",
 					"host": [
 						"{{server}}coupons"
 					],
 					"path": [
 						"assets"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "SFUcEOGs1lbWj4PdVrRxjbyLOtU2"
-						}
 					]
 				}
 			},
@@ -123,15 +111,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}coupons?code=DEFENSA144",
+					"raw": "{{server}}coupons/DEFENSA144",
 					"host": [
 						"{{server}}coupons"
 					],
-					"query": [
-						{
-							"key": "code",
-							"value": "DEFENSA144"
-						}
+					"path": [
+						"DEFENSA144"
 					]
 				}
 			},
@@ -143,15 +128,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}coupons?id=w7AAlcHgC4ZXl6UIZl8FDkW4aT32",
+					"raw": "{{server}}coupons/users/w7AAlcHgC4ZXl6UIZl8FDkW4aT32",
 					"host": [
 						"{{server}}coupons"
 					],
-					"query": [
-						{
-							"key": "id",
-							"value": "w7AAlcHgC4ZXl6UIZl8FDkW4aT32"
-						}
+					"path": [
+						"users",
+						"w7AAlcHgC4ZXl6UIZl8FDkW4aT32"
 					]
 				}
 			},

@@ -41,7 +41,7 @@ export class SectionController {
 
 
 
-    @Post('sections/subsections')
+    @Post('sections/:id/subsections')
     @ApiOperation({ summary: 'Create a new subsection and add it to a parent section' })
     @ApiCreatedResponse({ description: 'Subsection created and added to parent section successfully', type: CreateSectionResponseDto })
     @ApiNotFoundResponse({ description: 'Parent section not found' })
@@ -50,10 +50,10 @@ export class SectionController {
     @ApiBody({ type: CreateSectionDto })
     async createAndAddSubsectionToSection(
         @Body() createSectionDto: CreateSectionDto,
-        @Query('parentSectionId') parentSectionId: string 
+        @Param('id') id: string 
     ): Promise<CreateSectionResponseDto> {
         return this.sectionService.createAndAddSubsectionToSection(
-            parentSectionId,
+            id,
             createSectionDto
         );
     }
@@ -72,10 +72,11 @@ export class SectionController {
     @ApiQuery({ name: 'name', description: 'Name of the section', required: true, type: 'string' })
     @ApiBody({ type: UpdateSectionDto })
     async updateSection(
-        @Query('id') id: string,
         @Body() updateSectionDto: Partial<UpdateSectionDto>,
         @Req() req: Request
     ): Promise<UpdateSectionResponseDto> {
+        const id = updateSectionDto.id
+
         return await this.sectionService.updateSection(id, updateSectionDto);
     }
 
@@ -112,6 +113,20 @@ export class SectionController {
 
         return this.sectionService.getSections();
     }
+
+
+    @Get('sections/:id')
+    @ApiOperation({ summary: 'Get a section by its ID' })
+    @ApiOkResponse({ description: 'Section retrieved successfully', type: GetSectionsResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid section ID or section not found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async getSectionById(
+        @Param('id') sectionId: string,
+    ): Promise<GetSectionsResponseDto> {
+        const response = await this.sectionService.getSectionContentById(sectionId);
+        return response;
+    }
+
 
 
 
@@ -159,9 +174,9 @@ export class SectionController {
     @ApiOperation({ summary: 'Get subsections by section name' })
     @ApiOkResponse({ description: 'Subsections retrieved successfully', type: GetSectionsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @Get('sections/subsections')
+    @Get('sections/:id/subsections')
     async getSubsectionsBySectionId(
-        @Query('id') id: string
+        @Param('id') id: string
     ): Promise<GetSectionsResponseDto> {
         return this.sectionService.getSubsectionsBySectionId(id);
     }
