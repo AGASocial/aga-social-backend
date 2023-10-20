@@ -66,7 +66,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n\"active\": true,\r\n\"title\": \"Updated\",\r\n\"description\": \"Updated\"\r\n\r\n}",
+					"raw": "{\r\n\"id\": \"19e5f726-cf92-42bc-adab-6e7aeee8f158\",\r\n\"active\": true,\r\n\"title\": \"aeo\",\r\n\"description\": \"Updated\"\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -74,18 +74,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/media?id=7136090b-25f9-4368-8fce-65ba8a3a2e70",
+					"raw": "{{server}}assets/media",
 					"host": [
 						"{{server}}assets"
 					],
 					"path": [
 						"media"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "7136090b-25f9-4368-8fce-65ba8a3a2e70"
-						}
 					]
 				}
 			},
@@ -114,25 +108,20 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}assets/media?id=e19e073f-cdde-4b96-a3b2-c0aba097dbbc",
+					"raw": "{{server}}assets/media/19e5f726-cf92-42bc-adab-6e7aeee8f158",
 					"host": [
 						"{{server}}assets"
 					],
 					"path": [
-						"media"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "e19e073f-cdde-4b96-a3b2-c0aba097dbbc"
-						}
+						"media",
+						"19e5f726-cf92-42bc-adab-6e7aeee8f158"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Consultar Media Por Palabras Clave",
+			"name": "Consultar Media Por Titulo",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -173,7 +162,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"type\": \"audio\",\r\n  \"title\": \"Sample Audio\",\r\n  \"description\": \"This is a sample audio description.\",\r\n  \"url\": \"https://www.youtube.com/watch?v=Tst7dP14MEZRY=616s&ab_channel=AChannel\",\r\n  \"duration\": \"00:05:30\",\r\n  \"uploadDate\": \"2023-08-03\",\r\n  \"active\": true,\r\n  \"publisher\": \"John Doe\"\r\n}\r\n",
+					"raw": "{\r\n  \"type\": \"video\",\r\n  \"title\": \"ESTO\",\r\n  \"description\": \"This is a sample video description.\",\r\n  \"url\": \"https://www.youtube.com/watch?v=jUy08_MWT1k\",\r\n  \"duration\": \"00:08:55\",\r\n  \"uploadDate\": \"2023-08-03\",\r\n  \"active\": true,\r\n  \"publisher\": \"John Doe\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"

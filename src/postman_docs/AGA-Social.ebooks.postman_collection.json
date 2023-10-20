@@ -18,16 +18,16 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "/C:/Users/veron/Downloads/ebooks/ebookprueba.docx"
+							"src": "/C:/Users/veron/Downloads/Defensa/prueba.pdf"
 						},
 						{
 							"key": "title",
-							"value": "Defensa",
+							"value": "Defensa12",
 							"type": "text"
 						},
 						{
 							"key": "description",
-							"value": "Defensa",
+							"value": "Defensa12",
 							"type": "text"
 						},
 						{
@@ -96,7 +96,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n \"active\": true,\r\n \"title\": \"New Title\",\r\n \"author\": \"New Author\",\r\n \"price\": 100.00,\r\n \"description\": \"New Description\"\r\n}\r\n",
+					"raw": "{\r\n \"id\": \"bf73cb5b-bf8e-45e6-a891-fce873c25aca\",\r\n \"active\": true,\r\n \"title\": \"aeiou\",\r\n \"author\": \"New Author\",\r\n \"price\": 100.00,\r\n \"description\": \"New Description\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -104,18 +104,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/ebooks?id=aa3e8e8d-4a27-46ad-a3ea-bd5b0ecf3b79",
+					"raw": "{{server}}assets/ebooks",
 					"host": [
 						"{{server}}assets"
 					],
 					"path": [
 						"ebooks"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "aa3e8e8d-4a27-46ad-a3ea-bd5b0ecf3b79"
-						}
 					]
 				}
 			},
@@ -144,18 +138,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}assets/ebooks?id=65c8cf10-3726-4776-a35a-b0e5867dcf64",
+					"raw": "{{server}}assets/ebooks/bf73cb5b-bf8e-45e6-a891-fce873c25aca",
 					"host": [
 						"{{server}}assets"
 					],
 					"path": [
-						"ebooks"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "65c8cf10-3726-4776-a35a-b0e5867dcf64"
-						}
+						"ebooks",
+						"bf73cb5b-bf8e-45e6-a891-fce873c25aca"
 					]
 				}
 			},
@@ -179,7 +168,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/ebooks?keywords=PMU",
+					"raw": "{{server}}assets/ebooks?keywords=new",
 					"host": [
 						"{{server}}assets"
 					],
@@ -189,7 +178,7 @@
 					"query": [
 						{
 							"key": "keywords",
-							"value": "PMU"
+							"value": "new"
 						}
 					]
 				}
@@ -202,7 +191,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}assets/ebooks/users?userId=1w54iIFPN0M7YNgo10XuLIVUkJk2&ebookId=65c8cf10-3726-4776-a35a-b0e5867dcf64",
+					"raw": "{{server}}assets/ebooks/users?userId=FEXCjqRy6ga2Ioc7n3tS6MpydcZ2&ebookId=bf73cb5b-bf8e-45e6-a891-fce873c25aca",
 					"host": [
 						"{{server}}assets"
 					],
@@ -213,11 +202,11 @@
 					"query": [
 						{
 							"key": "userId",
-							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
+							"value": "FEXCjqRy6ga2Ioc7n3tS6MpydcZ2"
 						},
 						{
 							"key": "ebookId",
-							"value": "65c8cf10-3726-4776-a35a-b0e5867dcf64"
+							"value": "bf73cb5b-bf8e-45e6-a891-fce873c25aca"
 						}
 					]
 				}
@@ -230,18 +219,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}users/ebooks?userId=0EwINikFVAg7jtRdkZYiTBXN4vW2",
+					"raw": "{{server}}users/0EwINikFVAg7jtRdkZYiTBXN4vW2/ebooks",
 					"host": [
 						"{{server}}users"
 					],
 					"path": [
+						"0EwINikFVAg7jtRdkZYiTBXN4vW2",
 						"ebooks"
-					],
-					"query": [
-						{
-							"key": "userId",
-							"value": "0EwINikFVAg7jtRdkZYiTBXN4vW2"
-						}
 					]
 				}
 			},

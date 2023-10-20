@@ -35,6 +35,7 @@ import * as admin from 'firebase-admin';
 import { GetUsersEarningsResponseDto } from './dto/getUsersEarningsResponse.dto';
 import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
+import { validate } from 'class-validator';
 
 
 
@@ -57,10 +58,17 @@ export class AuthService {
         console.log('firebaseLogin - Start of function');
 
         const user = await this.firebaseService.getUserByEmail(logInDto.email);
-
         if (!user) {
-            console.log('firebaseLogin - User not found');
-            throw new NotFoundException('User not found'); 
+            const badRequestResponse: LogInResponseDto = {
+                statusCode: 400,
+                message: 'User not found',
+                userId: '',
+                bearer_token: '',
+                authCookieAge: 0,
+                refresh_token: '',
+                refreshCookieAge: 0,
+            };
+            return badRequestResponse;
         }
 
         const hashedPassword = user.password;
@@ -71,8 +79,16 @@ export class AuthService {
         console.log('firebaseLogin - Password match result:', doPasswordsMatch);
 
         if (!doPasswordsMatch) {
-            console.log('firebaseLogin - Passwords do not match');
-            throw new UnauthorizedException('Invalid credentials'); 
+            const badRequestResponse: LogInResponseDto = {
+                statusCode: 400,
+                message: 'Invalid credentials',
+                userId: '',
+                bearer_token: '',
+                authCookieAge: 0,
+                refresh_token: '',
+                refreshCookieAge: 0,
+            };
+            return badRequestResponse;
         }
 
         let userCredential;
@@ -170,6 +186,7 @@ export class AuthService {
 
         console.log('Before emailChecker...');
         const emailExists = await this.usersService.emailChecker(email, false);
+
         console.log('After emailChecker...');
 
 
@@ -250,23 +267,39 @@ export class AuthService {
 
         const { security_answer, new_password } = recoverPasswordDto;
 
+        if (new_password.length < 8 || new_password.length > 30) {
+            const badRequestResponse: RecoverPasswordDtoResponse = {
+                statusCode: 400,
+                message: 'Password length must be between 8 and 30 characters',
+            };
+            return badRequestResponse;
+        }
+
+
         const userID = this.usersService.extractID(jwtToken);
         const singleUserReference = doc(this.firebaseService.usersCollection, userID);
         const singleUserSnap = await getDoc(singleUserReference);
 
         if (!singleUserSnap.exists()) {
             console.log('firebaseRecoverPassword - User not found');
-            throw new BadRequestException('USERNOTFOUND');
+            const badRequestResponse: RecoverPasswordDtoResponse = {
+                statusCode: 400,
+                message: 'USERNOTFOUND',
+            };
+            return badRequestResponse;
         }
 
         const doSecurityAnswersMatch = await this.hashService.compareHashedStrings(
             security_answer,
             singleUserSnap.get("security_answer")
         );
-
         if (!doSecurityAnswersMatch) {
             console.log('firebaseRecoverPassword - Security answers do not match');
-            throw new BadRequestException('WRONGCREDENTIALS');
+            const badRequestResponse: RecoverPasswordDtoResponse = {
+                statusCode: 400,
+                message: 'WRONGCREDENTIALS',
+            };
+            return badRequestResponse;
         }
 
         const hashedPassword = singleUserSnap.get("password");
@@ -324,6 +357,14 @@ export class AuthService {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async firebaseChangePassword(changePasswordDto: ChangePasswordDto, jwtToken: string) {
         const { password, new_password } = changePasswordDto;
+
+        if (new_password.length < 8 || new_password.length > 30) {
+            const badRequestResponse: ChangePasswordDtoResponse = {
+                statusCode: 400,
+                message: 'Password length must be between 8 and 30 characters',
+            };
+            return badRequestResponse;
+        }
 
         const userID = this.usersService.extractID(jwtToken);
         const singleUserReference = doc(this.firebaseService.usersCollection, userID);
@@ -579,9 +620,11 @@ export class AuthService {
 
 
 
-    async updateUser(id: string, newData: Partial<UpdateUserDto>): Promise<UpdateUserResponseDto> {
+    async updateUser(newData: Partial<UpdateUserDto>): Promise<UpdateUserResponseDto> {
         try {
             console.log('Initializing updateUser...');
+
+
 
             const {
                 username,
@@ -591,15 +634,24 @@ export class AuthService {
                 phoneNumber,
                 active,
                 new_email,
+                id
             } = newData;
+
+            const validationErrors = await validate(newData, { skipMissingProperties: true });
+
+
 
             const usersCollectionRef = admin.firestore().collection('users');
 
             const querySnapshot = await usersCollectionRef.where('id', '==', id).get();
 
             if (querySnapshot.empty) {
-                console.log(`The user with the id"${id}" does not exist.`);
-                throw new Error('USERDOESNOTEXIST.');
+                console.log(`The user with the id "${id}" does not exist.`);
+                const notFoundResponse: UpdateUserResponseDto = {
+                    statusCode: 404,
+                    message: 'USERNOTFOUND',
+                };
+                return notFoundResponse;
             }
 
             const usersRef = collection(this.firebaseService.fireStore, 'users');
@@ -628,7 +680,11 @@ export class AuthService {
                     console.log('Email Updated in Firebase Auth.');
                 } catch (error) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new BadRequestException('An error occurred while updating the email.');
+                    const emailUpdateError: UpdateUserResponseDto = {
+                        statusCode: 400,
+                        message: 'EMAIL UPDATE ERROR',
+                    };
+                    return emailUpdateError;
                 }
 
                 try {
@@ -639,7 +695,11 @@ export class AuthService {
                     console.log('Email updated in Firestore:', new_email);
                 } catch (error) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new BadRequestException('An error occurred while updating the email in Firestore.');
+                    const firestoreEmailUpdateError: UpdateUserResponseDto = {
+                        statusCode: 400,
+                        message: 'EMAIL UPDATE ERROR',
+                    };
+                    return firestoreEmailUpdateError;
                 }
             }
 
@@ -660,6 +720,7 @@ export class AuthService {
                 cachedUsers[cachedUserIndex] = updatedCachedUser;
                 await this.firebaseService.setCollectionData('users', cachedUsers);
             }
+
 
 
             const response: UpdateUserResponseDto = {
@@ -729,8 +790,26 @@ export class AuthService {
         try {
             const maxFileSize = 10 * 1024 * 1024; // 10 MB
 
+            console.log('Before')
+            const usersCollectionRef = admin.firestore().collection('users');
+            const userDoc = await usersCollectionRef.doc(id).get();
+            console.log('After')
+
+
+            if (!userDoc.exists) {
+                const badRequestResponse: UpdateUserResponseDto = {
+                    statusCode: 400,
+                    message: 'USERNOTFOUND',
+                };
+                return badRequestResponse;
+            }
+
             if (file.size > maxFileSize) {
-                throw new BadRequestException('The size of the file has surpassed the max, the file must be 10 MB or lower');
+                const badRequestResponse: UpdateUserResponseDto = {
+                    statusCode: 400,
+                    message: 'INVALID INPUT',
+                };
+                return badRequestResponse;
             }
 
             const newProfilePictureId: string = uuidv4();
@@ -768,12 +847,8 @@ export class AuthService {
                 expires: '01-01-2100',
             });
 
-            const usersCollectionRef = admin.firestore().collection('users');
-            const userDoc = await usersCollectionRef.doc(id).get();
 
-            if (!userDoc.exists) {
-                throw new BadRequestException(`User with id "${id}" not found`);
-            }
+           
 
             await usersCollectionRef.doc(id).update({ profilePicture: url });
 

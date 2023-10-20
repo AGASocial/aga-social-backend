@@ -24,10 +24,10 @@ export class CourseController {
     @ApiResponse({ status: 200, description: 'Success', type: GetCoursesResponseDto })
     @ApiResponse({ status: 400, description: 'Bad request' })
     @ApiResponse({ status: 500, description: 'Internal server error' })
-    @Get('users/courses') 
-    async getPurchasedCourses(@Query('userId') userId: string): Promise<GetCoursesResponseDto> {
+    @Get('users/:id/courses') 
+    async getPurchasedCourses(@Param('id') id: string): Promise<GetCoursesResponseDto> {
         try {
-            const result = await this.courseService.getPurchasedCourses(userId);
+            const result = await this.courseService.getPurchasedCourses(id);
             return result;
         } catch (error) {
             console.error('An error occurred:', error);
@@ -43,10 +43,10 @@ export class CourseController {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @Put('assets/courses')
     async updateCourses(
-        @Query('id') id: string,
         @Body() updateCourseDto: Partial<UpdateCourseDto>,
         @Req() req: Request
     ): Promise<UpdateCourseResponseDto> {
+        const id = updateCourseDto.id
         return await this.courseService.updateCourse(id, updateCourseDto);
     }
 
@@ -58,21 +58,29 @@ export class CourseController {
     async getCourses(
         @Query('keywords') keywords?: string[],
         @Query('tags') tags?: string[],
-        @Query('id') id?: string
     ): Promise<GetCoursesResponseDto> {
         if (keywords) {
             const response = await this.courseService.getCoursesByKeywords(keywords);
             return response;
         } else if (tags) {
             return await this.courseService.getCoursesByTags(tags);
-        } else if (id) {
-            return await this.courseService.getCourseById(id);
         }
 
         else {
             return this.courseService.getCourses();
         }
     }
+
+
+    @ApiOperation({ summary: 'Get a course by ID' })
+    @ApiOkResponse({ description: 'Course retrieved successfully', type: GetCoursesResponseDto })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @Get('assets/courses/:id')
+    async getCourseById(@Param('id') id: string): Promise<GetCoursesResponseDto> {
+        const response = await this.courseService.getCourseById(id);
+        return response;
+    }
+
 
 
 

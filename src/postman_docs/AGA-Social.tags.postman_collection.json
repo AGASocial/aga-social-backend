@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Defensa\",\r\n  \"username\": \"Joel.123\"\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Defensa\",\r\n  \"username\": \"Mary.123\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,7 +37,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"active\": false,\r\n    \"name\": \"Nuevo\"\r\n}\r\n",
+					"raw": "{\r\n    \"id\": \"0076d467-95d1-4250-b494-145b4bb090bd\",\r\n    \"active\": true\r\n    //\"name\": \"Hola\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,15 +45,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}tags?id=46a119f4-48ef-4eb3-8b5e-a4ab80ae8011",
+					"raw": "{{server}}tags",
 					"host": [
 						"{{server}}tags"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "46a119f4-48ef-4eb3-8b5e-a4ab80ae8011"
-						}
 					]
 				}
 			},
@@ -65,15 +59,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}tags?id=1w54iIFPN0M7YNgo10XuLIVUkJk2",
+					"raw": "{{server}}users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2/tags",
 					"host": [
-						"{{server}}tags"
+						"{{server}}users"
 					],
-					"query": [
-						{
-							"key": "id",
-							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
-						}
+					"path": [
+						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
+						"tags"
 					]
 				}
 			},

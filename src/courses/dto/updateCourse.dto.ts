@@ -96,4 +96,13 @@ export class UpdateCourseDto {
     @IsBoolean()
     active?: boolean = true;
 
+    @ApiProperty({
+        description: 'Firestore ID of the course',
+        example: 'abcdef123456',
+        type: String
+    })
+    @IsNotEmpty()
+    id: string;
+
+
 }

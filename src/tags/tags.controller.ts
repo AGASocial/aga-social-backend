@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Put, Query, Get } from '@nestjs/common';
+import { Controller, Post, Body, Put, Query, Get, Param } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBody, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateTagDto } from './dto/createTag.dto';
 import { CreateTagResponseDto } from './dto/createTagResponse.dto';
@@ -41,8 +41,10 @@ export class TagsController {
     @ApiResponse({ status: 200, description: 'The tag information has been successfully updated.', type: UpdateTagResponseDto })
     @ApiBadRequestResponse({ description: 'Bad request. Check the parameters being used' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-    async updateTag(@Query('id') id: string, @Body() updateTagDto: Partial<UpdateTagDto>): Promise<UpdateTagResponseDto> {
+    async updateTag(@Body() updateTagDto: Partial<UpdateTagDto>): Promise<UpdateTagResponseDto> {
         try {
+            const id = updateTagDto.id
+
             return await this.tagService.updateTag(id, updateTagDto);
         } catch (error) {
             throw new Error(`Error updating the tag: ${error.message}`);
@@ -51,11 +53,11 @@ export class TagsController {
 
 
 
-    @Get('tags')
+    @Get('users/:id/tags')
     @ApiOperation({ summary: 'Get tags associated with a user' })
     @ApiOkResponse({ description: 'Tags retrieved successfully', type: GetTagsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getTagsById(@Query('id') id: string): Promise<GetTagsResponseDto> {
+    async getTagsById(@Param('id') id: string): Promise<GetTagsResponseDto> {
         try {
              return await this.tagService.getTagsById(id);
         } catch (error) {

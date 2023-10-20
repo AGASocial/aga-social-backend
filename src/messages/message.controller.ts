@@ -40,7 +40,7 @@ export class MessageController {
   
 
 
-
+    /*
     @ApiOperation({ summary: 'Get messages by user email, keywords, or filters' })
     @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
     @Get('messages')
@@ -57,17 +57,65 @@ export class MessageController {
             return await this.messageService.searchMessagesByKeywords(id, keywords);
         } else if (id && tags) { 
             return await this.messageService.searchMessagesByTags(id, tags);
-        } else if (id) {
-            return this.messageService.getUserMessages(id);
-        }
-
-        else if (messageId) {
-            return this.messageService.getMessageById(messageId);
-        }
+        } 
+       
         else {
             throw new BadRequestException('Invalid parameters');
         }
+    }*/
+
+
+
+    @Get('messages/:messageId')
+    @ApiOperation({ summary: 'Get a message by its ID' })
+    @ApiOkResponse({ description: 'Message retrieved successfully', type: GetMessageByIdResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or message not found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async getMessageById(@Param('messageId') messageId: string): Promise<GetMessageByIdResponseDto> {
+        console.log('Get Single Message')
+
+        return this.messageService.getMessageById(messageId);
     }
+
+    @Get('messages/users/:id')
+    @ApiOperation({ summary: 'Get messages by user ID and keywords' })
+    @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or messages not found' })
+    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    async getMessagesByUserId(
+        @Param('id') id: string,
+    ): Promise<GetMessagesByUserResponseDto> {
+        console.log('Get User Messages')
+        if (id) {
+            return this.messageService.getUserMessages(id);
+        } else {
+            throw new BadRequestException('Invalid parameters');
+        }
+    }
+
+
+    @Get('users/:id/messages')
+    @ApiOperation({ summary: 'Get messages by keywords or filter or tags' })
+    @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or messages not found' })
+    async getMessages(
+        @Param('id') id: string,
+        @Query('keywords') keywords: string[],
+        @Query('filter') filter: string,
+        @Query('tags') tags: string[], 
+
+    ): Promise<GetMessagesByUserResponseDto> {
+        if (keywords) {
+            return await this.messageService.searchMessagesByKeywords(id, keywords);
+        } else if (filter && !keywords) {
+            return await this.messageService.getFilteredMessages(filter, id);
+        } else if (tags && !filter && !keywords) {
+            return await this.messageService.searchMessagesByTags(id, tags);
+        } else {
+            throw new BadRequestException('Invalid parameters');
+        }
+    }
+
 
 
 
@@ -77,10 +125,12 @@ export class MessageController {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     @Put('messages')
     async updateMessageStatus(
-        @Query('id') id: string,
         @Body() dto: UpdateMessageStatusDto,
     ): Promise<UpdateMessageStatusResponseDto> {
         try {
+
+            const id = dto.id
+
             return await this.messageService.updateMessageStatus(id, dto);
         } catch (error) {
             console.error('An error occurred:', error);

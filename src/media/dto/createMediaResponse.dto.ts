@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
+import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive, IsOptional } from "class-validator";
 
 export class CreateMediaResponseDto {
 
@@ -24,9 +24,17 @@ export class CreateMediaResponseDto {
     @IsUppercase()
     public message: string;
 
+    @ApiProperty({
+        description: 'ID of the created media',
+        type: String
+    })
+    public mediaId?: string;
 
-    constructor(statusCode: number, message: string) {
+
+    constructor(statusCode: number, message: string, mediaId: string) {
         this.statusCode = statusCode;
         this.message = message;
+        this.mediaId = mediaId;
+
     }
 }

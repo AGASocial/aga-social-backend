@@ -197,7 +197,7 @@ export class Ebook {
 
 
     @ApiProperty({
-        description: 'Firestore ID of the user',
+        description: 'Firestore ID of the ebook',
         example: 'abcdef123456',
         type: String
     })

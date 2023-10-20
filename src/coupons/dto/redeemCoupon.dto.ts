@@ -13,6 +13,15 @@ export enum ResourceType {
 export class RedeemCouponDto {
 
 
+    @ApiProperty({
+        description: 'Id of the user thst will redeem the coupon',
+        example: '515dfds2fergf6b4fg8b4c6s4',
+        type: String,
+    })
+    @IsNotEmpty()
+    public userId: string;
+
+
 
     @ApiProperty({
         description: 'Coupon code to redeem',

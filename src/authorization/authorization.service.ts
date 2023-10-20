@@ -16,6 +16,7 @@ import { RolesService } from '../roles/roles.service';
 import { GetUserByIdDto } from '../users/dto/getUserById.dto';
 import { GetRoleByIdDto } from '../roles/dto/getRoleById.dto';
 import { ApiBadRequestResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { validate } from 'class-validator';
 
 
 
@@ -42,12 +43,19 @@ export class AuthorizationService {
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async setRoleToUser(userId: string, roleName: string): Promise<SetRoleToUserResponseDto> {
         try {
+
+            console.log(userId)
+            console.log(roleName)
+
             const usersRef = collection(this.firebaseService.fireStore, 'users');
             const querySnapshot = await getDocs(query(usersRef, where('id', '==', userId)));
-
             if (querySnapshot.empty) {
                 console.log(`User with the following id not found: ${userId}`);
-                throw new NotFoundException('USERNOTFOUND');
+                const response: SetRoleToUserResponseDto = {
+                    statusCode: 400, 
+                    message: 'USERNOTFOUND',
+                };
+                return response;
             }
 
             const userDoc = querySnapshot.docs[0];
@@ -60,8 +68,13 @@ export class AuthorizationService {
 
             if (roleQuerySnapshot.empty) {
                 console.log(`Role with name "${roleName}" not found in the roles collection.`);
-                throw new NotFoundException('ROLENOTFOUND');
-            }
+                const response: SetRoleToUserResponseDto = {
+                    statusCode: 400, 
+                    message: 'ROLENOTFOUND',
+                };
+                return response;
+            } 
+
 
             const roleDoc = roleQuerySnapshot.docs[0];
             const roleData = roleDoc.data();
@@ -73,6 +86,7 @@ export class AuthorizationService {
                 active: roleData.active,
             };
 
+
             const updatedRoles = [...currentRoles, newRole];
 
             await updateDoc(userDoc.ref, { role: updatedRoles });
@@ -81,6 +95,7 @@ export class AuthorizationService {
                 statusCode: 200,
                 message: 'ROLESSETSUCCESS',
             };
+
 
             console.log(`Updated User Roles`, updatedRoles);
 
@@ -122,7 +137,11 @@ export class AuthorizationService {
 
             if (querySnapshot.empty) {
                 console.log(`User with the following id not found: ${userId}`);
-                throw new NotFoundException('USERNOTFOUND');
+                const response: SetRoleToUserResponseDto = {
+                    statusCode: 400, 
+                    message: 'USERNOTFOUND',
+                };
+                return response;
             }
 
             const userDoc = querySnapshot.docs[0];
@@ -134,7 +153,11 @@ export class AuthorizationService {
 
             if (roleIndex === -1) {
                 console.log(`Role with name "${roleName}" not found in the user's roles.`);
-                throw new NotFoundException('ROLENOTFOUND');
+                const response: SetRoleToUserResponseDto = {
+                    statusCode: 400, 
+                    message: 'ROLENOTFOUND',
+                };
+                return response;
             }
 
             currentRoles.splice(roleIndex, 1);
@@ -191,8 +214,12 @@ export class AuthorizationService {
         console.log('Creating new role...');
 
         if (await this.rolesService.getRole(roleName) != null) {
-            console.log(`Role with name '${roleName}' already exists.`);
-            throw new BadRequestException('ROLEALREADYEXISTS');
+            const response: CreateNewRoleResponseDto = {
+                statusCode: 400,
+                message: 'ROLEALREADYEXISTS',
+                roleId: '',
+            };
+            return response;
         } else {
             const newRole = {
                 id: newRoleId,
@@ -212,7 +239,12 @@ export class AuthorizationService {
                 await this.firebaseService.setCollectionData('roles', cachedRoles);
             } catch (error: unknown) {
                 console.warn(`[ERROR]: ${error}`);
-                throw new BadRequestException('UNABLETOCREATEROLE');
+                const response: CreateNewRoleResponseDto = {
+                    statusCode: 400,
+                    message: 'UNABLETOCREATEROLE',
+                    roleId: '',
+                };
+                return response;
             }
         }
 
@@ -227,7 +259,6 @@ export class AuthorizationService {
     @ApiOperation({ summary: 'Update role from firebase' })
     @ApiOkResponse({ description: 'Role updated successfully' })
     @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async updateRole(roleName: string, newData: Partial<UpdateRoleDto>): Promise<UpdateRoleResponseDto> {
         try {
             console.log('Initializing updateRole...');
@@ -237,8 +268,24 @@ export class AuthorizationService {
 
             if (querySnapshot.empty) {
                 console.log(`The role "${roleName}" does not exist.`);
-                throw new Error('ROLEDOESNOTEXIST.');
+                const response: UpdateRoleResponseDto = {
+                    statusCode: 400, 
+                    message: 'ROLEDOESNOTEXIST',
+                };
+                return response;
             }
+
+            const errors = await validate(newData);
+
+            if (errors.length > 0) {
+                const response: UpdateRoleResponseDto = {
+                    statusCode: 400,
+                    message: 'INVALIDINPUT',
+                };
+                return response;
+            }
+
+
 
             const batch = admin.firestore().batch();
             querySnapshot.forEach((doc) => {
@@ -268,6 +315,7 @@ export class AuthorizationService {
             throw error;
         }
     }
+
 
 
    

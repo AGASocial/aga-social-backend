@@ -68,7 +68,7 @@ export class MediaService {
 
         const newMediaDocRef = await addDoc(mediaRef, newMedia);
 
-        const responseDto = new CreateMediaResponseDto(201, 'MEDIACREATEDSUCCESSFULLY');
+        const responseDto = new CreateMediaResponseDto(201, 'MEDIACREATEDSUCCESSFULLY', newMediaId);
 
         // Update cache with the newly created media
         const cachedMedia = await this.firebaseService.getCollectionData('media');
@@ -113,8 +113,12 @@ export class MediaService {
 
             if (querySnapshot.empty) {
                 console.log(`The media with the id "${id}" does not exist.`);
-                throw new Error('MEDIADOESNOTEXIST.');
-            }
+                const response: UpdateMediaResponseDto = {
+                    statusCode: 404,
+                    message: 'MEDIA DOES NOT EXIST',
+                };
+
+                return response;            }
 
             const batch = admin.firestore().batch();
             querySnapshot.forEach((doc) => {
@@ -341,7 +345,7 @@ export class MediaService {
     async uploadAndCreateMedia(
         file: any,
         createNewMediaDto: CreateMediaDto
-    ): Promise<UploadMediaResponseDto | CreateMediaResponseDto> {
+    ): Promise<CreateMediaResponseDto> {
         try {
 
             const maxFileSize = 150 * 1024 * 1024; // 150 MB
@@ -427,7 +431,7 @@ export class MediaService {
                 vimeoVideo: type === 'video' ? mediaLink : '',            };
             const newMediaDocRef = await addDoc(mediaRef, newMedia);
 
-            const responseDto = new UploadMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY', newMediaId);
+            const responseDto = new CreateMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY', newMediaId);
 
           
 
@@ -489,7 +493,7 @@ export class MediaService {
 
             await addDoc(mediaRef, newMedia);
 
-            const responseDto = new UploadMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY', newMediaId);
+            const responseDto = new UploadMediaResponseDto(201, 'MEDIAUPLOADEDSUCCESSFULLY', newMediaId, url);
 
             // Update cache with the newly created media
             const cachedMedia = await this.firebaseService.getCollectionData('media');
@@ -546,8 +550,13 @@ export class MediaService {
 
                 return mediaResponse;
             } else {
-                throw new Error(`Media resource with ID ${mediaId} not found.`);
-            }
+                const mediaResponse: GetMediaByIdResponseDto = {
+                    statusCode: 404,
+                    message: "MEDIA DOES NOT EXIST",
+                    mediaFound: null,
+                };
+
+                return mediaResponse;            }
         } catch (error) {
             throw new Error('There was an error retrieving the media resource by ID.');
         }

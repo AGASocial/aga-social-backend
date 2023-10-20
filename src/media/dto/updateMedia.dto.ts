@@ -76,5 +76,13 @@ export class UpdateMediaDto {
     @IsUrl()
     public vimeoVideo?: string;
 
+    @ApiProperty({
+        description: 'Firestore ID of the media',
+        example: 'abcdef123456',
+        type: String
+    })
+    @IsNotEmpty()
+    id: string;
+
 
 }

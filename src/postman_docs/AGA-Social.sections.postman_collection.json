@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Defensa\",\r\n  \"description\": \"Defensa\",\r\n  \"assetsIds\": [\"2d9909c1-5d9c-4419-a4f1-59bf3c03b502\", \"de2c550f-796a-4e07-a06a-0ee2e47499d4\"],\r\n  \"tags\": [\"Defensa\"]\r\n  \r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Defensa2\",\r\n  \"description\": \"Defensa2\",\r\n  \"assetsIds\": [\"bf73cb5b-bf8e-45e6-a891-fce873c25aca\"],\r\n  \"tags\": [\"vero\"]\r\n  \r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,7 +37,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"123\",\r\n  \"description\": \"123\",\r\n  \"assetsIds\": [\"0c5ca282-18e9-4c2f-b04f-d97e190e24d4\"],\r\n  \"tags\": [\"Vero-Sub\"]\r\n  \r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Sub12\",\r\n  \"description\": \"Sub12\",\r\n  \"assetsIds\": [\"19e5f726-cf92-42bc-adab-6e7aeee8f158\"],\r\n  \"tags\": [\"Defensa-Sub\"]\r\n  \r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,18 +45,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}sections/subsections?parentSectionId=68fb6c27-11d5-4a73-9f31-a15133d4ac55",
+					"raw": "{{server}}sections/ce36e9d5-da3b-461d-9c53-8b3d26b37474/subsections",
 					"host": [
 						"{{server}}sections"
 					],
 					"path": [
+						"ce36e9d5-da3b-461d-9c53-8b3d26b37474",
 						"subsections"
-					],
-					"query": [
-						{
-							"key": "parentSectionId",
-							"value": "68fb6c27-11d5-4a73-9f31-a15133d4ac55"
-						}
 					]
 				}
 			},
@@ -69,7 +64,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "  {\r\n    \"description\": \"xxxxxxxxxxxxxx\",\r\n    \"tags\": [\"aaa\"],\r\n    \"active\": true\r\n  }\r\n",
+					"raw": "  {\r\n    \"id\": \"ce36e9d5-da3b-461d-9c53-8b3d26b37474\",\r\n    \"description\": \"aaaaa\",\r\n    \"tags\": [\"aaa\"],\r\n    \"active\": true\r\n  }\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -77,15 +72,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}sections?id=5007e86e-54c3-43c0-b823-e4a14e41c75d",
+					"raw": "{{server}}sections",
 					"host": [
 						"{{server}}sections"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "5007e86e-54c3-43c0-b823-e4a14e41c75d"
-						}
 					]
 				}
 			},
@@ -98,7 +87,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"sectionId\": \"5f5ab735-9c7b-4450-bd14-c981249897c8\",\r\n  \"assetId\": \"609c916c-ebde-44d1-b55a-7e321541e860\"\r\n}\r\n",
+					"raw": "{\r\n  \"sectionId\": \"ce36e9d5-da3b-461d-9c53-8b3d26b37474\",\r\n  \"assetId\": \"19e5f726-cf92-42bc-adab-6e7aeee8f158\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -124,7 +113,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"sectionId\": \"5f5ab735-9c7b-4450-bd14-c981249897c8\",\r\n\"subsectionId\":\"93612553-1aff-41ff-9bad-5c22f572ac9f\",\r\n\"resourceId\": \"609c916c-ebde-44d1-b55a-7e321541e860\"\r\n}\r\n",
+					"raw": "{\r\n\"sectionId\": \"ce36e9d5-da3b-461d-9c53-8b3d26b37474\",\r\n\"subsectionId\":\"9bbe615a-0b15-4148-80ed-42eeaffe5243\",\r\n\"resourceId\": \"bf73cb5b-bf8e-45e6-a891-fce873c25aca\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -151,7 +140,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"68fb6c27-11d5-4a73-9f31-a15133d4ac55\",\r\n  \"active\": true,\r\n  \"assetIds\": [\"0c5ca282-18e9-4c2f-b04f-d97e190e24d4\"]\r\n}\r\n\r\n\r\n",
+					"raw": "{\r\n  \"id\": \"ce36e9d5-da3b-461d-9c53-8b3d26b37474\",\r\n  \"active\": true,\r\n  \"assetIds\": [\"bf73cb5b-bf8e-45e6-a891-fce873c25aca\"]\r\n}\r\n\r\n\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -174,7 +163,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"SubsectionId\": \"0dfcff82-3bf3-4362-9cb5-ea267df540fc\",\r\n  \"SectionId\": \"68fb6c27-11d5-4a73-9f31-a15133d4ac55\",\r\n  \"active\": false,\r\n  \"assetIds\": [\"0c5ca282-18e9-4c2f-b04f-d97e190e24d4\"]\r\n}\r\n",
+					"raw": "{\r\n  \"SubsectionId\": \"9bbe615a-0b15-4148-80ed-42eeaffe5243\",\r\n  \"SectionId\": \"ce36e9d5-da3b-461d-9c53-8b3d26b37474\",\r\n  \"active\": false,\r\n  \"assetIds\": [\"bf73cb5b-bf8e-45e6-a891-fce873c25aca\"]\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -245,15 +234,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}sections?sectionId=68fb6c27-11d5-4a73-9f31-a15133d4ac55",
+					"raw": "{{server}}sections/ce36e9d5-da3b-461d-9c53-8b3d26b37474",
 					"host": [
 						"{{server}}sections"
 					],
-					"query": [
-						{
-							"key": "sectionId",
-							"value": "68fb6c27-11d5-4a73-9f31-a15133d4ac55"
-						}
+					"path": [
+						"ce36e9d5-da3b-461d-9c53-8b3d26b37474"
 					]
 				}
 			},
@@ -265,18 +251,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}sections/subsections?id=68fb6c27-11d5-4a73-9f31-a15133d4ac55",
+					"raw": "{{server}}sections/ce36e9d5-da3b-461d-9c53-8b3d26b37474/subsections",
 					"host": [
 						"{{server}}sections"
 					],
 					"path": [
+						"ce36e9d5-da3b-461d-9c53-8b3d26b37474",
 						"subsections"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "68fb6c27-11d5-4a73-9f31-a15133d4ac55"
-						}
 					]
 				}
 			},

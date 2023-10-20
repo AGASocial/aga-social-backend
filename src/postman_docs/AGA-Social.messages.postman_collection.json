@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"senderEmail\": \"joel123@gmail.com\",\r\n  \"recipientEmail\": \"mary@gmail.com\",\r\n  \"content\": \"Defensa\",\r\n  \"read\": false,\r\n  \"attachmentUrls\": [\r\n    \"https://example.com/attachment1.pdf\",\r\n    \"https://example.com/attachment2.jpg\"\r\n  ],\r\n  \"subject\": \"Defensa\", //asunto\r\n  \"type\": \"Inquiry\" // o Complaint\r\n}\r\n",
+					"raw": "{\r\n  \"senderEmail\": \"mary@gmail.com\",\r\n  \"recipientEmail\": \"defensa123@gmail.com\",\r\n  \"content\": \"Defensa13\",\r\n  \"read\": false,\r\n  \"attachmentUrls\": [\r\n    \"https://example.com/attachment1.pdf\",\r\n    \"https://example.com/attachment2.jpg\"\r\n  ],\r\n  \"subject\": \"Defensa13\", //asunto\r\n  \"type\": \"Inquiry\" // o Complaint\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,7 +37,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\r\n  \"read\": true,\r\n  \"active\": true, // if active = false, message is eliminated\r\n  \"highlighted\": true,\r\n   \"archived\": true\r\n\r\n}\r\n",
+					"raw": "{\r\n  \"id\": \"fee00b6e-c261-42e8-abd5-8e30bb8228e6\",\r\n  \"read\": true,\r\n  \"active\": true, // if active = false, message is eliminated\r\n  \"highlighted\": true,\r\n   \"archived\": false\r\n\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,15 +45,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}messages?id=5a72a5e8-d88a-462f-9fa3-6573c5caa082",
+					"raw": "{{server}}messages",
 					"host": [
 						"{{server}}messages"
-					],
-					"query": [
-						{
-							"key": "id",
-							"value": "5a72a5e8-d88a-462f-9fa3-6573c5caa082"
-						}
 					]
 				}
 			},
@@ -77,22 +71,20 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}messages?id=1w54iIFPN0M7YNgo10XuLIVUkJk2",
+					"raw": "{{server}}messages/users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
 					"host": [
 						"{{server}}messages"
 					],
-					"query": [
-						{
-							"key": "id",
-							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
-						}
+					"path": [
+						"users",
+						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Consultar Mensajes Por Palabras Clave",
+			"name": "Consultar Mensajes Por Palabras Clave (Asunto y Contenido)",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -109,15 +101,15 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}messages?id=1w54iIFPN0M7YNgo10XuLIVUkJk2&keywords=defensa",
+					"raw": "{{server}}users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2/messages?keywords=defensa",
 					"host": [
-						"{{server}}messages"
+						"{{server}}users"
+					],
+					"path": [
+						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
+						"messages"
 					],
 					"query": [
-						{
-							"key": "id",
-							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
-						},
 						{
 							"key": "keywords",
 							"value": "defensa"
@@ -145,18 +137,18 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}messages?filter=unread&id=1w54iIFPN0M7YNgo10XuLIVUkJk2",
+					"raw": "{{server}}users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2/messages?filter=read",
 					"host": [
-						"{{server}}messages"
+						"{{server}}users"
+					],
+					"path": [
+						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
+						"messages"
 					],
 					"query": [
 						{
 							"key": "filter",
-							"value": "unread"
-						},
-						{
-							"key": "id",
-							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
+							"value": "read"
 						}
 					]
 				}
@@ -170,7 +162,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"a5de4303-2071-4c4c-bc50-69737b9db1d8\", \r\n  \"tagsNames\": [\"Prueba\"] ,\r\n  \"action\": \"add\" //add or delete\r\n}\r\n",
+					"raw": "{\r\n  \"id\": \"fee00b6e-c261-42e8-abd5-8e30bb8228e6\", \r\n  \"tagsIds\": [\"0076d467-95d1-4250-b494-145b4bb090bd\"],\r\n  \"action\": \"delete\" //add or delete\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -195,18 +187,18 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}messages?id=1w54iIFPN0M7YNgo10XuLIVUkJk2&tags=Vero-Tag",
+					"raw": "{{server}}users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2/messages?tags=Hola",
 					"host": [
-						"{{server}}messages"
+						"{{server}}users"
+					],
+					"path": [
+						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
+						"messages"
 					],
 					"query": [
 						{
-							"key": "id",
-							"value": "1w54iIFPN0M7YNgo10XuLIVUkJk2"
-						},
-						{
 							"key": "tags",
-							"value": "Vero-Tag"
+							"value": "Hola"
 						}
 					]
 				}
@@ -219,15 +211,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}messages?messageId=ad72b757-a6f1-43ed-995d-ba419eacc0ea",
+					"raw": "{{server}}messages/fee00b6e-c261-42e8-abd5-8e30bb8228e6",
 					"host": [
 						"{{server}}messages"
 					],
-					"query": [
-						{
-							"key": "messageId",
-							"value": "ad72b757-a6f1-43ed-995d-ba419eacc0ea"
-						}
+					"path": [
+						"fee00b6e-c261-42e8-abd5-8e30bb8228e6"
 					]
 				}
 			},

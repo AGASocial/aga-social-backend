@@ -61,4 +61,13 @@ export class UpdateSectionDto {
     @IsString({ each: true })
     assetsTitles?: string[];
 
+
+    @ApiProperty({
+        description: 'Firestore ID of the user',
+        example: 'abcdef123456',
+        type: String
+    })
+    @IsNotEmpty()
+    id: string;
+
 }
