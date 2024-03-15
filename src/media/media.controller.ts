@@ -1,18 +1,16 @@
-import { Controller, Post, Body, Param, Get, Put, Req, Delete, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Put, Req, Delete, UseInterceptors, UploadedFile, Query, Patch, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateMediaDto } from './dto/createMedia.dto';
 import { CreateMediaResponseDto } from './dto/createMediaResponse.dto';
-import { DeleteMediaResponseDto } from './dto/deleteMediaResponse.dto';
 import { GetMediaResponseDto } from './dto/getMediaResponse.dto';
 import { MediaType, UpdateMediaDto } from './dto/updateMedia.dto';
 import { UpdateMediaResponseDto } from './dto/updateMediaResponse.dto';
-import { Media } from './entities/media.entity';
 import { MediaService } from './media.service';
-import { FileFields } from 'formidable';
-import { Readable } from 'stream';
 import { UploadMediaResponseDto } from './dto/uploadMediaFileResponse.dto';
-import { ApiBadRequestResponse, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetMediaByIdResponseDto } from './dto/getMediaByIdResponse.dto';
+import { Response } from "express";
+
 
 
 @Controller()
@@ -22,63 +20,126 @@ export class MediaController {
 
 
 
-    @Put('assets/media')
+    @ApiTags('Media')
+    @ApiBody({ type: UpdateMediaDto })
     @ApiOperation({ summary: 'Update media from Firebase' })
-    @ApiBadRequestResponse({ description: 'Bad request. Check the parameters' })
-    @ApiNotFoundResponse({ description: 'Media not found.' })
+    @ApiOkResponse({ description: 'Media updated successfully', type: UpdateMediaResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Check the parameters' })
+    @ApiNotFoundResponse({ description: 'Media not found' })
+    @ApiParam({ name: 'mediaId', description: 'ID of the media', type: 'string', example: 'H01GHPOJLmVEXJ5gclc2' })
+    @Patch('assets/media/:mediaId')
     async updateMedia(
-        @Body() updateMediaDto: Partial<UpdateMediaDto>
-    ): Promise<UpdateMediaResponseDto> {
+        @Body() updateMediaDto: Partial<UpdateMediaDto>,
+        @Res() res: Response,
+        @Param('mediaId') mediaId: string
+    ): Promise<void> {
         try {
 
-            const id = updateMediaDto.id
+            const response: UpdateMediaResponseDto = await this.mediaService.updateMedia(mediaId, updateMediaDto);
 
-            const response = await this.mediaService.updateMedia(id, updateMediaDto);
-            return response;
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
         } catch (error) {
             console.error('There was an error updating the media:', error);
-            throw error;
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to update the media',
+                data: {},
+            });
         }
     }
 
 
-    @Get('assets/media')
-    @ApiOperation({ summary: 'Retrieve all media from Firestore or retrieve the media that have the keywords on their title' })
+
+    @ApiTags('Media')
+    @ApiOperation({ summary: 'Retrieve all media from Firestore or retrieve the media that have keywords in their title' })
     @ApiOkResponse({ description: 'Successfully retrieved media resources.', type: GetMediaResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @ApiQuery({ name: 'keywords', type: [String], isArray: true, required: false })
+    @Get('assets/media')
     async getMedia(
+        @Res() res: Response,
         @Query('keywords') keywords?: string[],
-    ): Promise<GetMediaResponseDto> {
-        if (keywords) {
-            const response = await this.mediaService.getMediaByKeywords(keywords);
-            return response;
-        } 
+    ): Promise<void> {
+        try {
+            let response: GetMediaResponseDto;
 
-        else {
-            return this.mediaService.getMedia();
+            if (keywords) {
+                response = await this.mediaService.getMediaByKeywords(keywords);
+            } else {
+                response = await this.mediaService.getMedia();
+            }
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
+        } catch (error) {
+            console.error('Error retrieving media resources:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to retrieve the media',
+                data: {},
+            });
         }
     }
 
-    @Get('assets/media/:id')
+
+    @ApiTags('Media')
     @ApiOperation({ summary: 'Get a media resource by ID' })
     @ApiOkResponse({ description: 'Media resource retrieved successfully', type: GetMediaByIdResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getMediaById(@Param('id') id: string): Promise<GetMediaByIdResponseDto> {
-        const response = await this.mediaService.getMediaById(id);
-        return response;
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or media not found' })
+    @ApiParam({ name: 'mediaId', description: 'ID of the media', type: 'string', example: 'H01GHPOJLmVEXJ5gclc2' })
+    @Get('assets/media/:mediaId')
+    async getMediaById(
+        @Res() res: Response,
+        @Param('mediaId') mediaId: string
+    ): Promise<void> {
+        try {
+            const response: GetMediaByIdResponseDto = await this.mediaService.getMediaById(mediaId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
+        } catch (error) {
+            console.error('Error retrieving media resource:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to retrieve media resource',
+                data: {},
+            });
+        }
     }
+
 
 
    
-    @Post('assets/media')
-    @ApiOperation({ summary: 'Uploads media to datastorage and creates the media on firestore using a dto' })
-    @ApiBody({ description: 'Media file to be uploaded and media creation details' })
-    @ApiResponse({ status: 200, description: 'The media file has been successfully uploaded and media created.', type: UploadMediaResponseDto })
-    @ApiResponse({ status: 201, description: 'The media file has been successfully uploaded and media created.', type: CreateMediaResponseDto })
-    @ApiResponse({ status: 400, description: 'Bad request. Check the parameters being used' })
-    @ApiResponse({ status: 500, description: 'Internal server error.' })
+    @ApiTags('Media')
+    @ApiOperation({ summary: 'Upload and create media' })
+    @ApiOkResponse({ description: 'Media uploaded and created successfully', type: UploadMediaResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or failed to upload media' })
     @UseInterceptors(FileInterceptor('file'))
+    @Post('assets/media')
     async uploadAndCreateMedia(
+        @Res() res: Response,
         @UploadedFile() file: any,
         @Body('publisher') publisher: string,
         @Body('type') type: MediaType,
@@ -86,7 +147,7 @@ export class MediaController {
         @Body('description') description: string,
         @Body('duration') duration: string,
         @Body('uploadDate') uploadDate: Date
-    ): Promise<UploadMediaResponseDto | CreateMediaResponseDto> {
+    ): Promise<void> {
         try {
             const createNewMediaDto: CreateMediaDto = {
                 publisher,
@@ -97,23 +158,40 @@ export class MediaController {
                 uploadDate
             };
 
-            const result = await this.mediaService.uploadAndCreateMedia(file, createNewMediaDto);
-            return result;
+            const response: UploadMediaResponseDto | CreateMediaResponseDto = await this.mediaService.uploadAndCreateMedia(file, createNewMediaDto);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
         } catch (error) {
-            throw new Error(`Error uploading media or creating media: ${error.message}`);
+            console.error('Error uploading and creating media:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to create media resource',
+                data: {},
+            });
         }
     }
 
-    @ApiOperation({ summary: 'Register media file on Firestore. The media already exists on Youtube or Vimeo' })
-    @ApiBadRequestResponse({ description: 'Invalid parameter/s' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+
+    @ApiTags('Media')
+    @ApiBody({ type: CreateMediaDto })
+    @ApiOperation({ summary: 'Register media' })
+    @ApiOkResponse({ description: 'Media registered successfully', type: CreateMediaResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or failed to register media' })
     @Post('assets/media/users')
     async registerMedia(
-        @Body() createMediaDto: any
-    ): Promise<CreateMediaResponseDto> {
+        @Res() res: Response,
+        @Body() createMediaDto: CreateMediaDto):
+        Promise<void> {
         try {
-
-            const responseDto =   await this.mediaService.registerMedia(
+            const response: CreateMediaResponseDto = await this.mediaService.registerMedia(
                 createMediaDto.type,
                 createMediaDto.title,
                 createMediaDto.description,
@@ -123,13 +201,24 @@ export class MediaController {
                 createMediaDto.uploadDate
             );
 
-            return responseDto;
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
         } catch (error) {
             console.error('Error registering media:', error);
-            throw error;
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to register media',
+                data: {},
+            });
         }
     }
-  
+
 
 
 

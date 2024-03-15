@@ -4,22 +4,38 @@ import { IsAlpha, IsNotEmpty, IsNumber, IsPositive, IsString, IsUppercase } from
 
 export class ChangePasswordDtoResponse {
     @ApiProperty({
-        description: 'Http response status code',
-        type: Number
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "NEWPASSWORDASSIGNED"',
-        type: String
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: String;
-    
+    code: number;
+
+    @ApiProperty({
+        example: 'Request successfully processed.',
+        description: 'Response message.'
+    })
+    message: string;
+
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
+
 }

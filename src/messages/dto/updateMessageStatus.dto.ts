@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Tags } from "../../tags/entities/tags.entity";
 import { MessageType } from "./createMessage.dto";
 
@@ -10,20 +10,11 @@ export class UpdateMessageStatusDto {
 
 
     @ApiProperty({
-        description: 'Firestore ID of the message',
-        example: 'abcdef123456',
-        type: String
-    })
-    @IsNotEmpty()
-    id: string;
-
-
-    @ApiProperty({
         description: 'Indicates whether the message has been read',
         example: true,
         type: Boolean,
     })
-    @IsBoolean()
+    @IsOptional()
     public read?: boolean;
 
 
@@ -43,7 +34,7 @@ export class UpdateMessageStatusDto {
         type: Boolean,
         default: false,
     })
-    @IsBoolean()
+    @IsOptional()
     public archived?: boolean = false;
 
 
@@ -54,29 +45,18 @@ export class UpdateMessageStatusDto {
         default: true,
         type: String
     })
-    @IsBoolean()
+    @IsOptional()
     active?: boolean = true;
 
 
-    @ApiProperty({
-        description: 'Timestamp of when the message was received',
-        example: '2023-08-10T13:00:00Z',
-        type: Date,
-    })
-    public readDate?: Date;
 
-
-    @ApiProperty({
-        description: 'Tags associated with the message',
-    })
-    public tags?: Tags[];
 
     @ApiProperty({
         description: 'It states whether the message is highlighted or not (Destacado)',
         example: true,
         type: String
     })
-    @IsBoolean()
+    @IsOptional()
     highlighted?: boolean;
 
 

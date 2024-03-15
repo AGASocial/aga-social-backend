@@ -2,40 +2,39 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
 
 export class CreateCourseResponseDto {
+    @ApiProperty({
+        example: 'success',
+        description: 'Response status.'
+    })
+    status: string;
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    code: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "COURSECREATEDSUCCESSFULLY"',
-        default: 'COURSECREATEDSUCCESSFULLY',
-        type: String,
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    message: string;
 
     @ApiProperty({
-        description: 'ID of the created role',
-        type: String
+        type: 'object',
+        description: 'Response data, contains the result.'
     })
-    public courseId?: string;
+    data: {
+        result: Record<string, any>;
+    };
 
-
-
-    constructor(statusCode: number, message: string, courseId: string) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.courseId = courseId;
+        this.data = {
+            result: result
+        };
     }
+
 }

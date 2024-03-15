@@ -1,18 +1,15 @@
-import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, Param, Patch, Post, Put, Query } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get,Param, Patch, Post, Put, Query, Res } from "@nestjs/common";
+import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CouponService } from "./coupon.service";
-import { AssignCouponDto } from "./dto/assignCoupon.dto";
-import { AssignCouponResponseDto } from "./dto/assignCouponResponse.dto";
 import { CreateCouponDto } from "./dto/createCoupon.dto";
 import { CreateCouponResponseDto } from "./dto/createCouponResponse.dto";
-import { DeleteCouponResponseDto } from "./dto/deleteCouponResponse.dto";
 import { GetCouponsResponseDto } from "./dto/getCouponsResponse.dto";
 import { RedeemCouponDto } from "./dto/redeemCoupon.dto";
 import { RedeemCouponResponseDto } from "./dto/redeemCouponResponse.dto";
 import { SetCouponAsExpiredResponseDto } from "./dto/setCouponAsExpiredResponse.dto";
 import { UpdateCouponDto } from "./dto/updateCoupon.dto";
 import { UpdateCouponResponseDto } from "./dto/updateCouponResponse.dto";
-import { CouponStatus } from "./entities/coupon.entity";
+import {  Response } from "express";
 
 
 
@@ -23,28 +20,71 @@ export class CouponController {
     constructor(private readonly couponService: CouponService) { }
 
 
-    @ApiOperation({ summary: 'Create a coupon' })
-    @ApiOkResponse({ description: 'Coupon created successfully '})
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+   
+    @ApiTags('Coupons')
+    @ApiOperation({ summary: 'Create a new coupon' })
+    @ApiBody({ type: CreateCouponDto })
+    @ApiResponse({ status: 201, type: CreateCouponResponseDto, description: 'Coupon created successfully' })
+    @ApiResponse({ status: 400, description: 'Bad Request: Invalid input, coupon already exists, invalid status, invalid discount type, asset does not exist, or expiry date is invalid' })
     @Post('coupons')
-    async createCoupon(@Body() createCouponDto: CreateCouponDto): Promise<CreateCouponResponseDto> {
-        return this.couponService.createNewCoupon(createCouponDto);
+    async createCoupon(@Body() createCouponDto: CreateCouponDto, @Res() res: Response) {
+        try {
+            const createCouponResponse: CreateCouponResponseDto = await this.couponService.createNewCoupon(createCouponDto);
+
+            res.status(createCouponResponse.code).send({
+                status: createCouponResponse.status,
+                code: createCouponResponse.code,
+                message: createCouponResponse.message,
+                data: createCouponResponse.data.result,
+            });
+        } catch (error) {
+            console.error('Error creating coupon:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to create coupon',
+                data: {}
+            });
+        }
     }
 
 
 
 
+
     
+    @ApiTags('Coupons')
     @ApiOperation({ summary: 'Update a coupon using its code' })
-    @ApiOkResponse({ description: 'Coupon updated successfully' })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
-    @Put('coupons')
+    @ApiParam({ name: 'code', description: 'Coupon code', type: 'string', example: 'TESTCOUPON123' })
+    @ApiBody({ type: UpdateCouponDto })
+    @ApiResponse({ status: 200, type: UpdateCouponResponseDto, description: 'Coupon updated successfully' })
+    @ApiResponse({ status: 400, description: 'Bad Request: Invalid input or coupon not found' })
+    @Patch('coupons/:code')
     async updateCoupon(
+        @Param('code') code: string,
         @Body() updateCouponDto: UpdateCouponDto,
-    ): Promise<UpdateCouponResponseDto> {
-        const { code } = updateCouponDto;
-        console.log(code)
-        return this.couponService.updateCoupon(code, updateCouponDto);
+        @Res() res: Response
+    ) {
+        try {
+            const updateCouponResponse: UpdateCouponResponseDto = await this.couponService.updateCoupon(code, updateCouponDto);
+
+            res.status(updateCouponResponse.code).send({
+                status: updateCouponResponse.status,
+                code: updateCouponResponse.code,
+                message: updateCouponResponse.message,
+                data: updateCouponResponse.data.result,
+            });
+        } catch (error) {
+            console.error('Error updating coupon:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to update coupon',
+                data: {},
+            });
+        }
     }
 
 
@@ -53,70 +93,172 @@ export class CouponController {
 
 
 
+
+    @ApiTags('Coupons')
     @ApiOperation({ summary: 'Redeem a coupon' })
-    @ApiOkResponse({ description: 'Coupon redeemed successfully ' })
+    @ApiParam({ name: 'userId', description: 'User ID', type: 'string', example: '0EwINikFVAg7jtRdkZYiTBXN4vW2' })
+    @ApiBody({ type: RedeemCouponDto })
+    @ApiOkResponse({ description: 'Coupon redeemed successfully' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
-    @Post('coupons/assets')
-    async redeemCoupon(@Body() redeemCouponDto: RedeemCouponDto): Promise<RedeemCouponResponseDto> {
-        const { userId } = redeemCouponDto;
-        const response = await this.couponService.redeemCoupon(redeemCouponDto, userId);
-        return response;
+    @Patch('users/:userId/coupons/assets')
+    async redeemCoupon(
+        @Param('userId') userId: string,
+        @Body() redeemCouponDto: RedeemCouponDto,
+        @Res() res: Response
+    ): Promise<RedeemCouponResponseDto> {
+        try {
+            const response: RedeemCouponResponseDto = await this.couponService.redeemCoupon(redeemCouponDto, userId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Error redeeming coupon:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to redeem coupon',
+                data: {},
+            });
+
+        }
     }
+
+
 
 
 
     
-    @ApiOperation({ summary: 'Sets a coupons status to expired' })
-    @ApiOkResponse({ description: 'Coupons updated successfully ' })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+    @ApiTags('Coupons')
+    @ApiOperation({ summary: 'Sets a coupon\'s status to expired' })
+    @ApiOkResponse({ description: 'Coupon status updated successfully', type: SetCouponAsExpiredResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupon not found' })
     @Patch('coupons')
-    async updateExpiredCouponsStatus(): Promise<SetCouponAsExpiredResponseDto> {
-        return this.couponService.updateExpiredCouponsStatus();
+    async updateExpiredCouponsStatus(@Res() res: Response) {
+        try {
+            const updateStatusResponse: SetCouponAsExpiredResponseDto = await this.couponService.updateExpiredCouponsStatus();
+
+            res.status(updateStatusResponse.code).send({
+                status: updateStatusResponse.status,
+                code: updateStatusResponse.code,
+                message: updateStatusResponse.message,
+                data: updateStatusResponse.data.result,
+            });
+
+        } catch (error) {
+            console.error('Error updating coupon status:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Error updating coupon status',
+                data: {},
+            });
+        }
     }
 
 
-    /*
-    @ApiOperation({ summary: 'Delete expired coupons from firebase' })
-    @ApiOkResponse({ description: 'Coupons deleted successfully ' })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
-    @Delete('coupons')
-    async deleteExpiredCouponsFromFirebase(): Promise<DeleteCouponResponseDto> {
-        return this.couponService.deleteExpiredCouponsFromFirebase();
-    }*/
 
 
+
+    @ApiTags('Coupons')
     @ApiOperation({ summary: 'Retrieve coupons by code' })
     @ApiOkResponse({ description: 'Coupons retrieved successfully' })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
     @Get('coupons/:code')
-    async getCouponByCode(@Param('code') code: string): Promise<GetCouponsResponseDto> {
-        return this.couponService.getCouponByCode(code);
-    }
-
-    @ApiOperation({ summary: 'Retrieve coupons by user ID' })
-    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
-    @Get('coupons/users/:id')
-    async getCouponsCreatedByUser(@Param('id') id: string): Promise<GetCouponsResponseDto> {
-        return this.couponService.getCouponsCreatedByUser(id);
-    }
-
-
-
-    @ApiOperation({ summary: 'Retrieve all coupons' })
-    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
-    @Get('coupons')
-    async getAllCoupons(): Promise<GetCouponsResponseDto> {
+    async getCouponByCode(
+        @Param('code') code: string,
+        @Res() res: Response
+    ): Promise<GetCouponsResponseDto> {
         try {
-            const coupons = await this.couponService.getCoupons();
-            return coupons;
-            
+            const couponResponse: GetCouponsResponseDto = await this.couponService.getCouponByCode(code);
+
+            res.status(couponResponse.code).send({
+                status: couponResponse.status,
+                code: couponResponse.code,
+                message: couponResponse.message,
+                data: couponResponse.data.result,
+            });
+
+            return couponResponse;
         } catch (error) {
             console.error('Error retrieving coupons:', error);
-            throw new BadRequestException('Error retrieving coupons');
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to retrieve coupons',
+                data: {},
+            });
+
         }
     }
+
+    @ApiTags('Coupons')
+    @ApiParam({ name: 'userId', description: 'User ID', type: 'string', example: '0EwINikFVAg7jtRdkZYiTBXN4vW2' })
+    @ApiOperation({ summary: 'Retrieve coupons by user ID' })
+    @ApiOkResponse({ description: 'Coupons retrieved successfully', type: GetCouponsResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+    @Get('coupons/users/:userId')
+    async getCouponsCreatedByUser(@Param('userId') userId: string, @Res() res: Response) {
+        try {
+            const coupons: GetCouponsResponseDto = await this.couponService.getCouponsCreatedByUser(userId);
+
+            res.status(coupons.code).send({
+                status: coupons.status,
+                code: coupons.code,
+                message: coupons.message,
+                data: coupons.data.result,
+            });
+
+        } catch (error) {
+            console.error('Error retrieving coupons by user ID:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Error retrieving coupons by user ID',
+                data: {},
+            });
+        }
+    }
+
+
+
+    @ApiTags('Coupons')
+    @ApiOperation({ summary: 'Retrieve all coupons' })
+    @ApiOkResponse({ description: 'Coupons retrieved successfully', type: GetCouponsResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or coupons not found' })
+    @Get('coupons')
+    async getAllCoupons(@Res() res: Response) {
+        try {
+            const coupons: GetCouponsResponseDto = await this.couponService.getCoupons();
+
+            res.status(coupons.code).send({
+                status: 'success',
+                code: 200,
+                message: 'Coupons retrieved successfully',
+                data: coupons,
+            });
+
+        } catch (error) {
+            console.error('Error retrieving coupons:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Error retrieving coupons',
+                data: {},
+            });
+        }
+    }
+
 
 
 

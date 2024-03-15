@@ -34,5 +34,7 @@ export class Role {
     @IsBoolean()
     public active: boolean;
 
+    public id?: string;
+
 
 }

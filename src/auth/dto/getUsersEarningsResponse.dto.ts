@@ -1,43 +1,43 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from "class-validator";
-import { DocResult } from "../../utils/docResult.entity";
+import { IsAlpha, IsNotEmpty, IsNumber, IsPositive, IsString, IsUppercase, IsUrl } from "class-validator";
+
 
 export class GetUsersEarningsResponseDto {
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "EARNINGSRETRIEVEDSUCCESSFULLY"',
-        default: 'EARNINGSRETRIEVEDSUCCESSFULLY',
-        type: String,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    code: number;
 
     @ApiProperty({
-        description: 'Array containing the info of the earnings'
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    public earningsFound: DocResult[]
+    message: string;
 
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
 
-
-    constructor(statusCode: number, message: string, earningsFound: DocResult[]) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.earningsFound = earningsFound;
-
-
+        this.data = {
+            result: result
+        };
     }
+
+
 }

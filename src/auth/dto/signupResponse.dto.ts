@@ -5,31 +5,39 @@ import { IsAlpha, IsNotEmpty, IsNumber, IsPositive, IsString, IsUppercase, IsUrl
 export class SignUpDtoResponse {
 
     @ApiProperty({
-        description: 'Http response status code',
-        default: 201,
-        type: Number
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "SIGNUPSUCCESSFUL"',
-        default: 'SIGNUPSUCCESSFUL',
-        type: String
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
+    code: number;
 
     @ApiProperty({
-        description: 'ID of the created user',
-        type: String
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    public userId?: string;
+    message: string;
 
-    
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
+
+
 }

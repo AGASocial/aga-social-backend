@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsEnum, IsUrl, IsBoolean } from "class-validator";
+import { IsNotEmpty, IsString, IsEnum, IsUrl, IsBoolean, IsOptional } from "class-validator";
 
 
 export enum MediaType {
@@ -14,7 +14,7 @@ export class UpdateMediaDto {
         description: "Type of media (audio or video)",
         enum: MediaType,
     })
-    @IsEnum(MediaType)
+    @IsOptional()
     type?: MediaType;
 
     @ApiProperty({
@@ -22,7 +22,7 @@ export class UpdateMediaDto {
         example: "Title of the content",
         type: String,
     })
-    @IsString()
+    @IsOptional()
     title?: string;
 
     @ApiProperty({
@@ -30,7 +30,7 @@ export class UpdateMediaDto {
         example: "Description of the content",
         type: String,
     })
-    @IsString()
+    @IsOptional()
     description?: string;
 
     @ApiProperty({
@@ -38,6 +38,7 @@ export class UpdateMediaDto {
         example: "https://file_url.mp3",
         type: String,
     })
+    @IsOptional()
     @IsUrl()
     url?: string;
 
@@ -46,7 +47,7 @@ export class UpdateMediaDto {
         example: "00:15:30",
         type: String,
     })
-    @IsString()
+    @IsOptional()
     duration?: string;
 
     @ApiProperty({
@@ -54,7 +55,7 @@ export class UpdateMediaDto {
         example: "2023-08-03",
         type: Date,
     })
-    @IsString()
+    @IsOptional()
     uploadDate?: Date;
 
 
@@ -64,8 +65,8 @@ export class UpdateMediaDto {
         default: true,
         type: String
     })
-    @IsBoolean()
-    active?: boolean = true; //isActive
+    @IsOptional()
+    active?: boolean = true;
 
 
     @ApiProperty({
@@ -74,15 +75,8 @@ export class UpdateMediaDto {
         type: String,
     })
     @IsUrl()
+    @IsOptional()
     public vimeoVideo?: string;
-
-    @ApiProperty({
-        description: 'Firestore ID of the media',
-        example: 'abcdef123456',
-        type: String
-    })
-    @IsNotEmpty()
-    id: string;
 
 
 }

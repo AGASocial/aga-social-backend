@@ -13,23 +13,22 @@ export class UpdateCouponDto {
         example: 'SUMMER2023',
         type: String,
     })
-    @IsNotEmpty()
-    public code: string;
+    @IsOptional()
+    public code?: string;
 
     @ApiProperty({
         description: 'Coupon description',
         example: 'Summer Discount',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
+    @IsOptional()
     public description?: string;
 
     @ApiProperty({
         description: 'Type of discount',
         enum: DiscountType,
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsEnum(DiscountType)
     public discountType?: DiscountType;
 
@@ -38,7 +37,7 @@ export class UpdateCouponDto {
         example: 15,
         type: Number,
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsNumber()
     public discountAmount?: number;
 
@@ -56,7 +55,7 @@ export class UpdateCouponDto {
         example: 100,
         type: Number,
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsNumber()
     @Min(1)
     public maxUses?: number;
@@ -66,7 +65,7 @@ export class UpdateCouponDto {
         example: 1,
         type: Number,
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsNumber()
     public maxUsesPerUser?: number;
 
@@ -74,7 +73,7 @@ export class UpdateCouponDto {
         description: 'Coupon status',
         enum: CouponStatus,
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsEnum(CouponStatus)
     public status: CouponStatus;
 
@@ -88,6 +87,7 @@ export class UpdateCouponDto {
         default: 0,
     })
     @IsNumber()
+    @IsOptional()
     public currentUses?: number = 0;
 
 
@@ -96,6 +96,7 @@ export class UpdateCouponDto {
         example: '515dfds2fergf6b4fg8b4c6s4',
         type: String,
     })
+    @IsOptional()
     public assetId?: string;
 
   

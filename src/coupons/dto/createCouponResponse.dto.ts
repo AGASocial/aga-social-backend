@@ -4,38 +4,38 @@ import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from
 export class CreateCouponResponseDto {
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "COUPONCREATEDSUCCESSFULLY"',
-        default: 'COUPONCREATEDSUCCESSFULLY',
-        type: String,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    code: number;
 
     @ApiProperty({
-        description: 'Code of the created coupon',
-        type: String
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    public code?: string;
+    message: string;
 
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
 
-
-    constructor(statusCode: number, message: string, code: string) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.code= code;
+        this.data = {
+            result: result
+        };
     }
+
 }

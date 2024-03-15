@@ -6,16 +6,14 @@ import { IsNotEmpty, IsString, IsArray, ValidateNested, IsEnum } from 'class-val
 
 export class AddMediaOrEbookDto {
     @ApiProperty({
-        description: 'Name of the section.',
-        example: 'Introduction to Programming',
+        description: 'IDof the section.',
         type: String,
     })
     sectionId?: string;
 
 
     @ApiProperty({
-        description: 'Title of the media or ebook.',
-        example: 'Introduction Video',
+        description: 'ID of the media or ebook.',
         type: String,
     })
     @IsNotEmpty()

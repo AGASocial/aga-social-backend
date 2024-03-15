@@ -4,67 +4,49 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class LogInResponseDto {
     @ApiProperty({
-        description: 'Http response status code',
-        default: 201,
-        type: Number
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "LOGINSUCCESSFUL"',
-        default: "LOGINSUCCESSFUL",
-        type: String
+        example: 200,
+        description: 'Response code.'
     })
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
-
+    code: number;
 
     @ApiProperty({
-        description: 'ID of the logged user',
-        type: String
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    public userId?: string;
-
-
-    @ApiProperty({
-        description: 'Bearer token, used for login validation. The payload is user email and user id',
-        type: String
-    })
-    @IsNotEmpty()
-    @IsString()
-    @IsJWT()
-    public bearer_token: string;
+    message: string;
 
     @ApiProperty({
-        description: 'Max age for the cookie that contains the bearer auth token'
+        type: 'object',
+        description: 'Response data, contains the result.'
     })
-    @IsNotEmpty()
-    @IsNumber()
-    @IsPositive()
-    public authCookieAge: number;
+    data: {
+        result: Record<string, any>;
+    };
 
-    @ApiProperty({
-        description: 'Bearer refresh token, used for validating if the user is allowed to refresh session',
-        type: String
-    })
-    @IsNotEmpty()
-    @IsString()
-    @IsJWT()
-    public refresh_token: string;
+    userId?: string;
 
-    @ApiProperty({
-        description: 'Max age for the cookie that contains the bearer refresh token'
-    })
-    @IsNotEmpty()
-    @IsNumber()
-    @IsPositive()
-    public refreshCookieAge: number;
+    bearer_token?: string;
+
+    authCookieAge?: number;
+
+    refresh_token?: string;
+
+    refreshCookieAge?: number;
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
 
 
 }

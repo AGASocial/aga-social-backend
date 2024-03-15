@@ -5,22 +5,38 @@ import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class GetRolesResponseDto {
     @ApiProperty({
-        description: "Http response status code",
-        type: String
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "ROLESGOT"',
-        type: String
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    public message: string;
+    code: number;
+
     @ApiProperty({
-        description: 'Array containing the name of every role and their respective ids'
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    public rolesFound: DocResult[]
+    message: string;
+
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
+
 }

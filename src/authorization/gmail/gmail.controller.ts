@@ -7,7 +7,6 @@ export class AuthController {
     constructor(private readonly gmailService: GmailService) { }
 
 
-    //First, redirect the client to the auth url
     @Get('gmail')
     @Redirect()
     async getGmailAuthorizationUrl(@Req() request: Request) {
@@ -16,7 +15,6 @@ export class AuthController {
     }
 
 
-    //Second, using the code from the authUrl, exchange the code for the tokens and set them
     @Post('gmail/auth/tokens')
     async setTokens(@Body() { code }: { code: string }) {
         try {

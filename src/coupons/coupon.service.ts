@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import {Injectable} from "@nestjs/common";
 import { addDoc, collection, deleteDoc, doc, DocumentReference, getDoc, getDocs, limit, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { FirebaseService } from "../firebase/firebase.service";
 import {CreateCouponDto } from "./dto/createCoupon.dto";
@@ -7,15 +7,10 @@ import { UpdateCouponDto } from "./dto/updateCoupon.dto";
 import { UpdateCouponResponseDto } from "./dto/updateCouponResponse.dto";
 import { Coupon, CouponStatus, DiscountType } from "./entities/coupon.entity";
 import * as admin from 'firebase-admin';
-import { DeleteCouponResponseDto } from "./dto/deleteCouponResponse.dto";
 import { GetCouponsResponseDto } from "./dto/getCouponsResponse.dto";
 import { RedeemCouponDto, ResourceType } from "./dto/redeemCoupon.dto";
 import { RedeemCouponResponseDto } from "./dto/redeemCouponResponse.dto";
-import { AssignCouponDto } from "./dto/assignCoupon.dto";
-import { AssignCouponResponseDto } from "./dto/assignCouponResponse.dto";
 import { SetCouponAsExpiredResponseDto } from "./dto/setCouponAsExpiredResponse.dto";
-import { User } from "../users/users.entity";
-import { ApiBadRequestResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 
 
 
@@ -27,23 +22,17 @@ export class CouponService {
 
 
 
-    @ApiOperation({ summary: 'Create a new coupon' })
-    @ApiOkResponse({ description: 'Coupon created successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async createNewCoupon(createCouponDto: CreateCouponDto): Promise<CreateCouponResponseDto> {
         try {
-            const { code, description, discountType, discountAmount, expiryDate, maxUses, maxUsesPerUser, assetId, status} = createCouponDto;
+            const { code, description, discountType, discountAmount, expiryDate, maxUses, maxUsesPerUser, assetId, status } = createCouponDto;
             const createdBy = createCouponDto.createdBy;
             const couponRef = collection(this.firebaseService.fireStore, 'coupons');
 
             const existingCouponQuery = query(couponRef, where('code', '==', code));
             const existingCouponQuerySnapshot = await getDocs(existingCouponQuery);
             if (!existingCouponQuerySnapshot.empty) {
-                const response: CreateCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'COUPON_ALREADY_EXISTS',
-                };
+                const response: CreateCouponResponseDto = new CreateCouponResponseDto('error', 400, 'A coupon with that code already exists, use a different one.', {});
                 return response;
             }
 
@@ -51,32 +40,22 @@ export class CouponService {
             const expiryDateObj = new Date(expiryDate);
 
             if (expiryDateObj <= currentDate) {
-                const response: CreateCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'EXPIRY_DATE_INVALID',
-                };
+                const response: CreateCouponResponseDto = new CreateCouponResponseDto('error', 400, 'The expiry date is invalid, use a different one.', {});
                 return response;
             }
 
             if (!Object.values(CouponStatus).includes(status)) {
-                const response: CreateCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'INVALID_STATUS',
-                };
+                const response: CreateCouponResponseDto = new CreateCouponResponseDto('error', 400, 'The status is invalid.', {});
                 return response;
             }
 
             if (!Object.values(DiscountType).includes(discountType)) {
-                const response: CreateCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'INVALID_DISCOUNT_TYPE',
-                };
+                const response: CreateCouponResponseDto = new CreateCouponResponseDto('error', 400, 'The discount type is invalid.', {});
                 return response;
             }
 
             const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
             const courseRef = collection(this.firebaseService.fireStore, 'courses');
-
 
             const ebookQuery = query(ebookRef, where('id', '==', assetId));
             const ebookQuerySnapshot = await getDocs(ebookQuery);
@@ -85,11 +64,9 @@ export class CouponService {
             const courseQuerySnapshot = await getDocs(courseQuery);
 
             if (ebookQuerySnapshot.empty && courseQuerySnapshot.empty) {
-                throw new BadRequestException('ASSET_DOES_NOT_EXIST');
+                const response: CreateCouponResponseDto = new CreateCouponResponseDto('error', 404, 'The asset does not exist', {});
+                return response;
             }
-
-            console.log('createCouponDto:', createCouponDto);
-            console.log(createdBy);
 
 
             const newCoupon: Coupon = {
@@ -105,7 +82,6 @@ export class CouponService {
                 assetId,
                 redeemedByUsers: [],
                 createdBy: createdBy,
-               
             };
 
             const newCouponDocRef = await addDoc(couponRef, newCoupon);
@@ -114,30 +90,40 @@ export class CouponService {
             cachedCoupons.push(newCoupon);
             this.firebaseService.setCollectionData('coupons', cachedCoupons);
 
-            const responseDto = new CreateCouponResponseDto(201, 'COUPONCREATEDSUCCESSFULLY', code);
+            const responseDto = new CreateCouponResponseDto('success', 201, 'The coupon was created successfully.', { code });
             return responseDto;
         } catch (error) {
-            console.error('Error:', error);
-            if (error instanceof BadRequestException) {
-                throw error;
-            } else {
-                const response: CreateCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'COUPON_CREATION_FAILED. INVALID INPUT',
-                };
-                return response;
-            }
+            console.error('Error while creating a coupon:', error);
+            const response: CreateCouponResponseDto = new CreateCouponResponseDto('error', 400, 'There was an error with the request, try again.', {});
+            return response;
+            
         }
     }
 
 
 
-    @ApiOperation({ summary: 'Update a coupon' })
-    @ApiOkResponse({ description: 'Coupon updated successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async updateCoupon(code: string, newData: Partial<UpdateCouponDto>): Promise<UpdateCouponResponseDto> {
         try {
+            console.log('Initializing updateCoupon...');
+            const couponsCollectionRef = admin.firestore().collection('coupons');
+
+            const querySnapshot = await couponsCollectionRef.where('code', '==', code).get();
+
+            if (querySnapshot.empty) {
+                console.log(`The coupon with the code "${code}" does not exist.`);
+                const response: UpdateCouponResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'Coupon not found',
+                    data: {
+                        result: {}
+                    },
+                };
+                return response;
+            }
+
+            const couponDoc = querySnapshot.docs[0];
+            const couponData = couponDoc.data();
 
             const {
                 code: newCode,
@@ -151,30 +137,6 @@ export class CouponService {
                 currentUses,
                 assetId,
             } = newData;
-
-
-
-
-            console.log('Initializing updateCoupon...');
-            const couponsCollectionRef = admin.firestore().collection('coupons');
-
-            const querySnapshot = await couponsCollectionRef.where('code', '==', code).get();
-
-            if (querySnapshot.empty) {
-                console.log(`The coupon with the code "${code}" does not exist.`);
-                const response: UpdateCouponResponseDto = {
-                    statusCode: 404,
-                    message: 'Coupon not found',
-                };
-                return response;
-            }
-
-
-
-            const couponDoc = querySnapshot.docs[0];
-
-            const couponData = couponDoc.data();
-
 
             if (newCode !== undefined && typeof newCode === 'string') {
                 couponData.code = newCode;
@@ -216,10 +178,8 @@ export class CouponService {
                 couponData.assetId = assetId;
             }
 
-            // Update the coupon data
             const updatedData = { ...couponData, ...newData };
 
-            // Update in Firestore
             const batch = admin.firestore().batch();
             querySnapshot.forEach((doc) => {
                 batch.update(doc.ref, updatedData);
@@ -227,7 +187,6 @@ export class CouponService {
 
             await batch.commit();
 
-            // Update the cache
             const cachedCoupons = await this.firebaseService.getCollectionData('coupons');
             const updatedCouponIndex = cachedCoupons.findIndex((coupon) => coupon.code === code);
             if (updatedCouponIndex !== -1) {
@@ -236,29 +195,37 @@ export class CouponService {
             }
 
             const response: UpdateCouponResponseDto = {
-                statusCode: 200,
-                message: 'COUPONUPDATEDSUCCESSFULLY',
+                status: 'success',
+                code: 200,
+                message: 'Coupon updated successfully',
+                data: {
+                    result: {}
+                },
             };
 
             return response;
         } catch (error) {
             console.error('There was an error updating the coupon data:', error);
-            throw error;
+            const response: UpdateCouponResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'There was an error updating the coupon.',
+                data: {
+                    result: {}
+                },
+            };
+            return response;
         }
     }
 
 
-    @ApiOperation({ summary: 'Retrieve all coupons' })
-    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+ 
     async getCoupons(): Promise<GetCouponsResponseDto> {
         try {
             console.log('Initializing getCoupons...');
 
-            // If there is no data, it uses firestore instead
             const couponsRef = this.firebaseService.couponsCollection;
-            const couponsQuery = query(couponsRef, orderBy("code"));
+            const couponsQuery = query(couponsRef, orderBy('code'));
             console.log('Coupons query created.');
 
             const couponsQuerySnapshot = await getDocs(couponsQuery);
@@ -278,105 +245,164 @@ export class CouponService {
                     maxUsesPerUser: data.maxUsesPerUser,
                     status: data.status,
                     currentUses: data.currentUses,
-                    redeemedByUsers: data.redeemedByUsers
+                    redeemedByUsers: data.redeemedByUsers,
                 });
             });
             console.log('Coupons data collected.');
 
             const getCouponsDtoResponse: GetCouponsResponseDto = {
-                statusCode: 200,
-                message: "COUPONSGOT",
-                couponsFound: queryResult,
+                status: 'success',
+                code: 200,
+                message: 'Coupons retrieved successfully',
+                data: {
+                    result: queryResult,
+                },
             };
-            console.log('Response created.');
 
             return getCouponsDtoResponse;
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the coupons.');
+            const getCouponsDtoResponse: GetCouponsResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'There was an error retrieving the coupons',
+                data: {
+                    result: {},
+                },
+            };
+
+            return getCouponsDtoResponse;
         }
     }
 
 
 
-    @ApiOperation({ summary: 'Redeem a coupon' })
-    @ApiOkResponse({ description: 'Coupon redeemed successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async redeemCoupon(redeemCouponDto: RedeemCouponDto, userId: string): Promise<RedeemCouponResponseDto> {
         try {
             const { couponCode, resourceType } = redeemCouponDto;
 
             if (!Object.values(ResourceType).includes(resourceType)) {
                 const response: RedeemCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'INVALID_RESOURCE_TYPE',
-                    discountedPrice: 0,
-                    initialPrice: 0,
+                    status: 'error',
+                    code: 400,
+                    message: 'Bad request. Invalid resource type.',
+                    data: {
+                        result: {
+                            discountedPrice: 0,
+                            initialPrice: 0,
+                        }
+                    }
                 };
                 return response;
             }
 
-            // Fetch coupon data from Firestore
             const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
             const couponQuerySnapshot = await getDocs(query(couponCollectionRef, where('code', '==', couponCode)));
 
             if (couponQuerySnapshot.empty) {
                 const response: RedeemCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'COUPON NOT FOUND',
-                    discountedPrice: 0,
-                    initialPrice: 0,
+                    status: 'error',
+                    code: 404,
+                    message: 'Bad request. Coupon not found',
+                    data: {
+                        result: {
+                            discountedPrice: 0,
+                            initialPrice: 0,
+                        }
+                    }
                 };
-                return response;            }
+                return response;
+            }
 
             const couponDoc = couponQuerySnapshot.docs[0];
             const couponData = couponDoc.data();
 
             if (couponData.status !== CouponStatus.Available) {
                 const response: RedeemCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'COUPON NOT AVAILABLE FOR REDEMPTION',
-                    discountedPrice: 0,
-                    initialPrice: 0,
+                    status: 'error',
+                    code: 400,
+                    message: 'Bad request. The coupon is not available for redemption.',
+                    data: {
+                        result: {
+                            discountedPrice: 0,
+                            initialPrice: 0,
+                        }
+                    }
                 };
-                return response;            }
+                return response;
+            }
 
-            // Fetch user data from Firestore based on ID
             const userCollectionRef = collection(this.firebaseService.fireStore, 'users');
             const userQuerySnapshot = await getDocs(query(userCollectionRef, where('id', '==', userId)));
 
             if (userQuerySnapshot.empty) {
                 const response: RedeemCouponResponseDto = {
-                    statusCode: 400,
-                    message: 'USER DOES NOT EXIST',
-                    discountedPrice: 0,
-                    initialPrice: 0,
+                    status: 'error',
+                    code: 404,
+                    message: 'Bad request.The user does not exist.',
+                    data: {
+                        result: {
+                            discountedPrice: 0,
+                            initialPrice: 0,
+                        }
+                    }
                 };
-                return response;            }
+                return response;
+            }
 
-            // Verify if the coupon has reached its max uses
             if (couponData.currentUses >= couponData.maxUses) {
                 await updateDoc(couponDoc.ref, {
                     status: CouponStatus.OutOfStock
                 });
 
-                throw new BadRequestException('This coupon has reached its max uses, it cannot be redeemed anymore.');
+                const response: RedeemCouponResponseDto = {
+                    status: 'error',
+                    code: 400,
+                    message: 'The coupon has reached its max uses, it cannot be redeemed anymore.',
+                    data: {
+                        result: {
+                            discountedPrice: 0,
+                            initialPrice: 0,
+                        }
+                    }
+                };
+                return response;
             }
 
-            // Verify if the user has reached max uses per person for this coupon
             if (couponData.redeemedByUsers && couponData.redeemedByUsers.filter(id => id === userId).length >= couponData.maxUsesPerUser) {
-                throw new BadRequestException('The user has reached the max uses per person for this coupon.');
+                const response: RedeemCouponResponseDto = {
+                    status: 'error',
+                    code: 400,
+                    message: 'The user has reached the maximum uses per user for the coupon. Redemption failed.',
+                    data: {
+                        result: {
+                            discountedPrice: 0,
+                            initialPrice: 0,
+                        }
+                    }
+                };
+                return response;
             }
 
-            // Fetch the specified resource based on resourceType and assetId
             let resourcePrice = 0;
             if (resourceType === "Course") {
                 const courseCollectionRef = collection(this.firebaseService.fireStore, 'courses');
                 const courseQuerySnapshot = await getDocs(query(courseCollectionRef, where('id', '==', couponData.assetId)));
 
                 if (courseQuerySnapshot.empty) {
-                    throw new NotFoundException(`Course with id "${couponData.assetId}" not found.`);
+                    const response: RedeemCouponResponseDto = {
+                        status: 'error',
+                        code: 404,
+                        message: 'Course with given id not found.',
+                        data: {
+                            result: {
+                                discountedPrice: 0,
+                                initialPrice: 0,
+                            }
+                        }
+                    };
+                    return response;
                 }
 
                 const courseData = courseQuerySnapshot.docs[0].data();
@@ -386,14 +412,24 @@ export class CouponService {
                 const ebookQuerySnapshot = await getDocs(query(ebookCollectionRef, where('id', '==', couponData.assetId)));
 
                 if (ebookQuerySnapshot.empty) {
-                    throw new NotFoundException(`Ebook with id "${couponData.assetId}" not found.`);
+                    const response: RedeemCouponResponseDto = {
+                        status: 'error',
+                        code: 404,
+                        message: 'Ebook with given id not found.',
+                        data: {
+                            result: {
+                                discountedPrice: 0,
+                                initialPrice: 0,
+                            }
+                        }
+                    };
+                    return response;
                 }
 
                 const ebookData = ebookQuerySnapshot.docs[0].data();
                 resourcePrice = ebookData.price;
             }
 
-            // Calculate the final price based on coupon discount
             const initialPrice = resourcePrice;
             let finalPrice = resourcePrice;
 
@@ -409,64 +445,63 @@ export class CouponService {
 
             console.log('Coupon successfully redeemed.');
 
-            // Update the coupon data
             await updateDoc(couponDoc.ref, {
                 currentUses: couponData.currentUses + 1,
                 redeemedByUsers: [...(couponData.redeemedByUsers || []), userId],
             });
 
-            const response: RedeemCouponResponseDto = new RedeemCouponResponseDto(201, "COUPON_REDEEMED_SUCCESSFULLY", finalPrice, initialPrice);
+
+
+            const response: RedeemCouponResponseDto = {
+                status: 'success',
+                code: 200,
+                message: 'The coupon was redeemed successfully.',
+                data: {
+                    result: {
+                        discountedPrice: finalPrice,
+                        initialPrice: Number(Number(initialPrice).toFixed(2))
+                    }
+                }
+            };
             return response;
         } catch (error) {
             console.error("An error occurred:", error);
-            if (error instanceof HttpException) {
-                throw error;
-            } else {
-                throw new BadRequestException('There was an error redeeming the coupon.');
-            }
+            const response: RedeemCouponResponseDto = {
+                status: 'error',
+                code: 404,
+                message: 'The request could not be proccessed.',
+                data: {
+                    result: {
+                        discountedPrice: 0,
+                        initialPrice: 0,
+                    }
+                }
+            };
+            return response;
         }
     }
 
 
 
-    @ApiOperation({ summary: 'Retrieve a coupon by code' })
-    @ApiOkResponse({ description: 'Coupon retrieved successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getCouponByCode(code: string): Promise<GetCouponsResponseDto> {
         try {
-            // If not found in cache, fetch from Firestore
             const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
             const couponQuerySnapshot = await getDocs(query(couponCollectionRef, where('code', '==', code)));
 
             if (couponQuerySnapshot.empty) {
-                const response: GetCouponsResponseDto = {
-                    statusCode: 404,
-                    message: 'COUPON NOT FOUND',
-                    couponsFound: []
-                };
-                return response;            }
+                return new GetCouponsResponseDto('error', 404, 'Coupon not found.', {});
+            }
 
             const couponData = couponQuerySnapshot.docs[0].data();
 
-            const getCouponDtoResponse: GetCouponsResponseDto = {
-                statusCode: 200,
-                message: "COUPONSGOT",
-                couponsFound: [couponData],
-            };
-
-            return getCouponDtoResponse;
+            return new GetCouponsResponseDto('success', 200, 'Coupon retrieved successfully.', couponData);
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error(`There was an error retrieving the coupon with code "${code}".`);
+            return new GetCouponsResponseDto('error', 400, 'There was an error retrieving the coupon data.', {});
         }
     }
 
 
-    @ApiOperation({ summary: 'Retrieve coupons by a status' })
-    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async filterCouponsByStatus(filterStatus: CouponStatus, id: string): Promise<GetCouponsResponseDto> {
         try {
             const usersRef = this.firebaseService.usersCollection;
@@ -474,7 +509,7 @@ export class CouponService {
             const userQuerySnapshot = await getDocs(userQuery);
 
             if (userQuerySnapshot.empty) {
-                throw new NotFoundException(`User with ID "${id}" not found.`);
+                return new GetCouponsResponseDto('error', 404, 'User with given ID not found', {});
             }
 
             const userData = userQuerySnapshot.docs[0].data();
@@ -482,27 +517,19 @@ export class CouponService {
 
             const filteredUserCoupons = userCoupons.filter(coupon => coupon.status === filterStatus);
 
-            const filterCouponsDtoResponse: GetCouponsResponseDto = {
-                statusCode: 200,
-                message: "COUPONSGOT",
-                couponsFound: filteredUserCoupons,
-            };
+            const result = { couponsFound: filteredUserCoupons };
 
-            return filterCouponsDtoResponse;
+            return new GetCouponsResponseDto('success', 200, 'Request successfully processed.', result);
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error(`There was an error filtering coupons by status "${filterStatus}".`);
+            return new GetCouponsResponseDto('error', 400, 'There was an error filtering the coupons', {});
         }
     }
 
 
 
 
-
-    @ApiOperation({ summary: 'Updates a coupons status to expired' })
-    @ApiOkResponse({ description: 'Coupon updated successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+ 
     async updateExpiredCouponsStatus(): Promise<SetCouponAsExpiredResponseDto> {
         try {
             const couponCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
@@ -523,7 +550,6 @@ export class CouponService {
                         console.log(`Coupon with code ${couponData.code} is expired.`);
                         expiredCoupons.push({ ...couponData, status: CouponStatus.Expired });
 
-                        // Update the status of the expired coupon directly in Firestore
                         await updateDoc(couponDoc.ref, { status: CouponStatus.Expired });
                     } else {
                         console.log(`Coupon with code ${couponData.code} is still valid.`);
@@ -537,17 +563,16 @@ export class CouponService {
 
             console.log(`Updating cache with ${expiredCoupons.length} expired coupons and ${updatedCachedCoupons.length} valid coupons.`);
 
-            // Update the cache with the updated coupon statuses
             this.firebaseService.setCollectionData('coupons', [...updatedCachedCoupons, ...expiredCoupons]);
 
-            const response: SetCouponAsExpiredResponseDto = new SetCouponAsExpiredResponseDto(200, "COUPONSUPDATEDSUCCESSFULLY");
+            const response: SetCouponAsExpiredResponseDto = new SetCouponAsExpiredResponseDto('success', 200, 'The coupons were updated successfully.', {});
             return response;
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error updating expired coupons status.');
+            const response: SetCouponAsExpiredResponseDto = new SetCouponAsExpiredResponseDto('error', 400, 'The coupons could not be updated. Bad request.', {});
+            return response;
         }
     }
-
 
 
     private isCouponExpired(expiryDate: Date, currentDate: Date): boolean {
@@ -569,10 +594,7 @@ export class CouponService {
 
 
     
-    @ApiOperation({ summary: 'Retrieve all coupons created by a user' })
-    @ApiOkResponse({ description: 'Coupons retrieved successfully' })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  
     async getCouponsCreatedByUser(userId: string): Promise<GetCouponsResponseDto> {
         try {
             const couponsCollectionRef = collection(this.firebaseService.fireStore, 'coupons');
@@ -586,29 +608,15 @@ export class CouponService {
             });
 
             if (userCoupons.length === 0) {
-                const getCouponsDtoResponse: GetCouponsResponseDto = {
-                    statusCode: 404,
-                    message: "USER HAS NO REGISTERED COUPONS",
-                    couponsFound: []
-                };
+                return new GetCouponsResponseDto('error', 404, 'The user has no registered coupons', []);
+            }
 
-                return getCouponsDtoResponse;            }
-
-
-            const getCouponsDtoResponse: GetCouponsResponseDto = {
-                statusCode: 200,
-                message: "COUPONSGOT",
-                couponsFound: userCoupons,
-            };
-
-            return getCouponsDtoResponse;
+            return new GetCouponsResponseDto('success', 200, 'Coupons retrieved successfully', userCoupons);
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error(`There was an error retrieving coupons created by user "${userId}".`);
+            return new GetCouponsResponseDto('error', 400, 'There was an error proccessing the request.', []);
         }
     }
-
-
 
 
 

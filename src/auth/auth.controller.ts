@@ -1,4 +1,4 @@
-import { Body, Controller,Delete,Get,HttpException,HttpStatus,Param,Patch,Post,Put,Query,Req,Res,UploadedFile,UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller,Delete,Get,Param,Patch,Post,Put,Req,Res,UploadedFile,UseGuards, UseInterceptors } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { SignUpDto } from "./dto/signup.dto";
 import { LogInDto } from "./dto/login.dto";
@@ -6,113 +6,158 @@ import { RecoverPasswordDto } from "./dto/recoverPassword.dto";
 import { ChangePasswordDto } from "./dto/changePassword.dto"; 
 import { LogInResponseDto } from "./dto/loginResponse.dto";
 import { SignUpDtoResponse } from "./dto/signupResponse.dto";
-import { RecoverPasswordDtoResponse } from "./dto/recoverPasswordResponse.dto";
-import { ChangePasswordDtoResponse } from "./dto/changePasswordResponse.dto";
 import { Request, Response } from "express";
 import { LogOutResponseDto } from "./dto/logoutResponse.dto";
 import { RefreshDto } from "./dto/refresh.dto";
-import { Throttle } from "@nestjs/throttler";
-import { DeleteUserDto } from "./dto/deleteUser.dto";
-import { DeleteUserResponseDto } from "./dto/deleteUserResponse.dto";
 import { GetUsersResponseDto } from "./dto/getUsersResponse.dto";
 import { FreezedGuard } from "../session/freezed.guard";
 import { csrfCookieName, generateToken } from "../utils/constants";
-import { ChangeSecurityAnswerDto } from "./dto/changeSecurityAnswer.dto";
-import { ChangeSecurityAnswerDtoResponse } from "./dto/changeSecurityAnswerResponse.dto";
-import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { UpdateUserResponseDto } from "./dto/updateUserResponse.dto";
 import { UpdateUserDto } from "./dto/updateUser.dto";
-import { GetUsersEarningsResponseDto } from "./dto/getUsersEarningsResponse.dto";
-import { ChangeCredentialsDtoResponse } from "./dto/changeCredentialsResponse.dto";
-import { CsrfGuard } from "../session/csrf.guard";
-import { CsrfProtectionMiddleware } from "../session/middleware/csrfProtection.middleware";
-import { CsrfValidationMiddleware } from "../session/middleware/csrfValidation.middleware";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { profile } from "console";
+import { RefreshResponseDto } from "./dto/refreshResponse.dto";
 
 
-@Controller('auth')
-@ApiTags('Users')
+@Controller()
 export class AuthController {
     constructor(private authService: AuthService) { }
 
 
-
+    
+    @ApiTags('Auth')
     @ApiOperation({ summary: 'User sign-up using Firebase' })
-    @ApiCreatedResponse({
-        description: 'User successfully signed up',
-        type: SignUpDtoResponse,
-    })
-    @ApiBadRequestResponse({
-        description: 'Bad Request: Invalid input or user already exists',
-    })
-    @Post('users')
+    @ApiBody({ type: SignUpDto })
+    @ApiResponse({ status: 201, type: SignUpDtoResponse, description: 'User successfully signed up' })
+    @ApiResponse({ status: 400, description: 'Bad Request: Invalid input, password is not valid, username already exists, email is already in use.' })
+    @Post('auth/users')
     async firebaseSignup(@Body() signUpDto: SignUpDto, @Res() res: Response) {
+        try {
+            let signUpDtoResponse: SignUpDtoResponse = await this.authService.firebaseSignUp(signUpDto);
 
-        let signUpDtoResponse: SignUpDtoResponse = await this.authService.firebaseSignUp(signUpDto);
+            res.status(signUpDtoResponse.code).send({
+                status: signUpDtoResponse.status,
+                code: signUpDtoResponse.code,
+                message: signUpDtoResponse.message,
+                data: signUpDtoResponse.data.result,
+            });
+        } catch (error) {
+            console.error('Error in firebaseSignup:', error);
 
-        res.send({
-            statusCode: signUpDtoResponse.statusCode,
-            message: signUpDtoResponse.message,
-            userId: signUpDtoResponse.userId,
-
-        })
-
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request. Invalid Credentials',
+                data: {}
+            });
+        }
     }
 
 
-
+    
+    @ApiTags('Auth')
     @UseGuards(FreezedGuard)
+    @ApiBody({ type: LogInDto })
+    @ApiResponse({ status: 201, type: LogInResponseDto, description: 'User successfully logged in' })
+    @ApiResponse({ status: 400, description: 'Bad Request: Invalid input, password or email not valid' })
     @ApiOperation({ summary: 'User login' })
-    @ApiOkResponse({ description: 'Login successful', type: LogInResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid credentials or user not found' })
-
-    @Post('users/sessions')
+    @Post('auth/users/sessions')
     async firebaseLogin(@Body() logInDto: LogInDto, @Res() res: Response, @Req() req) {
+        try {
+            const logInTokensResponseDto: LogInResponseDto = await this.authService.firebaseLogin(logInDto);
 
-        const loginResponseDto: LogInResponseDto = await this.authService.firebaseLogin(logInDto);
+            const { bearer_token, authCookieAge, refresh_token, refreshCookieAge } = logInTokensResponseDto;
 
-        const { statusCode, message, userId, bearer_token, authCookieAge, refresh_token, refreshCookieAge } = loginResponseDto;
+            res
+                .status(logInTokensResponseDto.code)
+                .cookie('bearer_token', bearer_token, { signed: true, maxAge: authCookieAge })
+                .cookie('refresh_token', refresh_token, { signed: true, maxAge: refreshCookieAge })
+                .send({
+                    status: logInTokensResponseDto.status,
+                    code: logInTokensResponseDto.code,
+                    message: logInTokensResponseDto.message,
+                    data: logInTokensResponseDto.data.result
+                });
+        } catch (error) {
+            console.error('Error in firebaseLogin:', error);
 
-        res.cookie('bearer_token', bearer_token, { signed: true, maxAge: authCookieAge });
-        res.cookie('refresh_token', refresh_token, { signed: true, maxAge: refreshCookieAge });
-        res.send({
-            statusCode,
-            message,
-            userId,
-        })
+            res
+                .status(400)
+                .send({
+                    status: 'error',
+                    code: 400,
+                    message: 'The credentials are invalid. Bad request',
+                    data: {
+                        result: {}
+                    }
+                });
+        }
     }
 
 
 
-    @ApiOperation({ summary: 'Refresh user session' })
-    @ApiOkResponse({ description: 'Session refreshed successfully' })
-    @ApiUnauthorizedResponse({ description: 'Unauthorized: Invalid or expired refresh token' })
-    @Put('users/sessions')
-    async firebaseRefresh(@Res() res: Response, @Req() req) {
-        const jwtRefreshToken: string = req.signedCookies.refresh_token;
-        const refreshDto: RefreshDto = { refresh_token: jwtRefreshToken }
-        const { statusCode, message, bearer_token } = await this.authService.firebaseRefresh(refreshDto);
-        res.cookie('bearer_token', bearer_token, { signed: true });
-        res.send({
-            statusCode,
-            message
-        })
+    
+    @ApiTags('Auth')
+    @ApiParam({ name: 'userId', description: 'ID of the user', example: 'lbrKxRW4PSea3DPGiiAqVMFzrNW2' })
+    @ApiOperation({ summary: 'Refreshes user session' })
+    @ApiResponse({ status: 200, type: RefreshResponseDto, description: 'Session refreshed successfully' })
+    @ApiResponse({ status: 400, description: 'Bad Request: Invalid or expired refresh token' })
+    @Put('auth/users/:userId/sessions')
+    async firebaseRefresh(@Param('userId') userId: string, @Res() res: Response, @Req() req) {
+        try {
+            const jwtRefreshToken: string = req.signedCookies.refresh_token;
+            const refreshDto: RefreshDto = { refresh_token: jwtRefreshToken };
+            const { code, message, bearer_token, status, data } = await this.authService.firebaseRefresh(refreshDto);
+
+            res
+                .status(code)
+                .cookie('bearer_token', bearer_token, { signed: true })
+                .send({
+                    status,
+                    code,
+                    message,
+                    data: data.result
+                });
+        } catch (error) {
+            console.error('Error in firebaseRefresh:', error);
+
+            res
+                .status(400)
+                .send({
+                    code: 400,
+                    message: 'Bad Request: Invalid or expired refresh token. Or no session in course'
+                });
+        }
     }
 
-
-
+    
+    @ApiTags('Auth')
+    @ApiParam({ name: 'userId', description: 'ID of the user', example: 'lbrKxRW4PSea3DPGiiAqVMFzrNW2' })
     @ApiOperation({ summary: 'Logout user' })
     @ApiOkResponse({ description: 'User logged out successfully', type: LogOutResponseDto })
-    @Get('users/sessions')
-    async logout(@Res() res: Response) {
-        const logoutResponseDto: LogOutResponseDto = await this.authService.firebaseLogout();
-        res.clearCookie('connect.sid');
-        res.clearCookie('bearer_token');
-        res.clearCookie('refresh_token');
-        res.clearCookie(csrfCookieName);
+    @Delete('auth/users/:userId/sessions')
+    async logout(@Param('userId') userId: string, @Res() res: Response) {
+        try {
+            const logoutResponseDto: LogOutResponseDto = await this.authService.firebaseLogout();
 
-        res.send(logoutResponseDto);
+            res
+                .status(logoutResponseDto.code)
+                .clearCookie('connect.sid')
+                .clearCookie('bearer_token')
+                .clearCookie('refresh_token')
+                .clearCookie(csrfCookieName)
+                .send(logoutResponseDto);
+        } catch (error) {
+            console.error('Error in logout:', error);
+
+            res
+                .status(400)
+                .send({
+                    code: 400,
+                    message: 'Bad Request: Logout failed',
+                    data: {}
+                });
+        }
     }
 
 
@@ -120,98 +165,236 @@ export class AuthController {
 
 
 
-
-
+    @ApiTags('Users')
     @ApiOperation({ summary: 'Update user data' })
     @ApiBody({ type: UpdateUserDto })
     @ApiOkResponse({ description: 'User data changed successfully', type: UpdateUserResponseDto })
-    @UseInterceptors(FileInterceptor('profilePicture')) 
-    @Put('users') 
+    @UseInterceptors(FileInterceptor('profilePicture'))
+    @ApiParam({ name: 'userId', description: 'ID of the user', example: 'lbrKxRW4PSea3DPGiiAqVMFzrNW2' })
+    @Patch('users/:userId')
     async updateUser(
         @Body() newData?: Partial<UpdateUserDto>,
-        @Body('id') id?: string,
-        @UploadedFile() profilePicture?: any
+        @Param('userId') userId?: string,
+        @UploadedFile() profilePicture?: any,
+        @Res() res?: Response
     ): Promise<UpdateUserResponseDto> {
         try {
-        //    const jwtToken = req.signedCookies.refresh_token;
-
-
             if (!profilePicture && newData) {
-                const response = await this.authService.updateUser(newData);
+                const response = await this.authService.updateUser(userId, newData);
 
+                if (res) {
+                    res
+                        .status(response.code)
+                        .send({
+                            status: response.status,
+                            code: response.code,
+                            message: response.message,
+                            data: response.data.result,
+                        });
+                }
 
                 return response;
-            }
-            else if (profilePicture && id) {
-                const response = await this.authService.uploadProfilePicture(id, profilePicture);
-                return response;
+            } else if (profilePicture && userId) {
+                const response = await this.authService.uploadProfilePicture(userId, profilePicture);
 
+                if (res) {
+                    res
+                        .status(response.code)
+                        .send({
+                            status: response.status,
+                            code: response.code,
+                            message: response.message,
+                            data: response.data.result,
+                        });
+                }
+
+                return response;
             }
         } catch (error) {
-            throw new Error('Failed to update user');
+            console.error('Error uploading file or updating user:', error);
+
+            const response: UpdateUserResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to update user data',
+                data: {
+                    result: {}
+                }
+            };
+
+            if (res) {
+                res
+                    .status(400)
+                    .send({
+                        status: response.status,
+                        code: response.code,
+                        message: response.message,
+                        data: response.data.result,
+                    });
+            }
+
+            return response;
+        }
+    }
+
+    
+    @ApiTags('Users')
+    @ApiOperation({ summary: 'Get all users' })
+    @ApiOkResponse({ description: 'Users retrieved successfully', type: GetUsersResponseDto })
+    @Get('users')
+    async getAllUsers(@Res() res?: Response): Promise<GetUsersResponseDto> {
+        try {
+            const users = await this.authService.getUsers();
+
+            if (res) {
+                res
+                    .status(users.code)
+                    .send(users);
+            }
+
+            return users;
+        } catch (error) {
+            console.error('An error occurred:', error);
+
+            const response: GetUsersResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to retrieve users',
+                data: {
+                    result: {}
+                }
+            };
+
+            if (res) {
+                res
+                    .status(400)
+                    .send(response);
+            }
+
+            return response;
+        }
+    }
+
+    @ApiTags('Users')
+    @ApiOperation({ summary: 'Get user by id' })
+    @ApiParam({ name: 'userId', description: 'Id of the user', type: String })
+    @ApiOkResponse({ description: 'User retrieved successfully', type: GetUsersResponseDto })
+    @Get('users/:userId')
+    async getSingleUserById(@Param('userId') userId: string, @Res() res?: Response): Promise<GetUsersResponseDto> {
+        try {
+            const singleUser = await this.authService.getSingleUser(userId);
+
+            if (res) {
+                res
+                    .status(singleUser.code)
+                    .send(singleUser);
+            }
+
+            return singleUser;
+        } catch (error) {
+            console.error('An error occurred:', error);
+
+            const response: GetUsersResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to retrieve user',
+                data: {
+                    result: {}
+                }
+            };
+
+            if (res) {
+                res
+                    .status(400)
+                    .send(response);
+            }
+
+            return response;
         }
     }
 
 
-    @ApiOperation({ summary: 'Get user by id or get all users' })
-    @ApiParam({ name: 'id', description: 'Id of the user', type: String, required: false })
-    @ApiOkResponse({ description: 'User(s) retrieved successfully', type: GetUsersResponseDto })
-    @Get('users/:id')
-    async getUsersOrSingleUserById(@Param('id') id: string, @Req() req: Request): Promise<GetUsersResponseDto> {
-        if (id) {
-            return this.authService.getSingleUser(id);
-        }
-
-
-        else {
-            return this.authService.getUsers();
-        }
-    }
-
-
-
-
-    @ApiOperation({ summary: 'Manage user credentials. Can change security answer, change password or recover password' }) 
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @ApiBadRequestResponse({ description: 'Invalid input data' })
-    @ApiQuery({ name: 'email', required: false })
-    @ApiQuery({ name: 'password', required: false })
-    @ApiQuery({ name: 'new_security_answer', required: false })
-    @ApiQuery({ name: 'new_password', required: false })
-    @ApiQuery({ name: 'security_answer', required: false })
-    @Patch('users')
-    async manageUserCredentials(
+    //
+    @ApiTags('Auth')
+    @Patch('auth/users')
+    @ApiParam({ name: 'lang', description: 'Language (es/en)', example: 'en' })
+    @ApiOperation({ summary: 'Send password reset email or change password' })
+    @ApiResponse({ status: 200, type: UpdateUserResponseDto, description: 'Operation successful.' })
+    @ApiResponse({ status: 400, type: UpdateUserResponseDto, description: 'Error processing the request.' })
+    @ApiBody({ type: RecoverPasswordDto })
+    async handlePasswordOperation(
+        @Body() recoverPasswordDto: RecoverPasswordDto,
+        @Res() res: Response,
         @Req() req: Request,
-        @Body() credentials: {
-            password?: string,
-            new_security_answer?: string,
-            new_password?: string,
-            security_answer?: string,
-        }
-    ): Promise<any> {
-        const jwtToken = req.signedCookies.refresh_token;
+        @Param('lang') lang: string,
+    ): Promise<UpdateUserResponseDto | any> {
+        try {
+            if (recoverPasswordDto.email) {
+                const response = await this.authService.firebaseForgotPassword(recoverPasswordDto.email);
 
-        if (credentials.password && credentials.new_security_answer) {
-            const changeSecurityAnswerDto = new ChangeSecurityAnswerDto();
-            changeSecurityAnswerDto.password = credentials.password;
-            changeSecurityAnswerDto.new_security_answer = credentials.new_security_answer;
+                if (response.status === 'error') {
+                    return res.status(400).json({
+                        code: 400,
+                        status: 'error',
+                        message: response.message || 'There was an error processing the request.',
+                        data: {}
+                    });
+                }
 
-            return this.authService.changeSecurityAnswer(changeSecurityAnswerDto, jwtToken);
-        } else if (credentials.password && credentials.new_password) {
-            const changePasswordDto = new ChangePasswordDto();
-            changePasswordDto.password = credentials.password;
-            changePasswordDto.new_password = credentials.new_password;
-            return this.authService.firebaseChangePassword(changePasswordDto, jwtToken);
-        } else if (credentials.security_answer && credentials.new_password) {
-            const recoverPasswordDto = new RecoverPasswordDto();
-            recoverPasswordDto.security_answer = credentials.security_answer;
-            recoverPasswordDto.new_password = credentials.new_password;
-            return this.authService.firebaseRecoverPassword(recoverPasswordDto, jwtToken);
-        } else {
-            throw new HttpException('Invalid combination of credentials', HttpStatus.BAD_REQUEST);
+                return res.status(response.code).json({
+                    code: response.code,
+                    status: response.status,
+                    message: response.message,
+                    data: {
+                        result: response.data.result || {}
+                    }
+                });
+            } else if (recoverPasswordDto.password && recoverPasswordDto.new_password) {
+                const jwtToken = req.signedCookies.refresh_token;
+
+
+                const changePasswordDto = new ChangePasswordDto();
+                changePasswordDto.password = recoverPasswordDto.password;
+                changePasswordDto.new_password = recoverPasswordDto.new_password;
+
+
+                const response = await this.authService.firebaseChangePassword(changePasswordDto, jwtToken);
+
+                if (response.status === 'error') {
+                    return res.status(400).json({
+                        code: 400,
+                        status: 'error',
+                        message: response.message || 'There was an error processing the request.',
+                        data: {}
+                    });
+                }
+
+                return res.status(response.code).json({
+                    code: response.code,
+                    status: response.status,
+                    message: response.message,
+                    data: {
+                        result: response.data.result || {}
+                    }
+                });
+            } else {
+                return res.status(400).json({
+                    code: 400,
+                    status: 'error',
+                    message: 'Invalid request. Provide either email or both password and new_password.',
+                    data: {}
+                });
+            }
+        } catch (error) {
+            console.error('Error processing the request:', error);
+            return res.status(400).json({
+                code: 400,
+                status: 'error',
+                message: 'There was an error processing the request.',
+                data: {}
+            });
         }
     }
-
 
 
 

@@ -22,12 +22,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/roles",
+					"raw": "{{server}}roles",
 					"host": [
-						"{{server}}authorization"
-					],
-					"path": [
-						"roles"
+						"{{server}}roles"
 					]
 				}
 			},
@@ -36,7 +33,7 @@
 		{
 			"name": "Actualizar Role Firebase",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
@@ -48,12 +45,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/roles",
+					"raw": "{{server}}roles/besCEOpGZT2QZqORCN9p",
 					"host": [
-						"{{server}}authorization"
+						"{{server}}roles"
 					],
 					"path": [
-						"roles"
+						"besCEOpGZT2QZqORCN9p"
 					]
 				}
 			},
@@ -72,12 +69,9 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{server}}authorization/roles",
+					"raw": "{{server}}roles",
 					"host": [
-						"{{server}}authorization"
-					],
-					"path": [
-						"roles"
+						"{{server}}roles"
 					]
 				}
 			},
@@ -86,11 +80,11 @@
 		{
 			"name": "Agregar Role a User Firebase",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2\",\r\n    \"roleName\": \"Publisher\"\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -98,13 +92,14 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/users/roles",
+					"raw": "{{server}}users/0EwINikFVAg7jtRdkZYiTBXN4vW2/roles/besCEOpGZT2QZqORCN9p",
 					"host": [
-						"{{server}}authorization"
+						"{{server}}users"
 					],
 					"path": [
-						"users",
-						"roles"
+						"0EwINikFVAg7jtRdkZYiTBXN4vW2",
+						"roles",
+						"besCEOpGZT2QZqORCN9p"
 					]
 				}
 			},
@@ -117,7 +112,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2\",\r\n    \"roleName\": \"Test\"\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -125,13 +120,31 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}authorization/users/roles",
+					"raw": "{{server}}users/0EwINikFVAg7jtRdkZYiTBXN4vW2/roles/besCEOpGZT2QZqORCN9p",
 					"host": [
-						"{{server}}authorization"
+						"{{server}}users"
 					],
 					"path": [
-						"users",
-						"roles"
+						"0EwINikFVAg7jtRdkZYiTBXN4vW2",
+						"roles",
+						"besCEOpGZT2QZqORCN9p"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Role por ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server}}roles/besCEOpGZT2QZqORCN9p",
+					"host": [
+						"{{server}}roles"
+					],
+					"path": [
+						"besCEOpGZT2QZqORCN9p"
 					]
 				}
 			},

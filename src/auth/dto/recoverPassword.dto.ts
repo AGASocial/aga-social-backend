@@ -1,32 +1,36 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, Matches, Length, MaxLength, IsNumberString } from "class-validator";
+import { IsNotEmpty, IsString, Matches, Length, MaxLength, IsNumberString, IsEmail, IsOptional } from "class-validator";
 
 export class RecoverPasswordDto {
-    @ApiProperty({
-        description: 'Firestore ID of the user',
-        example: 'abcdef123456',
-        type: String
-    })
-    id?: string;
 
 
 
     @ApiProperty({
-        description: 'Security answer used to create a new password when the former was lost. Must match the one set on sign up',
+        description: 'Email the user will use, it must be unique between users',
+        example: 'test1@mentality.io',
         type: String
     })
-    @IsNotEmpty()
-    @IsString()
-    public security_answer: string;
+    @IsOptional()
+    public email?: string;
+
+
+    @IsOptional()
+    @ApiProperty({
+        description: 'Current password of the user',
+        example: 'pepito123.',
+        type: String
+    })
+    public password?: string;
 
     @ApiProperty({
-        description: 'New password that will be set for the user, substitutes the lost one',
+        description: 'The new password the user will use ',
+        example: 'pepito000.',
         type: String
     })
-    @IsNotEmpty()
-    @IsString()
-    @Length(8,30, {message: 'Password needs to be of 8 characters and up to 30'})
-    public new_password: string;
+    @IsOptional()
+    @Length(8, 30, { message: 'Password needs to be of 8 characters and up to 30' })
+    public new_password?: string;
 
-    
+
+
 }

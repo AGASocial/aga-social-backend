@@ -35,10 +35,7 @@ export class SectionService {
 
 
 
-    @ApiOperation({ summary: 'Create a new section' })
-    @ApiCreatedResponse({ description: 'Section created successfully', type: CreateSectionResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request', type: Error })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  
     async createNewSection(createNewSectionDto: CreateSectionDto): Promise<CreateSectionResponseDto> {
         try {
             console.log('Creating a new section...');
@@ -47,32 +44,32 @@ export class SectionService {
 
             const sectionRef = collection(this.firebaseService.fireStore, 'sections');
 
-
-
-            const updatedContent = []; 
+            const updatedContent = [];
 
             for (const id of assetsIds) {
                 const mediaRef = collection(this.firebaseService.fireStore, 'media');
-                const mediaQuery = query(mediaRef, where('id', '==', id)); 
+                const mediaQuery = query(mediaRef, where('id', '==', id));
                 const mediaQuerySnapshot = await getDocs(mediaQuery);
 
                 if (!mediaQuerySnapshot.empty) {
                     const mediaData = mediaQuerySnapshot.docs[0].data();
                     updatedContent.push(mediaData);
-                    continue; // Skip to the next id in assetsIds
+                    continue;
                 }
 
                 const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
-                const ebookQuery = query(ebookRef, where('id', '==', id)); 
+                const ebookQuery = query(ebookRef, where('id', '==', id));
                 const ebookQuerySnapshot = await getDocs(ebookQuery);
 
                 if (!ebookQuerySnapshot.empty) {
                     const ebookData = ebookQuerySnapshot.docs[0].data();
                     updatedContent.push(ebookData);
-                    continue; // Skip to the next id in assetsIds
+                    continue;
                 }
 
-                throw new BadRequestException('ID NOT FOUND in MEDIA or EBOOKS: ' + id);
+                const errorMessage = 'Ebook or Media not found for id: ' + id;
+                const responseDto = new CreateSectionResponseDto('error', 404, errorMessage, {});
+                return responseDto;
             }
 
             const newSectionId: string = uuidv4();
@@ -89,12 +86,17 @@ export class SectionService {
 
             const newSectionDocRef = await addDoc(sectionRef, newSection);
 
+            const newSectionDocId = newSectionDocRef.id; 
+
+            await updateDoc(newSectionDocRef, { id: newSectionDocId });
+
+
             const cachedCourses = await this.firebaseService.getCollectionData('sections');
             cachedCourses.push({
-                id: newSectionId,
+                id: newSectionDocId,
                 name,
                 description,
-                content: updatedContent, 
+                content: updatedContent,
                 tags,
                 active: true,
                 subsections: [],
@@ -103,26 +105,17 @@ export class SectionService {
             this.firebaseService.setCollectionData('sections', cachedCourses);
             console.log('Section added to the cache successfully.');
 
-            const responseDto = new CreateSectionResponseDto(201, 'SECTIONCREATEDSUCCESSFULLY', newSectionId);
+            const responseDto = new CreateSectionResponseDto('success', 201, 'Section created successfully', { sectionId: newSectionDocId });
             return responseDto;
         } catch (error) {
             console.error('Error creating section:', error);
-            throw error;
+            const errorMessage = 'The message could not be sent.';
+            const responseDto = new CreateSectionResponseDto('error', 400, errorMessage, {});
+            return responseDto;
         }
     }
 
 
-
-
-
-
-
-
-
-    @ApiOperation({ summary: 'Create and add a new subsection to a section' })
-    @ApiCreatedResponse({ description: 'Subsection created and added successfully', type: CreateSectionResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request', type: Error })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async createAndAddSubsectionToSection(
         parentSectionId: string,
         createSectionDto: CreateSectionDto
@@ -137,7 +130,9 @@ export class SectionService {
             const parentSectionQuerySnapshot = await getDocs(parentSectionQuery);
 
             if (parentSectionQuerySnapshot.empty) {
-                throw new BadRequestException('PARENT SECTION NOT FOUND');
+                const errorMessage = 'Parent section not found.';
+                const responseDto = new CreateSectionResponseDto('error', 404, errorMessage, {});
+                return responseDto;
             }
 
             const parentSectionDoc = parentSectionQuerySnapshot.docs[0];
@@ -153,7 +148,7 @@ export class SectionService {
                 if (!mediaQuerySnapshot.empty) {
                     const mediaData = mediaQuerySnapshot.docs[0].data();
                     updatedContent.push(mediaData);
-                    continue; // Skip to the next id in assetsIds
+                    continue;
                 }
 
                 const ebookRef = collection(this.firebaseService.fireStore, 'ebooks');
@@ -163,55 +158,69 @@ export class SectionService {
                 if (!ebookQuerySnapshot.empty) {
                     const ebookData = ebookQuerySnapshot.docs[0].data();
                     updatedContent.push(ebookData);
-                    continue; // Skip to the next id in assetsIds
+                    continue;
                 }
 
-                throw new BadRequestException('ID NOT FOUND in MEDIA or EBOOKS: ' + id);
+                const errorMessage = 'Ebook or media not found for id: ' + id;
+                const responseDto = new CreateSectionResponseDto('error', 404, errorMessage, {});
+                return responseDto;
             }
 
-            const newSubsectionId: string = uuidv4();
+            const newSubsectionRef = await addDoc(collection(this.firebaseService.fireStore, 'sections'), {
+                name: name,
+                description: description,
+                content: updatedContent,
+                tags: tags,
+                active: true,
+            });
 
-            const newSubsection: Section = {
+            const newSubsectionId = newSubsectionRef.id;
+
+            if (!parentSectionData.subsections) {
+                parentSectionData.subsections = [];
+            }
+
+            parentSectionData.subsections.push({
                 id: newSubsectionId,
                 name: name,
                 description: description,
                 content: updatedContent,
                 tags: tags,
                 active: true,
-            };
+            });
 
-            if (!parentSectionData.subsections) {
-                parentSectionData.subsections = [];
-            }
-
-            parentSectionData.subsections.push(newSubsection);
             await updateDoc(parentSectionDoc.ref, parentSectionData);
 
-            // Update cached data
             const cachedSections = await this.firebaseService.getCollectionData('sections');
             const updatedParentSection = cachedSections.find(section => section.id === parentSectionId);
+
             if (updatedParentSection) {
-                updatedParentSection.subsections.push(newSubsection);
+                updatedParentSection.subsections.push({
+                    id: newSubsectionId,
+                    name: name,
+                    description: description,
+                    content: updatedContent,
+                    tags: tags,
+                    active: true,
+                });
+
                 this.firebaseService.setCollectionData('sections', cachedSections);
                 console.log('Subsection added to the cache successfully.');
             }
 
-            const responseDto = new CreateSectionResponseDto(201, 'SUBSECTION_CREATED_AND_ADDED_SUCCESSFULLY', newSubsectionId);
+            const responseDto = new CreateSectionResponseDto('success', 201, 'Subsection created and added successfully.', { newSubsectionId });
             return responseDto;
         } catch (error) {
             console.error('Error creating and adding subsection to section:', error);
-            throw error;
+            const errorMessage = 'The subsection could not be added.';
+            const responseDto = new CreateSectionResponseDto('error', 400, errorMessage, {});
+            return responseDto;
         }
     }
 
 
 
-
-
-
-    @ApiOperation({ summary: 'Update section by ID' })
-    @ApiOkResponse({ description: 'Section updated successfully', type: UpdateSectionResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  
     async updateSection(id: string, newData: Partial<UpdateSectionDto>): Promise<UpdateSectionResponseDto> {
         try {
             const sectionsCollectionRef = admin.firestore().collection('sections');
@@ -249,12 +258,9 @@ export class SectionService {
                 if (foundInSection) {
                     console.log(`Updated info for subsection with ID "${id}"`);
                 } else {
-                    const response: UpdateSectionResponseDto = {
-                        statusCode: 404,
-                        message: 'SECTION NOT FOUND',
-                    };
-
-                    return response;
+                    const errorMessage = 'Section not found.';
+                    const responseDto = new UpdateSectionResponseDto('error', 404, errorMessage, {});
+                    return responseDto;
                 }
             }
 
@@ -265,15 +271,13 @@ export class SectionService {
                 this.firebaseService.setCollectionData('sections', cachedSections);
             }
 
-            const response: UpdateSectionResponseDto = {
-                statusCode: 200,
-                message: 'SECTIONUPDATEDSUCCESSFULLY',
-            };
-
-            return response;
+            const responseDto = new UpdateSectionResponseDto('success',200, 'Section updated successfully.', {});
+            return responseDto;
         } catch (error) {
             console.error('There was an error updating the section data:', error);
-            throw error;
+            const errorMessage = 'The section could not be updated.';
+            const responseDto = new UpdateSectionResponseDto('error', 400, errorMessage, {});
+            return responseDto;
         }
     }
 
@@ -281,9 +285,7 @@ export class SectionService {
 
 
 
-    @ApiOperation({ summary: 'Get active sections and subsections with active content' })
-    @ApiOkResponse({ description: 'Success', type: GetSectionsResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+ 
     async getSections(): Promise<GetSectionsResponseDto> {
         try {
             console.log('Initializing getSections...');
@@ -306,14 +308,16 @@ export class SectionService {
                 }));
 
                 const getSectionsDtoResponse: GetSectionsResponseDto = {
-                    statusCode: 200,
-                    message: 'SECTIONSGOT',
-                    sectionsFound: activeSubsectionsWithActiveContent,
+                    status: 'success',
+                    code: 200,
+                    message: 'Sections retrieved successfully.',
+                    data: {
+                        result: activeSubsectionsWithActiveContent,
+                    },
                 };
                 return getSectionsDtoResponse;
             }
 
-            // If there is no data, it uses firestore instead
             const sectionsRef = this.firebaseService.sectionsCollection;
             const sectionsQuery = query(sectionsRef, where('active', '==', true), orderBy('name'));
 
@@ -329,7 +333,6 @@ export class SectionService {
             });
             console.log('Section data collected.');
 
-            // Save the data in cache for future queries
             await this.firebaseService.setCollectionData('sections', queryResult);
 
             const activeSections = queryResult.filter(section => section.active);
@@ -347,30 +350,31 @@ export class SectionService {
             }));
 
             const getSectionsDtoResponse: GetSectionsResponseDto = {
-                statusCode: 200,
-                message: 'SECTIONSGOT',
-                sectionsFound: activeSubsectionsWithActiveContent,
+                status: 'success',
+                code: 200,
+                message: 'Sections retrieved successfully.',
+                data: {
+                    result: activeSubsectionsWithActiveContent,
+                },
             };
             console.log('Response created.');
 
             return getSectionsDtoResponse;
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the sections.');
+            const errorMessage = 'There was an error retrieving the sections.';
+            const responseDto = new GetSectionsResponseDto('error', 400, errorMessage, {});
+            return responseDto;
         }
     }
 
 
 
-
-    @ApiOperation({ summary: 'Get active sections and subsections with active content matching specified keywords on the title' })
-    @ApiOkResponse({ description: 'Success', type: GetSectionsResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async getSectionsByKeywords(keywords: string | string[]): Promise<GetSectionsResponseDto> {
         try {
             console.log('Initializing getSectionsByKeywords...');
 
-            // Convert keywords to an array if it's not already
             const lowercaseKeywords = Array.isArray(keywords) ? keywords.map(keyword => keyword.toLowerCase()) : [keywords.toLowerCase()];
 
             const sectionsRef = this.firebaseService.sectionsCollection;
@@ -395,7 +399,6 @@ export class SectionService {
             console.log('Section data collected.');
 
             if (queryResult.length > 0) {
-                // Format the dates
                 const formattedSections = queryResult.map(matchedSection => ({
                     ...matchedSection,
                     subsections: matchedSection.subsections.filter(subsection => subsection.active)
@@ -411,9 +414,12 @@ export class SectionService {
                 }));
 
                 const responseDto: GetSectionsResponseDto = {
-                    statusCode: 200,
-                    message: 'SECTIONSGOT',
-                    sectionsFound: formattedSections,
+                    status: 'success',
+                    code: 200,
+                    message: 'Sections retrieved successfuly.',
+                    data: {
+                        result: formattedSections,
+                    },
                 };
                 console.log('Response created.');
 
@@ -421,9 +427,12 @@ export class SectionService {
             }
 
             const responseDto: GetSectionsResponseDto = {
-                statusCode: 404,
-                message: 'NOSECTIONFOUND',
-                sectionsFound: [],
+                status: 'error',
+                code: 404,
+                message: 'Sections not found.',
+                data: {
+                    result: [],
+                },
             };
             console.log('Response created.');
 
@@ -431,28 +440,14 @@ export class SectionService {
 
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the sections.');
+            const errorMessage = 'There was an error retrieving the sections.';
+            const responseDto = new GetSectionsResponseDto('error', 400, errorMessage, {});
+            return responseDto;
         }
     }
 
 
-
-
-
-
-
-
-
-
-
-    @ApiOperation({ summary: 'Add a media or ebook to a subsection within a section' })
-    @ApiCreatedResponse({ description: 'Success', type: AddMediaOrEbookResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request', type: BadRequestException })
-    async addMediaOrEbookToSubsection(
-        sectionId: string,
-        subsectionId: string,
-        resourceId: string
-    ): Promise<AddMediaOrEbookResponseDto> {
+    async addMediaOrEbookToSubsection(sectionId: string, subsectionId: string, resourceId: string): Promise<AddMediaOrEbookResponseDto> {
         try {
             const sectionsRef = collection(this.firebaseService.fireStore, 'sections');
             const sectionsQuery = query(sectionsRef, where('id', '==', sectionId));
@@ -463,7 +458,7 @@ export class SectionService {
                 const sectionData = sectionDoc.data();
                 const { subsections } = sectionData;
 
-                const findSubsectionAndUpdateContent = async (subsection: Section): Promise<boolean> => {
+                const findSubsectionAndUpdateContent = async (subsection: Section): Promise<boolean | AddMediaOrEbookResponseDto> => {
                     console.log('Checking subsection:', subsection.id);
 
                     if (subsection.id === subsectionId) {
@@ -484,43 +479,57 @@ export class SectionService {
                                 const ebookData = ebookQuerySnapshot.docs[0].data();
                                 updatedSubsectionContent.push(ebookData);
                             } else {
-                                throw new BadRequestException('MEDIA OR EBOOK NOT FOUND');
+                                const responseDto: AddMediaOrEbookResponseDto = {
+                                    status: 'error',
+                                    code: 404,
+                                    message: 'Asset not found.',
+                                    data: {
+                                        result: {},
+                                    },
+                                };
+                                return responseDto;
                             }
-
-                            // Update only the content of the subsection
-                            const updatedSubsection = {
-                                ...subsection,
-                                content: updatedSubsectionContent,
-                            };
-
-                            const updatedSubsections = subsections.map((subsec: any) =>
-                                subsec.id === subsectionId ? updatedSubsection : subsec
-                            );
-
-                            const updatedSection = {
-                                ...sectionData,
-                                subsections: updatedSubsections,
-                            };
-
-                            await updateDoc(sectionDoc.ref, updatedSection);
-
-                            console.log('Media or Ebook added to subsection content successfully.');
-
-                            // Update cached sections data
-                            const cachedSections = await this.firebaseService.getCollectionData('sections');
-                            const updatedCachedSections = cachedSections.map(cachedSection => {
-                                if (cachedSection.id === sectionId) {
-                                    return {
-                                        ...cachedSection,
-                                        subsections: updatedSubsections,
-                                    };
-                                }
-                                return cachedSection;
-                            });
-                            await this.firebaseService.setCollectionData('sections', updatedCachedSections);
-
-                            return true;
                         }
+
+                        const updatedSubsection = {
+                            ...subsection,
+                            content: updatedSubsectionContent,
+                        };
+
+                        const updatedSubsections = subsections.map((subsec: any) =>
+                            subsec.id === subsectionId ? updatedSubsection : subsec
+                        );
+
+                        const updatedSection = {
+                            ...sectionData,
+                            subsections: updatedSubsections,
+                        };
+
+                        await updateDoc(sectionDoc.ref, updatedSection);
+
+                        console.log('Media or Ebook added to subsection content successfully.');
+
+                        const cachedSections = await this.firebaseService.getCollectionData('sections');
+                        const updatedCachedSections = cachedSections.map(cachedSection => {
+                            if (cachedSection.id === sectionId) {
+                                return {
+                                    ...cachedSection,
+                                    subsections: updatedSubsections,
+                                };
+                            }
+                            return cachedSection;
+                        });
+                        await this.firebaseService.setCollectionData('sections', updatedCachedSections);
+
+                        const responseDto: AddMediaOrEbookResponseDto = {
+                            status: 'success',
+                            code: 200,
+                            message: 'Asset added successfully.',
+                            data: {
+                                result: {},
+                            },
+                        };
+                        return responseDto;
                     }
 
                     if (subsection.subsections) {
@@ -536,55 +545,61 @@ export class SectionService {
 
                 for (const subsection of subsections) {
                     if (await findSubsectionAndUpdateContent(subsection)) {
-                        return new AddMediaOrEbookResponseDto(201, 'MEDIAOREBOOKADDEDSUCCESSFULLY');
+                        return new AddMediaOrEbookResponseDto('success', 200, 'Asset added succesfully.', {});
                     }
                 }
 
                 const responseDto: AddMediaOrEbookResponseDto = {
-                    statusCode: 404,
-                    message: 'NO SUBSECTION FOUND',
+                    status: 'error',
+                    code: 404,
+                    message: 'Subsection not found.',
+                    data: {
+                        result: {},
+                    },
                 };
                 return responseDto;
             } else {
                 const responseDto: AddMediaOrEbookResponseDto = {
-                    statusCode: 404,
-                    message: 'NO SECTION FOUND',
+                    status: 'error',
+                    code: 404,
+                    message: 'Section not found.',
+                    data: {
+                        result: {},
+                    },
                 };
                 return responseDto;
             }
         } catch (error) {
             console.error('Error adding Media or Ebook to subsection:', error);
             const responseDto: AddMediaOrEbookResponseDto = {
-                statusCode: 400,
-                message: error.message || 'Error adding Media or Ebook to subsection',
+                status: 'error',
+                code: 400,
+                message: error.message || 'Error adding Media or Ebook to subsection.',
+                data: {
+                    result: {},
+                },
             };
             return responseDto;
         }
     }
 
 
-
-
-
-
-
-
-
-
-    @ApiOperation({ summary: 'Add a media or ebook to a section' })
-    @ApiCreatedResponse({ description: 'Success', type: AddMediaOrEbookResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request', type: BadRequestException })
-    async addMediaOrEbookToSection(
-        sectionId: string, assetId: string
-    ): Promise<AddMediaOrEbookResponseDto> {
+    async addMediaOrEbookToSection(sectionId: string, assetId: string): Promise<AddMediaOrEbookResponseDto> {
         try {
-
             const sectionRef = collection(this.firebaseService.fireStore, 'sections');
             const sectionQuery = query(sectionRef, where('id', '==', sectionId));
             const sectionQuerySnapshot = await getDocs(sectionQuery);
 
             if (sectionQuerySnapshot.empty) {
-                throw new BadRequestException('SECTION NOT FOUND');
+                const responseDto: AddMediaOrEbookResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'Section not found.',
+                    data: {
+                        result: {},
+                    },
+                };
+                return responseDto;
             }
 
             const sectionDoc = sectionQuerySnapshot.docs[0];
@@ -599,9 +614,16 @@ export class SectionService {
             const ebookQuery = query(ebookRef, where('id', '==', assetId));
             const ebookQuerySnapshot = await getDocs(ebookQuery);
 
-
             if (mediaQuerySnapshot.empty && ebookQuerySnapshot.empty) {
-                throw new BadRequestException('ASSET NOT FOUND');
+                const responseDto: AddMediaOrEbookResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'Asset not found.',
+                    data: {
+                        result: {},
+                    },
+                };
+                return responseDto;
             }
 
             const updatedContent = [...content];
@@ -609,7 +631,6 @@ export class SectionService {
             if (!mediaQuerySnapshot.empty) {
                 const mediaDoc = mediaQuerySnapshot.docs[0];
                 const media = mediaDoc.data();
-
 
                 const mediaDto: Media = {
                     publisher: media.publisher,
@@ -619,14 +640,13 @@ export class SectionService {
                     url: media.url,
                     duration: media.duration,
                     uploadDate: media.uploadDate,
-                    active: media.active !== undefined ? media.active : true, 
+                    active: media.active !== undefined ? media.active : true,
                 };
 
                 updatedContent.push(mediaDto);
             } else if (!ebookQuerySnapshot.empty) {
                 const ebookDoc = ebookQuerySnapshot.docs[0];
                 const ebook = ebookDoc.data();
-
 
                 const ebookDto: Ebook = {
                     title: ebook.title,
@@ -642,46 +662,48 @@ export class SectionService {
                     genres: ebook.genres,
                     format: ebook.format,
                     salesCount: ebook.salesCount,
-                    active: ebook.active !== undefined ? ebook.active : true, 
+                    active: ebook.active !== undefined ? ebook.active : true,
                 };
 
                 updatedContent.push(ebookDto);
             }
 
-
             const updatedSectionData = { ...sectionData, content: updatedContent };
-
-
             const sectionRefToUpdate = doc(this.firebaseService.fireStore, 'sections', sectionId);
 
             await setDoc(sectionRefToUpdate, updatedSectionData, { merge: true });
 
             console.log('Media or Ebook added to section content successfully.');
 
-            return new AddMediaOrEbookResponseDto(201, 'MEDIAANDEBOOKADDEDSUCCESSFULLY');
+            const responseDto: AddMediaOrEbookResponseDto = {
+                status: 'success',
+                code: 200,
+                message: 'Asset added successfully.',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         } catch (error) {
             console.error('Error adding Media or Ebook to section:', error);
-            throw error;
+            const responseDto: AddMediaOrEbookResponseDto = {
+                status: 'error',
+                code: 400,
+                message: error.message || 'Error adding Media or Ebook to section',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         }
     }
 
-
-
-
-
-
-
-    @ApiOperation({ summary: 'Get sections by tags' })
-    @ApiOkResponse({ description: 'Success', type: GetSectionsResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request', type: BadRequestException })
     async getSectionsByTags(tags: string | string[]): Promise<GetSectionsResponseDto> {
         try {
             console.log('Initializing getSectionsByTags...');
 
-            // Convert tags to an array if it's not already
             const lowercaseTags = Array.isArray(tags) ? tags.map(tag => tag.toLowerCase()) : [tags.toLowerCase()];
 
-            // If there is no data in cache, query Firestore
             const sectionsRef = this.firebaseService.sectionsCollection;
             const sectionsQuery = query(sectionsRef, where('active', '==', true));
             console.log('Sections query created.');
@@ -703,7 +725,6 @@ export class SectionService {
             });
             console.log('Section data collected.');
 
-            // Filter the sections by tags
             const matchedSections = queryResult.filter(section =>
                 section.active && lowercaseTags.every(tag => section.tags.includes(tag))
             );
@@ -719,35 +740,52 @@ export class SectionService {
                 };
             });
 
+            if (queryResult.length === 0) {
+                const responseDto: GetSectionsResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'No sections found.',
+                    data: {
+                        result: [],
+                    },
+                };
+                console.log('No sections found. Response created.');
+                return responseDto;
+            }
+
+
             const responseDto: GetSectionsResponseDto = {
-                statusCode: 200,
-                message: 'SECTIONSGOT',
-                sectionsFound: formattedSections,
+                status: 'success',
+                code: 200,
+                message: 'Sections retrieved successfully.',
+                data: {
+                    result: formattedSections,
+                },
             };
             console.log('Response created.');
 
             return responseDto;
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the sections.');
+            const responseDto: GetSectionsResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'Error retrieving sections',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         }
     }
 
 
 
 
-
-
-
-
-    @ApiOperation({ summary: 'Get active section content by section ID' })
-    @ApiOkResponse({ description: 'Success', type: GetSectionsResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getSectionContentById(sectionId: string): Promise<GetSectionsResponseDto> {
         try {
             console.log(`Initializing getSectionContentById for section ID: ${sectionId}...`);
 
-            // Query the Firestore to get the section by ID and ensure it's active
             const sectionsRef = this.firebaseService.sectionsCollection;
             const sectionQuery = query(sectionsRef, where('id', '==', sectionId), where('active', '==', true));
             console.log('Section query created.');
@@ -757,18 +795,20 @@ export class SectionService {
 
             if (sectionQuerySnapshot.empty) {
                 const responseDto: GetSectionsResponseDto = {
-                    statusCode: 404,
-                    message: 'SECTION NOT FOUND OR NOT ACTIVE',
-                    sectionsFound: [],
+                    status: 'error',
+                    code: 404,
+                    message: 'Section not found or not active.',
+                    data: {
+                        result: [],
+                    },
                 };
+                console.log('Section not found or not active. Response created.');
                 return responseDto;
             }
 
             const sectionDoc = sectionQuerySnapshot.docs[0];
             const sectionData = sectionDoc.data();
             const sectionContent = sectionData.content.filter(item => item.active === true);
-
-            // Convert Firestore timestamps to formatted date strings
             const formattedContent = sectionContent.map(item => {
                 if (item.uploadDate) {
                     item.uploadDate = convertFirestoreTimestamp(item.uploadDate);
@@ -779,21 +819,31 @@ export class SectionService {
                 return item;
             });
 
-            // Combine sectionContent and sectionSubsections into sectionsFound
-            const sectionsFound = [...formattedContent/*, ...sectionSubsections*/];
+            const sectionsFound = [...formattedContent];
 
             console.log('Active section content and subsections retrieved successfully.');
 
-            const getSectionsDtoResponse: GetSectionsResponseDto = {
-                statusCode: 200,
-                message: 'SECTIONSRETRIEVEDSUCCESSFULLY',
-                sectionsFound: sectionsFound,
+            const responseDto: GetSectionsResponseDto = {
+                status: 'success',
+                code: 200,
+                message: 'Sections retrieved successfully.',
+                data: {
+                    result: sectionsFound,
+                },
             };
 
-            return getSectionsDtoResponse;
+            return responseDto;
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the active section content.');
+            const responseDto: GetSectionsResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'Error retrieving active sections content',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         }
     }
 
@@ -801,15 +851,11 @@ export class SectionService {
 
 
 
-
-    @ApiOperation({ summary: 'Get active subsections with content by section ID' })
-    @ApiOkResponse({ description: 'Got subsections using a section ID', type: GetSectionsResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async getSubsectionsBySectionId(sectionId: string): Promise<GetSectionsResponseDto> {
         try {
             console.log(`Initializing getSubsectionsBySectionId for section: ${sectionId}...`);
 
-            // Query the Firestore to get the section by ID and ensure it's active
             const sectionsRef = this.firebaseService.sectionsCollection;
             const sectionQuery = query(sectionsRef, where('id', '==', sectionId), where('active', '==', true));
             console.log('Section query created.');
@@ -819,10 +865,14 @@ export class SectionService {
 
             if (sectionQuerySnapshot.empty) {
                 const responseDto: GetSectionsResponseDto = {
-                    statusCode: 404,
-                    message: 'SECTION NOT FOUND OR NOT ACTIVE',
-                    sectionsFound: [],
+                    status: 'error',
+                    code: 404,
+                    message: 'Section not found or not active.',
+                    data: {
+                        result: [],
+                    },
                 };
+                console.log('Section not found or not active. Response created.');
                 return responseDto;
             }
 
@@ -830,7 +880,6 @@ export class SectionService {
             const sectionData = sectionDoc.data();
             const sectionSubsections = sectionData.subsections || [];
 
-            // Convert Firestore timestamps to formatted date strings
             const formattedSubsections = sectionSubsections.map(subsection => {
                 const formattedContent = subsection.content.map(item => {
                     if (item.uploadDate) {
@@ -846,16 +895,27 @@ export class SectionService {
 
             console.log('Active subsections with content retrieved successfully.');
 
-            const getSectionsDtoResponse: GetSectionsResponseDto = {
-                statusCode: 200,
-                message: 'ACTIVE_SUBSECTIONS_WITH_CONTENT_RETRIEVED_SUCCESSFULLY',
-                sectionsFound: formattedSubsections,
+            const responseDto: GetSectionsResponseDto = {
+                status: 'success',
+                code: 200,
+                message: 'Subsections retrieved successfully.',
+                data: {
+                    result: formattedSubsections,
+                },
             };
 
-            return getSectionsDtoResponse;
+            return responseDto;
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the active subsections with content.');
+            const responseDto: GetSectionsResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'Error retrieving active subsections with content',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         }
     }
 
@@ -864,12 +924,6 @@ export class SectionService {
 
 
 
-
-
-    @ApiOperation({ summary: 'Deactivate media or ebook from section' })
-    @ApiOkResponse({ description: 'Success', type: DeleteSectionResponseDto })
-    @ApiNotFoundResponse({ description: 'Section or resource not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async deactivateMediaOrEbookFromSection(
         deactivateMediaOrEbookDto: DeactivateMediaOrEbookFromSectionDto
     ): Promise<DeleteSectionResponseDto> {
@@ -881,14 +935,22 @@ export class SectionService {
             const sectionQuerySnapshot = await getDocs(sectionQuery);
 
             if (sectionQuerySnapshot.empty) {
-                throw new NotFoundException('SECTION_NOT_FOUND');
+                const responseDto: DeleteSectionResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'Section not found.',
+                    data: {
+                        result: {},
+                    },
+                };
+                console.log('Section not found. Response created.');
+                return responseDto;
             }
 
             const sectionDoc = sectionQuerySnapshot.docs[0];
             const sectionData = sectionDoc.data();
             const { content } = sectionData;
 
-            // Update isActive attribute for the deactivated media or ebook based on title and type
             const updatedContent = content.map(item => {
                 if (item.title === title && (item.type === type || type === TypeOfResource.Ebook)) {
                     return { ...item, active: false };
@@ -900,7 +962,6 @@ export class SectionService {
 
             console.log('Media or Ebook deactivated from section content successfully.');
 
-            // Update cached sections data
             const cachedSections = await this.firebaseService.getCollectionData('sections');
             const updatedCachedSections = cachedSections.map(section => {
                 if (section.name === name) {
@@ -914,14 +975,26 @@ export class SectionService {
             await this.firebaseService.setCollectionData('sections', updatedCachedSections);
 
             const responseDto: DeleteSectionResponseDto = {
-                statusCode: 200,
-                message: 'RESOURCEDEACTIVATEDSUCCESSFULLY',
+                status: 'success',
+                code: 200,
+                message: 'Resource updated successfully.',
+                data: {
+                    result: {},
+                },
             };
 
             return responseDto;
         } catch (error) {
             console.error('Error deactivating Media or Ebook from section:', error);
-            throw error;
+            const responseDto: DeleteSectionResponseDto = {
+                status: 'error',
+                code: 400,
+                message: error.message || 'Error updating Media or Ebook from section',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         }
     }
 
@@ -929,11 +1002,7 @@ export class SectionService {
 
 
 
-
-    @ApiOperation({ summary: 'Activate media or ebook in section' })
-    @ApiOkResponse({ description: 'Success', type: UpdateSectionResponseDto })
-    @ApiNotFoundResponse({ description: 'Section or resource not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async activateMediaOrEbookInSection(
         activateMediaOrEbookDto: DeactivateMediaOrEbookFromSectionDto
     ): Promise<UpdateSectionResponseDto> {
@@ -945,14 +1014,22 @@ export class SectionService {
             const sectionQuerySnapshot = await getDocs(sectionQuery);
 
             if (sectionQuerySnapshot.empty) {
-                throw new NotFoundException('SECTION_NOT_FOUND');
+                const responseDto: UpdateSectionResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'Section not found.',
+                    data: {
+                        result: {},
+                    },
+                };
+                console.log('Section not found. Response created.');
+                return responseDto;
             }
 
             const sectionDoc = sectionQuerySnapshot.docs[0];
             const sectionData = sectionDoc.data();
             const { content } = sectionData;
 
-            // Update isActive attribute for the activated media or ebook based on title and type
             const updatedContent = content.map(item => {
                 if (item.title === title && (item.type === type || type === TypeOfResource.Ebook)) {
                     return { ...item, active: true };
@@ -964,7 +1041,6 @@ export class SectionService {
 
             console.log('Media or Ebook activated in section content successfully.');
 
-            // Update cached sections data
             const cachedSections = await this.firebaseService.getCollectionData('sections');
             const updatedCachedSections = cachedSections.map(section => {
                 if (section.name === name) {
@@ -978,24 +1054,33 @@ export class SectionService {
             await this.firebaseService.setCollectionData('sections', updatedCachedSections);
 
             const responseDto: UpdateSectionResponseDto = {
-                statusCode: 200,
-                message: 'RESOURCEACTIVATEDSUCCESSFULLY',
+                status: 'success',
+                code: 200,
+                message: 'Asset updated successfully.',
+                data: {
+                    result: {},
+                },
             };
 
             return responseDto;
         } catch (error) {
             console.error('Error activating Media or Ebook in section:', error);
-            throw error;
+            const responseDto: UpdateSectionResponseDto = {
+                status: 'error',
+                code: 400,
+                message: error.message || 'Error activating Media or Ebook in section',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         }
     }
 
 
 
 
-    @ApiOperation({ summary: 'Deactivate media or ebook from subsection' })
-    @ApiOkResponse({ description: 'Resource deactivated successfully', type: DeleteSectionResponseDto })
-    @ApiNotFoundResponse({ description: 'Section or subsection or resource not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  
     async deactivateMediaOrEbookFromSubsection(
         deactivateMediaOrEbookDto: DeactivateMediaOrEbookFromSubsectionDto
     ): Promise<DeleteSectionResponseDto> {
@@ -1007,7 +1092,16 @@ export class SectionService {
             const sectionQuerySnapshot = await getDocs(sectionQuery);
 
             if (sectionQuerySnapshot.empty) {
-                throw new NotFoundException('SECTION_NOT_FOUND');
+                const responseDto: DeleteSectionResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'Section not found.',
+                    data: {
+                        result: {},
+                    },
+                };
+                console.log('Section not found. Response created.');
+                return responseDto;
             }
 
             const sectionDoc = sectionQuerySnapshot.docs[0];
@@ -1028,7 +1122,6 @@ export class SectionService {
 
                     console.log('Media or Ebook deactivated from sub-section content successfully.');
 
-                    // Update cached sections data
                     const cachedSections = await this.firebaseService.getCollectionData('sections');
                     const updatedCachedSections = cachedSections.map(section => {
                         if (section.name === sectionName) {
@@ -1058,18 +1151,39 @@ export class SectionService {
             for (const subsection of subsections) {
                 if (await findSubsectionAndUpdateContent(subsection)) {
                     const responseDto: DeleteSectionResponseDto = {
-                        statusCode: 200,
-                        message: 'RESOURCEDEACTIVATEDSUCCESSFULLY',
+                        status: 'success',
+                        code: 200,
+                        message: 'Asset updated successfully.',
+                        data: {
+                            result: {},
+                        },
                     };
-
+                    console.log('Resource deactivated successfully. Response created.');
                     return responseDto;
                 }
             }
 
-            throw new NotFoundException('SUBSECTION_NOT_FOUND');
+            const responseDto: DeleteSectionResponseDto = {
+                status: 'error',
+                code: 404,
+                message: 'Subsection not found.',
+                data: {
+                    result: {},
+                },
+            };
+            console.log('Subsection not found. Response created.');
+            return responseDto;
         } catch (error) {
             console.error('Error deactivating Media or Ebook from sub-section:', error);
-            throw error;
+            const responseDto: DeleteSectionResponseDto = {
+                status: 'error',
+                code: 400,
+                message: error.message || 'Error deactivating Media or Ebook from sub-section',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         }
     }
 
@@ -1077,10 +1191,7 @@ export class SectionService {
 
 
 
-    @ApiOperation({ summary: 'Activate media or ebook in subsection' })
-    @ApiOkResponse({ description: 'Success', type: DeleteSectionResponseDto })
-    @ApiNotFoundResponse({ description: 'Section or subsection or resource not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async activateMediaOrEbookFromSubsection(
         activateMediaOrEbookDto: DeactivateMediaOrEbookFromSubsectionDto
     ): Promise<DeleteSectionResponseDto> {
@@ -1092,7 +1203,16 @@ export class SectionService {
             const sectionQuerySnapshot = await getDocs(sectionQuery);
 
             if (sectionQuerySnapshot.empty) {
-                throw new NotFoundException('SECTION_NOT_FOUND');
+                const responseDto: DeleteSectionResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'Section not found.',
+                    data: {
+                        result: {},
+                    },
+                };
+                console.log('Section not found. Response created.');
+                return responseDto;
             }
 
             const sectionDoc = sectionQuerySnapshot.docs[0];
@@ -1113,7 +1233,6 @@ export class SectionService {
 
                     console.log('Media or Ebook activated in sub-section content successfully.');
 
-                    // Update cached sections data
                     const cachedSections = await this.firebaseService.getCollectionData('sections');
                     const updatedCachedSections = cachedSections.map(section => {
                         if (section.name === sectionName) {
@@ -1143,18 +1262,39 @@ export class SectionService {
             for (const subsection of subsections) {
                 if (await findSubsectionAndUpdateContent(subsection)) {
                     const responseDto: DeleteSectionResponseDto = {
-                        statusCode: 200,
-                        message: 'RESOURCEACTIVATEDSUCCESSFULLY',
+                        status: 'success',
+                        code: 200,
+                        message: 'Asset updated successfully.',
+                        data: {
+                            result: {},
+                        },
                     };
-
+                    console.log('Resource activated successfully. Response created.');
                     return responseDto;
                 }
             }
 
-            throw new NotFoundException('SUBSECTION_NOT_FOUND');
+            const responseDto: DeleteSectionResponseDto = {
+                status: 'error',
+                code: 404,
+                message: 'Subsection not found.',
+                data: {
+                    result: {},
+                },
+            };
+            console.log('Subsection not found. Response created.');
+            return responseDto;
         } catch (error) {
             console.error('Error activating Media or Ebook in sub-section:', error);
-            throw error;
+            const responseDto: DeleteSectionResponseDto = {
+                status: 'error',
+                code: 400,
+                message: error.message || 'Error activating Media or Ebook in sub-section',
+                data: {
+                    result: {},
+                },
+            };
+            return responseDto;
         }
     }
 
@@ -1163,10 +1303,10 @@ export class SectionService {
 
 
 
-    async manageResourceStatus(
+    async manageResourceStatus(id: string,
         manageResourceStatusDto: ManageResourceStatusInSectionDto
     ): Promise<ManageResourceStatusInSectionResponseDto> {
-        const { id, active, assetIds } = manageResourceStatusDto;
+        const { active, assetIds } = manageResourceStatusDto;
         const sectionsRef = collection(this.firebaseService.fireStore, 'sections');
 
         console.log('Fetching sections...');
@@ -1186,7 +1326,6 @@ export class SectionService {
                             contentItem.active = active;
                             updated = true;
                             await updateDoc(sectionSnapshot.ref, { content: sectionData.content });
-
                         }
                     }
                 }
@@ -1198,16 +1337,11 @@ export class SectionService {
 
         if (updated) {
             console.log('Resource status updated successfully.');
-            return new ManageResourceStatusInSectionResponseDto(201, 'RESOURCEUPDATEDSUCCESSFULLY');
+            return new ManageResourceStatusInSectionResponseDto('success', 200, 'Asset updated successfully.', {});
         } else {
             console.log('Section not found.');
-            return new ManageResourceStatusInSectionResponseDto(404, 'SECTIONNOTFOUND');
+            return new ManageResourceStatusInSectionResponseDto('error', 404, 'Section not found.', {});
         }
-
-
-
-
-
     }
 
 
@@ -1250,10 +1384,10 @@ export class SectionService {
 
 
 
-    async manageResourceStatusInSubsections(
+    async manageResourceStatusInSubsections(SubsectionId: string,
         manageResourceStatusDto: ManageResourceStatusInSubsectionDto
     ): Promise<ManageResourceStatusInSectionResponseDto> {
-        const { SectionId, SubsectionId, active, assetIds } = manageResourceStatusDto; 
+        const { SectionId, active, assetIds } = manageResourceStatusDto;
         const sectionsRef = collection(this.firebaseService.fireStore, 'sections');
 
         console.log('Fetching sections...');
@@ -1264,7 +1398,7 @@ export class SectionService {
         for (const sectionSnapshot of sectionsQuerySnapshot.docs) {
             const sectionData = sectionSnapshot.data() as Section;
 
-            if (sectionData.id === SectionId && sectionData.subsections) { 
+            if (sectionData.id === SectionId && sectionData.subsections) {
                 console.log(`Checking subsections of section: ${sectionData.id}`);
                 updated = await this.searchInSubsections(
                     sectionData.subsections,
@@ -1279,10 +1413,10 @@ export class SectionService {
 
         if (updated) {
             console.log('Resource status updated successfully.');
-            return new ManageResourceStatusInSectionResponseDto(201, 'RESOURCEUPDATEDSUCCESSFULLY');
+            return new ManageResourceStatusInSectionResponseDto('success', 200, 'Asset updated successfully.', {});
         } else {
             console.log('Subsection not found.');
-            return new ManageResourceStatusInSectionResponseDto(404, 'SUBSECTIONNOTFOUND');
+            return new ManageResourceStatusInSectionResponseDto('error', 404, 'Subsection not found.', {});
         }
     }
 

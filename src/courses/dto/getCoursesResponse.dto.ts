@@ -4,49 +4,39 @@ import { DocResult } from "../../utils/docResult.entity";
 import { Course } from "../entities/course.entity";
 
 export class GetCoursesResponseDto {
+    @ApiProperty({
+        example: 'success',
+        description: 'Response status.'
+    })
+    status: string;
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    code: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "COURSESRETRIEVEDSUCCESSFULLY"',
-        default: 'COURSESRETRIEVEDSUCCESSFULLY',
-        type: String,
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    message: string;
 
     @ApiProperty({
-        description: 'Profile Picture of the publisher of the course',
-        type: String,
+        type: 'object',
+        description: 'Response data, contains the result.'
     })
-    public userPicture?: string;
+    data: {
+        result: Record<string, any>;
+    };
 
-
-
-    @ApiProperty({
-        description: 'Array containing the info of every course found'
-    })
-    public coursesFound: DocResult[] | Course[]
-
-
-
-    constructor(statusCode: number, message: string, coursesFound: DocResult[] | Course[]) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.coursesFound = coursesFound;
-
-
+        this.data = {
+            result: result
+        };
     }
+
 }

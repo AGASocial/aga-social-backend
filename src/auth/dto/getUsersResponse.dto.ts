@@ -3,48 +3,40 @@ import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from
 import { DocResult } from "../../utils/docResult.entity";
 
 export class GetUsersResponseDto {
+    @ApiProperty({
+        example: 'success',
+        description: 'Response status.'
+    })
+    status: string;
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    code: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "USERSRETRIEVEDSUCCESSFULLY"',
-        default: 'USERSRETRIEVEDSUCCESSFULLY',
-        type: String,
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    message: string;
 
     @ApiProperty({
-        description: 'Array containing the info of every user found'
+        type: 'object',
+        description: 'Response data, contains the result.'
     })
-    public usersFound?: DocResult[]
+    data: {
+        result: Record<string, any>;
+    };
 
-
-    @ApiProperty({
-        description: 'Array containing the info of the earnings'
-    })
-    public earningsFound?: DocResult[]
-
-
-
-    constructor(statusCode: number, message: string, usersFound: DocResult[], earningsFound: DocResult[]) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.usersFound = usersFound;
-        this.earningsFound = earningsFound;
-
-
+        this.data = {
+            result: result
+        };
     }
+
+
 }

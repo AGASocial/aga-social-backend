@@ -1,8 +1,6 @@
-import { Controller, Post, Body, Param, Get, Put, Req, Delete, UseInterceptors, UploadedFile, Query, HttpStatus, HttpException } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Put, Req, Delete, UseInterceptors, UploadedFile, Query, HttpStatus, HttpException, Patch, Res } from '@nestjs/common';
 import { CreateEbookDto } from './dto/createEbook.dto';
 import { CreateEbookResponseDto } from './dto/createEbookResponse.dto';
-import { DeleteEbookDto } from './dto/deleteEbook.dto';
-import { DeleteEbookResponseDto } from './dto/deleteEbookResponse.dto';
 import { GetEbooksResponseDto } from './dto/getEbooksResponse.dto';
 import { UpdateEbookDto } from './dto/updateEbook.dto';
 import { UpdateEbookResponseDto } from './dto/updateEbookResponse.dto';
@@ -10,10 +8,12 @@ import { EbookService } from './ebooks.service';
 import { EbookFormat, EbookGenre } from './entities/ebooks.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadEbookResponseDto } from './dto/uploadEbookResponse.dto';
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PurchaseEbookResponseDto } from './dto/purchaseEbookResponse.dto';
 import { PurchaseEbookDto } from './dto/purchaseEbook.dto';
 import { GetEbookByIdResponseDto } from './dto/getEbookByIdResponse.dto';
+import { Response } from "express";
+import { PersonalizeEbookResponseDto } from './dto/personalizeEbookResponse.dto';
 
 
 
@@ -24,9 +24,11 @@ export class EbookController {
 
 
 
-    //UPLOADS THE FILE TO DATASTORAGE AND REGISTERS THE FILE IN FIRESTORE
-    @ApiOperation({ summary: 'Upload to Datastorage and create an ebook on Firestore' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    
+    @ApiTags('Ebooks')
+    @ApiOperation({ summary: 'Upload and create an ebook' })
+    @ApiOkResponse({ description: 'Ebook uploaded and created successfully', type: UploadEbookResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or failed to upload/create ebook' })
     @Post('assets/ebooks')
     @UseInterceptors(FileInterceptor('file'))
     async uploadAndCreateEbook(
@@ -42,13 +44,14 @@ export class EbookController {
         @Body('genres') genres: EbookGenre[],
         @Body('format') format: EbookFormat,
         @Body('publisher') publisher: string,
-    ): Promise<UploadEbookResponseDto> {
+        @Res() res: Response
+    ): Promise<void> {
         try {
             const createNewEbookDto: CreateEbookDto = {
                 title,
                 description,
-                titlePage
-                , author,
+                titlePage,
+                author,
                 releaseDate,
                 price,
                 language,
@@ -58,10 +61,24 @@ export class EbookController {
                 publisher,
             };
 
-            const result = await this.ebookService.uploadAndCreateEbook(file, createNewEbookDto);
-            return result;
+            const result: UploadEbookResponseDto = await this.ebookService.uploadAndCreateEbook(file, createNewEbookDto);
+
+            res.status(result.code).send({
+                status: result.status,
+                code: result.code,
+                message: result.message,
+                data: result.data.result,
+            });
+
         } catch (error) {
-            throw new Error(`Error uploading media or creating ebook: ${error.message}`);
+            console.error('Error uploading media or creating ebook:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to upload/create ebook',
+                data: {},
+            });
         }
     }
 
@@ -71,107 +88,222 @@ export class EbookController {
 
 
 
-    @ApiOperation({ summary: 'Update an ebook registered on Firestore' })
-    @ApiBadRequestResponse({ description: 'Bad request. Check the parameters' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @Put('assets/ebooks')
+
+    @ApiBody({ type: UpdateEbookDto })
+    @ApiTags('Ebooks')
+    @ApiOperation({ summary: 'Update an ebook' })
+    @ApiOkResponse({ description: 'Ebook updated successfully', type: UpdateEbookResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or ebook not found' })
+    @ApiParam({ name: 'ebookId', description: 'ID of the ebook', type: 'string', example: 'IZgEKURRdomYceeFZ3RS' })
+    @Patch('assets/ebooks/:ebookId')
     async updateEbook(
-        @Body() updateEbookDto: Partial<UpdateEbookDto>
-    ): Promise<UpdateEbookResponseDto> {
+        @Body() updateEbookDto: Partial<UpdateEbookDto>,
+        @Param('ebookId') ebookId: string,
+        @Res() res: Response
+    ): Promise<void> {
         try {
-            const id = updateEbookDto.id
 
-            const response = await this.ebookService.updateEbook(id, updateEbookDto);
-            return response;
+            const response: UpdateEbookResponseDto = await this.ebookService.updateEbook(ebookId, updateEbookDto);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
         } catch (error) {
-            console.error('There was an error updating the ebook:', error);
-            throw error;
+            console.error('Error updating the ebook:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to update the ebook',
+                data: {},
+            });
         }
     }
 
 
-    @ApiOperation({ summary: 'Get all ebooks from Firestore or get ebooks based on keywords from their titles' })
+    @ApiTags('Ebooks')
+    @ApiOperation({ summary: 'Get a list of ebooks or get ebooks with certain keywords' })
+    @ApiOkResponse({ description: 'Ebooks retrieved successfully', type: GetEbooksResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or failed to retrieve ebooks' })
+    @ApiQuery({ name: 'keywords', type: [String], isArray: true, required: false })
     @Get('assets/ebooks')
     async getEbooks(
-        @Query('keywords') keywords?: string[],
-    ): Promise<GetEbooksResponseDto | GetEbookByIdResponseDto> {
-        if (keywords) {
-            const response = await this.ebookService.getEbooksByKeywords(keywords);
-            return response;
-        }
+        @Res() res: Response,
+        @Query('keywords') keywords?: string[]
+    ): Promise<void> {
+        try {
+            let response: GetEbooksResponseDto | GetEbookByIdResponseDto;
 
-        else {
-            const response =  await this.ebookService.getEbooks();
-            return response;
+            if (keywords) {
+                response = await this.ebookService.getEbooksByKeywords(keywords);
+            } else {
+                response = await this.ebookService.getEbooks();
+            }
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
+        } catch (error) {
+            console.error('Error retrieving ebooks:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to retrieve ebooks',
+                data: {},
+            });
         }
     }
 
 
-    @ApiOperation({ summary: 'Get an ebook by ID' })
+
+    @ApiTags('Ebooks')
+    @ApiOperation({ summary: 'Get ebook by ID' })
     @ApiOkResponse({ description: 'Ebook retrieved successfully', type: GetEbookByIdResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @Get('assets/ebooks/:id')
-    async getEbookById(@Param('id') id: string): Promise<GetEbookByIdResponseDto> {
-        const response = await this.ebookService.getEbookById(id);
-        return response;
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or ebook not found' })
+    @ApiParam({ name: 'ebookId', description: 'ID of the ebook', type: 'string', example: 'IZgEKURRdomYceeFZ3RS' })
+    @Get('assets/ebooks/:ebookId')
+    async getEbookById(
+        @Param('ebookId') ebookId: string,
+        @Res() res: Response
+    ): Promise<void> {
+        try {
+            const response: GetEbookByIdResponseDto = await this.ebookService.getEbookById(ebookId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
+        } catch (error) {
+            console.error('Error retrieving the ebook:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to retrieve the ebook',
+                data: {},
+            });
+        }
     }
 
 
 
+    @ApiTags('Ebooks')
+    @ApiOperation({ summary: 'Purchase PDF for an ebook' })
+    @ApiOkResponse({ description: 'PDF purchased successfully', type: PersonalizeEbookResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or failed to purchase PDF' })
+    @ApiQuery({ name: 'userId', type: 'string', required: true, example: '0EwINikFVAg7jtRdkZYiTBXN4vW2' })
+    @ApiParam({ name: 'ebookId', description: 'ID of the ebook', type: 'string', example: 'IZgEKURRdomYceeFZ3RS' })
     @Get('assets/ebooks/users')
-    @ApiOperation({ summary: 'Personalizes a PDF file by putting a message with the actual date and name and email of the user' })
-    @ApiQuery({ name: 'userId', type: String, description: 'User ID' })
-    @ApiQuery({ name: 'ebookId', type: String, description: 'Ebook ID' })
-    @ApiResponse({ status: 200, description: 'Ebook purchased successfully' })
-    @ApiResponse({ status: 400, description: 'Bad Request' })
-    @ApiResponse({ status: 500, description: 'Internal Server Error' })
     async purchasePdf(
         @Query('userId') userId: string,
         @Query('ebookId') ebookId: string,
-    ): Promise<any> {
+        @Res() res: Response
+    ): Promise<void> {
         try {
-            const response = await this.ebookService.purchasePdf(userId, ebookId);
-            return response;
+            const response: PersonalizeEbookResponseDto = await this.ebookService.purchasePdf(userId, ebookId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
         } catch (error) {
             console.error('Error:', error);
-            throw error;
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to purchase PDF',
+                data: {},
+            });
         }
     }
 
 
 
+
+    
+    @ApiTags('Ebooks')
     @ApiOperation({ summary: 'Purchase an ebook' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @ApiOkResponse({ description: 'Ebook purchased successfully', type: PurchaseEbookResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or failed to purchase ebook' })
     @Post('assets/ebooks/users')
     async purchaseEbook(
         @Body() purchaseEbookDto: PurchaseEbookDto,
-    ): Promise<PurchaseEbookResponseDto> {
+        @Res() res: Response
+    ): Promise<void> {
         const { userId, ebookId, paymentIntentId } = purchaseEbookDto;
 
         try {
-            const response = await this.ebookService.purchaseEbook(userId, ebookId, paymentIntentId);
-            return response;
+            const response: PurchaseEbookResponseDto = await this.ebookService.purchaseEbook(userId, ebookId, paymentIntentId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
         } catch (error) {
-            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+            console.error('Error:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to purchase ebook',
+                data: {},
+            });
         }
     }
 
 
 
 
-    @ApiOperation({ summary: 'Get books purchased by the user' })
-    @ApiQuery({ name: 'userId', type: String, required: true, description: 'User ID' })
-    @ApiResponse({ status: 200, description: 'Success', type: GetEbooksResponseDto })
-    @ApiResponse({ status: 400, description: 'Bad request' })
-    @ApiResponse({ status: 500, description: 'Internal server error' })
-    @Get('users/:id/ebooks') 
-    async getPurchasedBooks(@Param('id') id: string): Promise<GetEbooksResponseDto> {
+
+   
+    @ApiTags('Ebooks')
+    @ApiOperation({ summary: 'Get purchased ebooks by user ID' })
+    @ApiOkResponse({ description: 'Purchased ebooks retrieved successfully', type: GetEbooksResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or failed to retrieve purchased ebooks' })
+    @ApiQuery({ name: 'userId', type: 'string', required: true, example: '0EwINikFVAg7jtRdkZYiTBXN4vW2' })
+    @Get('users/:userId/ebooks')
+    async getPurchasedBooks(
+        @Param('userId') userId: string,
+        @Res() res: Response
+    ): Promise<void> {
         try {
-            const result = await this.ebookService.getPurchasedBooks(id);
-            return result;
+            const response: GetEbooksResponseDto = await this.ebookService.getPurchasedBooks(userId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the purchased books for the user.');
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to retrieve purchased ebooks',
+                data: {},
+            });
         }
     }
 

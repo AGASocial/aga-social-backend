@@ -5,26 +5,12 @@ import { Section } from "../entities/sections.entity";
 export class ManageResourceStatusInSubsectionDto {
     @ApiProperty({
         description: 'Id of the primary section.',
-        example: 'I61654jhj455df6g4fd65',
+        example: '4AZcWZU5T55VabyeJ8QY',
         type: String,
     })
     @IsNotEmpty()
     @IsString()
     SectionId?: string;
-
-
-
-    @ApiProperty({
-        description: 'Id of the subsection.',
-        example: 'I61654jhj455df6g4fd65',
-        type: String,
-    })
-    @IsNotEmpty()
-    @IsString()
-    SubsectionId?: string;
-
-
-
 
 
     @ApiProperty({
@@ -40,7 +26,7 @@ export class ManageResourceStatusInSubsectionDto {
 
     @ApiProperty({
         description: 'Titles of the media/ebooks that will be added to the section content.',
-        example: ['mediatitle', 'ebooktitle'],
+        example: ['65c8cf10-3726-4776-a35a-b0e5867dcf64'],
         type: [String],
     })
     @IsString({ each: true })
