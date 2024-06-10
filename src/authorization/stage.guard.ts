@@ -9,7 +9,7 @@ export class StageGuard implements CanActivate {
     constructor(private usersService: UsersService, private rolesService: RolesService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        console.log('StageGuard - Checking user stage...'); // Agregado console.log()
+        console.log('StageGuard - Checking user stage...'); 
 
         let stageMet: boolean = false;
         const requiredStage = stage;

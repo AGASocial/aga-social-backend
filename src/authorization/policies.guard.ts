@@ -21,7 +21,7 @@ export class PoliciesGuard implements CanActivate {
 
         const req: Request = context.switchToHttp().getRequest();
 
-        console.log('PoliciesGuard - Checking policies...'); // Agregado console.log()
+        console.log('PoliciesGuard - Checking policies...'); 
 
         let policyMet: boolean = false;
 

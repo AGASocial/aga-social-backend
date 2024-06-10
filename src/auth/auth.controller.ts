@@ -279,6 +279,7 @@ export class AuthController {
     @ApiOperation({ summary: 'Get user by id' })
     @ApiParam({ name: 'userId', description: 'Id of the user', type: String })
     @ApiOkResponse({ description: 'User retrieved successfully', type: GetUsersResponseDto })
+    @ApiParam({ name: 'userId', description: 'ID of the user', example: 'lbrKxRW4PSea3DPGiiAqVMFzrNW2' })
     @Get('users/:userId')
     async getSingleUserById(@Param('userId') userId: string, @Res() res?: Response): Promise<GetUsersResponseDto> {
         try {
