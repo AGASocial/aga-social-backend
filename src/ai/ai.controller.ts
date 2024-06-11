@@ -6,6 +6,7 @@ import { UpdatePromptDto } from './dto/updatePrompt.dto';
 import { Body, Controller, Param, Post, Put, Res, Delete, Get, Patch} from '@nestjs/common';
 import { ResponseDto } from '../shared/dto/response.dto';
 import { Response } from 'express';
+import { ExecutePromptDto } from './dto/executePrompt.dto';
 
 
 @ApiTags('Prompts')
@@ -151,4 +152,32 @@ export class AiController {
             });
         }
     }
+
+
+    @ApiOperation({ summary: 'Execute a prompt' })
+    @ApiOkResponse({ description: 'Prompt executed successfully', type: ResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @ApiBody({ type: ExecutePromptDto })
+    @ApiParam({ name: 'id', required: true, description: 'The ID of the prompt', example: 'B9Lkp2Ny4x89ldoxTxCn' })
+    @Post(':id/completions')
+    async executePrompt(@Res() res: Response, @Param('id') id: string, @Body() executePromptDto: ExecutePromptDto): Promise<void> {
+        try {
+            const response: ResponseDto = await this.aiService.executePrompt(id, executePromptDto);
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data,
+            });
+        } catch (error) {
+            console.error('Error executing a prompt:', error);
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to execute a prompt',
+                data: {},
+            });
+        }
+    }
+
 }

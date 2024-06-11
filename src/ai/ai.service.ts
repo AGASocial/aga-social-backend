@@ -1,15 +1,19 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { doc, getDoc, collection, addDoc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, updateDoc, deleteDoc, getDocs, setDoc } from 'firebase/firestore';
 import { FirebaseService } from '../firebase/firebase.service';
 import { CreatePromptDto } from './dto/createPrompt.dto';
 import { ResponseDto } from '../shared/dto/response.dto';
 import { Prompt } from './entities/prompt';
 import { UpdatePromptDto } from './dto/updatePrompt.dto';
+import { OpenAiService } from './openai/openai.service';
+import Handlebars from 'handlebars';
+import { ExecutePromptDto } from './dto/executePrompt.dto';
+
 
 @Injectable()
 export class AiService {
-  constructor(private firebaseService: FirebaseService) {}
+    constructor(private firebaseService: FirebaseService, private openAIService: OpenAiService) { }
 
     async createNewPrompt(
         createPromptDto: CreatePromptDto,
@@ -204,6 +208,78 @@ export class AiService {
     }
 
 
+    async executePrompt(
+        promptId: string,
+        executePromptDto: ExecutePromptDto,
+    ): Promise<ResponseDto> {
+        try {
+            console.log('Starting executePrompt with parameters:', executePromptDto);
+
+            const promptRef = doc(this.firebaseService.fireStore, 'prompts', promptId);
+            const promptSnapshot = await getDoc(promptRef);
+
+            if (!promptSnapshot.exists()) {
+                console.log('Prompt not found:', promptId);
+                return new ResponseDto('error', 404, 'ElementNotFound', null);
+            }
+
+            let messages = promptSnapshot.data().messages;
+
+            messages = messages.map((message) => {
+                if (message.role !== 'system') {
+                    const template = Handlebars.compile(message.content);
+                    message.content = template(executePromptDto.parameters);
+                }
+                return message;
+            });
+
+            console.log('Messages after Handlebars processing:', messages);
+
+            const aiParameters = {
+                model: executePromptDto.aiparameters.model,
+                messages: messages,
+                ...executePromptDto.aiparameters,
+            };
+            const openai = await this.openAIService.getOpenAI()
+            const response = await openai.chat.completions.create(aiParameters);
+            console.log('Response from OpenAI:', response);
+
+            const logData = {
+                promptId: promptId,
+                executionTime: new Date().toISOString(),
+                tags: promptSnapshot.data().tags,
+                creator: promptSnapshot.data().creator,
+                company: promptSnapshot.data().company,
+                app: promptSnapshot.data().app,
+                messages: promptSnapshot.data().messages,
+                ...response,
+            };
+
+            const logRef = await addDoc(collection(this.firebaseService.fireStore, 'promptLogs'), logData);
+            console.log('Log ID:', logRef.id);
+
+            await setDoc(logRef, { logId: logRef.id }, { merge: true });
+
+            const logSnapshot = await getDoc(logRef);
+            const assistantMessageContent = logSnapshot.data().choices[0].message.content;
+
+            return new ResponseDto(
+                'success',
+                200,
+                'PromptAnsweredSuccessfully',
+                { content: assistantMessageContent },
+            );
+        }
+        catch (error) {
+            console.error('Error executing prompt:', error);
+            return new ResponseDto(
+                'error',
+                400,
+                `UnableToCompleteOperation: ${error.message}`,
+                null,
+            );
+        }
+    }
 
 
 

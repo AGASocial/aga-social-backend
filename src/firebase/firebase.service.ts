@@ -41,6 +41,7 @@ export class FirebaseService {
   public pluginsCollection: CollectionReference;
   public emailsSubcollection: CollectionReference;
   public usersSubcollection: CollectionReference;
+  public promptLogsCollection: CollectionReference;
 
   public collectionCaches: { [collectionName: string]: any[] } = {};
   private cache = {
@@ -92,6 +93,7 @@ export class FirebaseService {
     this._createTagsCollection();
     this._createPluginsCollection();
     this._createPromptsCollection;
+    this._createPromptLogsCollection;
     this.initializeCollectionCaches();
   }
 
@@ -104,6 +106,10 @@ export class FirebaseService {
 
   private _createTagsCollection() {
     this.tagsCollection = collection(this.fireStore, 'tags');
+  }
+
+  private _createPromptLogsCollection() {
+    this.promptLogsCollection = collection(this.fireStore, 'promptLogs');
   }
 
   private _createCouponsCollection() {

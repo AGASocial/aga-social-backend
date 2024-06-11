@@ -71,6 +71,7 @@ import { PluginCollectionsController } from './Pluggins/collections/plugincollec
 import { AiModule } from './ai/ai.module';
 import { AiController } from './ai/ai.controller';
 import { AiService } from './ai/ai.service';
+import { OpenAiService } from './ai/openai/openai.service';
 
 
 @Module({
@@ -106,6 +107,7 @@ import { AiService } from './ai/ai.service';
         PluginUsersService,
         PluginCollectionsService,
         AiService,
+        OpenAiService,
         
         {
             provide: APP_GUARD,
