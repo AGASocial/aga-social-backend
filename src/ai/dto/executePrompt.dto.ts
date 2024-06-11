@@ -20,11 +20,7 @@ export class ExecutePromptDto {
   @IsOptional()
   aiparameters?: AIParameters;
 
-  constructor(
-    aiparameters: AIParameters,
-    webhook?: URL,
-    parameters?: { [key: string]: any },
-  ) {
+  constructor(aiparameters: AIParameters, parameters?: { [key: string]: any }) {
     this.aiparameters = aiparameters;
     this.parameters = parameters;
   }
