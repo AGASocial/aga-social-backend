@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { doc, getDoc, collection, addDoc, updateDoc, deleteDoc, getDocs, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, updateDoc, deleteDoc, getDocs, setDoc} from 'firebase/firestore';
 import { FirebaseService } from '../firebase/firebase.service';
 import { CreatePromptDto } from './dto/createPrompt.dto';
 import { ResponseDto } from '../shared/dto/response.dto';
@@ -170,6 +170,59 @@ export class AiService {
             return response;
         }
     }
+
+    async getPromptsByQuery(query: {
+        company?: string;
+        creator?: string;
+        app?: string;
+        tags?: string[] | string;
+    }): Promise<ResponseDto> {
+        try {
+            const promptRef = collection(this.firebaseService.fireStore, 'prompts');
+            const promptSnapshot = await getDocs(promptRef);
+            let prompts = promptSnapshot.docs.map(doc => doc.data());
+
+            if (query.company) {
+                prompts = prompts.filter(prompt => prompt.company === query.company);
+            }
+            if (query.creator) {
+                prompts = prompts.filter(prompt => prompt.creator === query.creator);
+            }
+            if (query.app) {
+                prompts = prompts.filter(prompt => prompt.app === query.app);
+            }
+            if (query.tags) {
+                const tags = Array.isArray(query.tags) ? query.tags : [query.tags];
+                prompts = prompts.filter(prompt =>
+                    tags.every(tag => prompt.tags.includes(tag))
+                );
+            }
+
+            if (prompts.length === 0) {
+                return new ResponseDto('error', 404, 'ElementsNotFound', null);
+            }
+
+            return new ResponseDto(
+                'success',
+                200,
+                'ElementsRetrievedSuccessfully',
+                prompts,
+            );
+        } catch (error) {
+            console.error('Error retrieving prompts:', error);
+            return new ResponseDto(
+                'error',
+                400,
+                `UnableToCompleteOperation ${error.message}`,
+                null,
+            );
+        }
+    }
+
+
+
+
+
 
     async getPromptById(id: string): Promise<ResponseDto> {
         try {
