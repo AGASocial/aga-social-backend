@@ -73,6 +73,38 @@
 					"response": []
 				},
 				{
+					"name": "Get Prompts By Querys",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server}}prompts?company=Aga&app=APP&creator=0EwINikFVAg7jtRdkZYiTBXN4vW2&tags=tag3",
+							"host": [
+								"{{server}}prompts"
+							],
+							"query": [
+								{
+									"key": "company",
+									"value": "Aga"
+								},
+								{
+									"key": "app",
+									"value": "APP"
+								},
+								{
+									"key": "creator",
+									"value": "0EwINikFVAg7jtRdkZYiTBXN4vW2"
+								},
+								{
+									"key": "tags",
+									"value": "tag3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Single Prompt",
 					"request": {
 						"method": "GET",

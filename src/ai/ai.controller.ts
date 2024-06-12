@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AiService } from './ai.service';
 import { CreatePromptDto } from './dto/createPrompt.dto';
 import { UpdatePromptDto } from './dto/updatePrompt.dto';
-import { Body, Controller, Param, Post, Put, Res, Delete, Get, Patch} from '@nestjs/common';
+import { Body, Controller, Param, Post, Put, Res, Delete, Get, Patch, Query} from '@nestjs/common';
 import { ResponseDto } from '../shared/dto/response.dto';
 import { Response } from 'express';
 import { ExecutePromptDto } from './dto/executePrompt.dto';
@@ -105,10 +105,32 @@ export class AiController {
     @ApiOperation({ summary: 'Get all prompts' })
     @ApiOkResponse({ description: 'Prompts retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @ApiQuery({ name: 'company', required: false, description: 'Company associated with the prompt', example: 'MyCompany' })
+    @ApiQuery({ name: 'creator', required: false, description: 'Owner of the prompt. It is the userId', example: '18b49d73-6df5-4558-9b0e-03443a0674b6' })
+    @ApiQuery({ name: 'app', required: false, description: 'App associated with the prompt', example: 'MyApp' })
+    @ApiQuery({ name: 'tags', required: false, description: 'Tags associated with the prompt', example: 'tag1,tag2' })
     @Get()
-    async getAllPrompts(@Res() res: Response): Promise<void> {
+    async getAllPrompts(
+        @Res() res: Response,
+        @Query('company') company?: string,
+        @Query('creator') creator?: string,
+        @Query('app') app?: string,
+        @Query('tags') tags?: string[],
+    ): Promise<void> {
         try {
-            const response: ResponseDto = await this.aiService.getAllPrompts();
+            let response: ResponseDto;
+
+            if (company || creator || app || tags) {
+                response = await this.aiService.getPromptsByQuery({
+                    company,
+                    creator,
+                    app,
+                    tags,
+                });
+            } else {
+                response = await this.aiService.getAllPrompts();
+            }
+
             res.status(response.code).send({
                 status: response.status,
                 code: response.code,
