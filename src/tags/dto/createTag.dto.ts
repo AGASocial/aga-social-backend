@@ -13,7 +13,7 @@ export class CreateTagDto {
 
     @ApiProperty({
         description: 'Username associated with the tag. Must be the username of a registered user',
-        example: 'user123',
+        example: 'prueba11111',
         type: String,
     })
     @IsNotEmpty()

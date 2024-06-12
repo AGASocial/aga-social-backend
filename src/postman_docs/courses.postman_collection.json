@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"Defensa\",\r\n  \"description\": \"Defensa\",\r\n  \"publisher\": \"Mary.123\",\r\n  \"releaseDate\": \"2023-10-10\",\r\n  \"price\": 150.00,\r\n  \"language\": \"English\",\r\n  \"titlePage\":\"https://imagenPortada/curso.jpg\",\r\n   \"sectionsIds\": [\"ce36e9d5-da3b-461d-9c53-8b3d26b37474\"],\r\n  \"tags\": [\"Defensa13\"],\r\n  \"instructorList\": [\"John Doe\"],\r\n  \"offersCertificate\": true\r\n}\r\n",
+					"raw": "{\r\n  \"title\": \"Introduction to Web Development\",\r\n  \"description\": \"Learn the fundamentals of web development.\",\r\n  \"publisher\": \"prueba11111\",\r\n  \"price\": 49.99,\r\n  \"sections\": [\r\n    {\r\n      \"name\": \"Introduction to Programming\",\r\n      \"description\": \"A comprehensive introduction to basic programming concepts.\",\r\n      \"content\": [\r\n        \"string\"\r\n      ],\r\n      \"tags\": [\r\n        \"programming\",\r\n        \"introduction\",\r\n        \"development\"\r\n      ],\r\n      \"active\": true,\r\n      \"subsections\": [\r\n        \"string\"\r\n      ],\r\n      \"id\": \"abcdef123456\",\r\n      \"assetsIds\": [\r\n        \"mediatitle\",\r\n        \"ebooktitle\"\r\n      ]\r\n    }\r\n  ],\r\n  \"tags\": [\r\n    \"Web Development\",\r\n    \"HTML\",\r\n    \"CSS\"\r\n  ],\r\n  \"releaseDate\": \"2023-08-01\",\r\n  \"instructorList\": [\r\n    \"John Smith\",\r\n    \"Jane Doe\"\r\n  ],\r\n  \"language\": \"English\",\r\n  \"offersCertificate\": true,\r\n  \"titlePage\": \"https://example.com/ebook.pdf\",\r\n  \"sectionsIds\": [\r\n    \"ce36e9d5-da3b-461d-9c53-8b3d26b37474\"\r\n  ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -36,11 +36,11 @@
 		{
 			"name": "Agregar Section a Course",
 			"request": {
-				"method": "POST",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"courseId\":\"905aa000-0def-4a13-aedf-23ed26bd5e5a\",\r\n\"sectionId\":\"71a88097-88c5-463f-9eea-643928504f4c\"\r\n\r\n\r\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -48,13 +48,15 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses/sections",
+					"raw": "{{server}}assets/courses/gWojVo5I8rjDnHgcggWH/sections/2ef110f6-42c8-4784-99ba-6c5b850a2f8f",
 					"host": [
 						"{{server}}assets"
 					],
 					"path": [
 						"courses",
-						"sections"
+						"gWojVo5I8rjDnHgcggWH",
+						"sections",
+						"2ef110f6-42c8-4784-99ba-6c5b850a2f8f"
 					]
 				}
 			},
@@ -63,11 +65,11 @@
 		{
 			"name": "Actualizar Curso",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"905aa000-0def-4a13-aedf-23ed26bd5e5a\",\r\n  \"active\": true,\r\n  \"title\": \"Hola :D\"\r\n\r\n}\r\n",
+					"raw": "{\r\n  \"title\": \"Introduction to Web Development\",\r\n  \"description\": \"Learn the fundamentals of web development.\",\r\n  \"publisher\": \"prueba11111\",\r\n  \"price\": 49.99,\r\n  \"tags\": [\r\n    \"Web Development\",\r\n    \"HTML\",\r\n    \"CSS\"\r\n  ],\r\n  \"releaseDate\": \"2023-08-01\",\r\n  \"instructorList\": [\r\n    \"John Smith\",\r\n    \"Jane Doe\"\r\n  ],\r\n  \"language\": \"English\",\r\n  \"offersCertificate\": true,\r\n  \"titlePage\": \"https://example.com/course.jpg\",\r\n  \"active\": true\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -75,12 +77,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses",
+					"raw": "{{server}}assets/courses/gWojVo5I8rjDnHgcggWH",
 					"host": [
 						"{{server}}assets"
 					],
 					"path": [
-						"courses"
+						"courses",
+						"gWojVo5I8rjDnHgcggWH"
 					]
 				}
 			},
@@ -121,7 +124,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses?keywords=hola",
+					"raw": "{{server}}assets/courses?keywords=prueba",
 					"host": [
 						"{{server}}assets"
 					],
@@ -131,7 +134,7 @@
 					"query": [
 						{
 							"key": "keywords",
-							"value": "hola"
+							"value": "prueba"
 						}
 					]
 				}
@@ -156,7 +159,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/courses?tags=ao",
+					"raw": "{{server}}assets/courses?tags=HTML",
 					"host": [
 						"{{server}}assets"
 					],
@@ -166,7 +169,7 @@
 					"query": [
 						{
 							"key": "tags",
-							"value": "ao"
+							"value": "HTML"
 						}
 					]
 				}

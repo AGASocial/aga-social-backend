@@ -23,10 +23,7 @@ export class MessageService {
 
 
 
-    @ApiOperation({ summary: 'get archived messages from a user' })
-    @ApiOkResponse({ description: 'Messages retrieved successfully' })
-    @ApiNotFoundResponse({ description: 'No messages found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async getArchivedMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
@@ -61,22 +58,30 @@ export class MessageService {
 
             if (archivedMessages.length === 0) {
                 const responseDto = new GetMessagesByUserResponseDto(
+                    'error',
                     404,
-                    'ARCHIVEDMESSAGESNOTFOUND',
-                    archivedMessages
+                    'Archived messages not found.',
+                    []
                 );
                 return responseDto;
             }
 
             const responseDto = new GetMessagesByUserResponseDto(
+                'success',
                 200,
-                'ARCHIVEDMESSAGESRETRIEVEDSUCCESSFULLY',
+                'Messages retrieved successfully.',
                 archivedMessages
             );
             return responseDto;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
+            const responseDto = new GetMessagesByUserResponseDto(
+                'error',
+                400,
+                'Archived messages could not be retrieved.',
+                []
+            );
+            return responseDto;
         }
     }
 
@@ -84,10 +89,6 @@ export class MessageService {
 
 
 
-    @ApiOperation({ summary: 'get read messages from a user' })
-    @ApiOkResponse({ description: 'Messages retrieved successfully' })
-    @ApiNotFoundResponse({ description: 'No messages found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getReadMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
@@ -122,32 +123,38 @@ export class MessageService {
 
             if (readMessages.length === 0) {
                 const responseDto = new GetMessagesByUserResponseDto(
+                    'error',
                     404,
-                    'READMESSAGESNOTFOUND',
-                    readMessages
+                    'Read messages not found.',
+                    []
                 );
                 return responseDto;
             }
 
             const responseDto = new GetMessagesByUserResponseDto(
+                'success',
                 200,
-                'READMESSAGESRETRIEVEDSUCCESSFULLY',
+                'Messages retrieved successfully.',
                 readMessages
             );
             return responseDto;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
+            const responseDto = new GetMessagesByUserResponseDto(
+                'error',
+                400,
+                'Read messages could not be retrieved.',
+                []
+            );
+            return responseDto;
         }
     }
 
 
 
 
-    @ApiOperation({ summary: 'get unread messages from a user' })
-    @ApiOkResponse({ description: 'Messages retrieved successfully' })
-    @ApiNotFoundResponse({ description: 'No messages found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+
+   
     async getUnreadMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
@@ -182,22 +189,30 @@ export class MessageService {
 
             if (unreadMessages.length === 0) {
                 const responseDto = new GetMessagesByUserResponseDto(
+                    'error',
                     404,
-                    'UNREADMESSAGESNOTFOUND',
-                    unreadMessages
+                    'Unread messages not found.',
+                    []
                 );
                 return responseDto;
             }
 
             const responseDto = new GetMessagesByUserResponseDto(
+                'success',
                 200,
-                'UNREADMESSAGESRETRIEVEDSUCCESSFULLY',
+                'Messages retrieved successfully.',
                 unreadMessages
             );
             return responseDto;
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
+            const responseDto = new GetMessagesByUserResponseDto(
+                'error',
+                400,
+                'Unread messages could not be retrieved.',
+                []
+            );
+            return responseDto;
         }
     }
 
@@ -206,10 +221,7 @@ export class MessageService {
 
 
 
-    @ApiOperation({ summary: 'Create and send a new message' })
-    @ApiCreatedResponse({ description: 'Message created and sent successfully', type: CreateMessageResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request or not found', type: NotFoundException })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async createAndSendMessage(createMessageDto: CreateMessageDto): Promise<CreateMessageResponseDto> {
         try {
             console.log('Creating and sending a new message...');
@@ -220,18 +232,17 @@ export class MessageService {
             const recipientExists = await this.firebaseService.getUserByEmail(recipientEmail);
 
             if (!senderExists) {
-                throw new NotFoundException('Sender email not found');
+                return new CreateMessageResponseDto('error', 404, 'Sender email not found', {});
             }
 
             if (!recipientExists) {
-                throw new NotFoundException('Recipient email not found');
+                return new CreateMessageResponseDto('error', 404, 'Recipient email not found', {});
             }
 
             const userCollectionRef = collection(this.firebaseService.fireStore, 'users');
             const q = query(userCollectionRef, where('email', '==', senderEmail));
 
             let profilePicture: string | undefined;
-
 
             try {
                 const querySnapshot = await getDocs(q);
@@ -242,21 +253,16 @@ export class MessageService {
                 }
             } catch (error) {
                 console.error('There was an error obtaining the picture of the sender:', error);
-                throw error;
+                return new CreateMessageResponseDto('error', 400, 'There was an error obtaining the picture of the sender.', {});
             }
-         
-
 
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
             const currentDate = new Date();
-            const receivedDate = new Date(currentDate.getTime() + 30000); 
-            const newMessageId: string = uuidv4();
-
+            const receivedDate = new Date(currentDate.getTime() + 30000);
 
             const newMessage = {
                 senderEmail,
-                id: newMessageId,
                 recipientEmail,
                 content,
                 read: false,
@@ -265,18 +271,22 @@ export class MessageService {
                 subject,
                 type,
                 sentDate: currentDate,
-                receivedDate: receivedDate,
+                receivedDate,
                 readDate: null,
                 active: true,
                 highlighted: false,
             };
 
             console.log('Creating new message...');
-            const newMessageDocRef = await addDoc(messageRef, newMessage);
 
-            // Update the cache
+            const newMessageDocRef = await addDoc(messageRef, newMessage);
+            const newMessageId = newMessageDocRef.id;
+
+            await updateDoc(newMessageDocRef, { id: newMessageId });
+
             const cachedMessages = await this.firebaseService.getCollectionData('messages');
             cachedMessages.push({
+                id: newMessageId,
                 senderEmail,
                 recipientEmail,
                 content,
@@ -290,33 +300,25 @@ export class MessageService {
                 readDate: null,
                 active: true,
                 highlighted: false,
-
-
-
             });
+
             this.firebaseService.setCollectionData('messages', cachedMessages);
             console.log('Message added to cache successfully.');
 
             console.log('Message created and sent successfully.');
-            const responseDto = new CreateMessageResponseDto(201, 'MESSAGECREATEDSUCCESSFULLY', newMessageId, profilePicture);
-            return responseDto;
+            return new CreateMessageResponseDto('success', 201, 'Message created successfully', { id: newMessageId, profilePicture });
         } catch (error) {
             console.error('Error:', error);
-            throw error;
+            return new CreateMessageResponseDto('error', 400, 'The message could not be sent.', {});
         }
     }
 
 
-
-    @ApiOperation({ summary: 'Get messages for a user' })
-    @ApiOkResponse({ description: 'User messages retrieved successfully', type: GetMessagesByUserResponseDto })
-    @ApiNotFoundResponse({ description: 'No messages found', type: NotFoundException })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async getUserMessages(userId: string): Promise<GetMessagesByUserResponseDto> {
         try {
             console.log('User ID:', userId);
 
-            // Query for user's email based on userId
             const userQuery = query(
                 collection(this.firebaseService.fireStore, 'users'),
                 where('id', '==', userId)
@@ -326,22 +328,16 @@ export class MessageService {
             let userEmail: string | null = null;
             userQuerySnapshot.forEach((doc) => {
                 const userData = doc.data();
-                userEmail = userData.email; 
+                userEmail = userData.email;
             });
 
             if (!userEmail) {
                 console.log('User not found.');
-                const responseDto = new GetMessagesByUserResponseDto(
-                    404,
-                    'USER NOT FOUND',
-                    null
-                );
-
-                return responseDto;            }
+                return new GetMessagesByUserResponseDto('error', 404, 'User not found.', { result: [] });
+            }
 
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-            // Query for senderEmail
             const senderMessagesQuery = query(
                 messageRef,
                 where('senderEmail', '==', userEmail),
@@ -358,7 +354,6 @@ export class MessageService {
 
             const userMessages = [];
 
-            // Add messages from sender
             senderMessagesQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 userMessages.push({
@@ -378,7 +373,6 @@ export class MessageService {
                 });
             });
 
-            // Add messages from recipient
             recipientMessagesQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 userMessages.push({
@@ -398,43 +392,26 @@ export class MessageService {
             });
 
             if (userMessages.length === 0) {
-                const responseDto = new GetMessagesByUserResponseDto(
-                    404,
-                    'MESSAGESNOTFOUND',
-                    userMessages
-                );
-
                 console.log('No received messages found.');
-                return responseDto;
+                return new GetMessagesByUserResponseDto('error', 404, 'Messages not found.', { result: userMessages });
             }
 
-            const responseDto = new GetMessagesByUserResponseDto(
-                200,
-                'MESSAGESRETRIEVEDSUCCESSFULLY',
-                userMessages
-            );
-
             console.log('User messages fetched successfully.');
-            return responseDto;
+            return new GetMessagesByUserResponseDto('success', 200, 'Messages retrieved succesfully.', { result: userMessages });
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
+            return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages.', { result: [] });
         }
     }
 
 
 
-
     
-    @ApiOperation({ summary: 'Get received messages for a user' })
-    @ApiOkResponse({ description: 'Received messages retrieved successfully', type: GetMessagesByUserResponseDto })
-    @ApiNotFoundResponse({ description: 'No messages found', type: NotFoundException })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    
     async getReceivedMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-            // Query for recipientEmail and isActive
             const recipientMessagesQuery = query(
                 messageRef,
                 where('recipientEmail', '==', userEmail),
@@ -444,7 +421,6 @@ export class MessageService {
 
             const userMessages = [];
 
-            // Add messages from recipient
             recipientMessagesQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 userMessages.push({
@@ -465,41 +441,25 @@ export class MessageService {
             });
 
             if (userMessages.length === 0) {
-                const responseDto = new GetMessagesByUserResponseDto(
-                    404,
-                    'MESSAGESNOTFOUND',
-                    userMessages
-                );
-
                 console.log('No received messages found.');
-                return responseDto;
+                return new GetMessagesByUserResponseDto('error', 404, 'Messages not found.', { result: userMessages });
             }
 
-            const responseDto = new GetMessagesByUserResponseDto(
-                200,
-                'MESSAGESRETRIEVEDSUCCESSFULLY',
-                userMessages
-            );
-
             console.log('Received messages fetched successfully.');
-            return responseDto;
+            return new GetMessagesByUserResponseDto('success', 200, 'Messages retrieved successfully.', { result: userMessages });
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
+            return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages.', { result: [] });
         }
     }
 
 
     
-    @ApiOperation({ summary: 'Get sent messages for a user' })
-    @ApiOkResponse({ description: 'Sent messages retrieved successfully', type: GetMessagesByUserResponseDto })
-    @ApiNotFoundResponse({ description: 'No messages found', type: NotFoundException })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  
     async getSentMessages(userEmail: string): Promise<GetMessagesByUserResponseDto> {
         try {
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-            // Query for senderEmail and isActive
             const senderMessagesQuery = query(
                 messageRef,
                 where('senderEmail', '==', userEmail),
@@ -509,7 +469,6 @@ export class MessageService {
 
             const userMessages = [];
 
-            // Add messages from sender
             senderMessagesQuerySnapshot.forEach((doc) => {
                 const data = doc.data();
                 userMessages.push({
@@ -530,52 +489,34 @@ export class MessageService {
             });
 
             if (userMessages.length === 0) {
-                const responseDto = new GetMessagesByUserResponseDto(
-                    404,
-                    'MESSAGESNOTFOUND',
-                    userMessages
-                );
-
                 console.log('No sent messages found.');
-                return responseDto;
+                return new GetMessagesByUserResponseDto('error', 404, 'Messages not found.', { result: userMessages });
             }
 
-            const responseDto = new GetMessagesByUserResponseDto(
-                200,
-                'MESSAGESRETRIEVEDSUCCESSFULLY',
-                userMessages
-            );
-
             console.log('Sent messages fetched successfully.');
-            return responseDto;
+            return new GetMessagesByUserResponseDto('success', 200, 'Messages retrieved successfully.', { result: userMessages });
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
+            return new GetMessagesByUserResponseDto('error', 400, 'Messages could not be retrieved.', { result: [] });
         }
     }
 
 
 
 
-
-    @ApiOperation({ summary: 'Search messages by keywords for a user' })
-    @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
-    @ApiNotFoundResponse({ description: 'No matching messages found', type: GetMessagesByUserResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async searchMessagesByKeywords(userId: string, keywords: string | string[]): Promise<GetMessagesByUserResponseDto> {
         try {
             console.log(`User ID: ${userId}`);
             console.log('Starting searchMessagesByKeywords function...');
 
-            // Query for user's email based on userId
             const usersRef = collection(this.firebaseService.fireStore, 'users');
             const userQuery = query(usersRef, where('id', '==', userId));
             const userQuerySnapshot = await getDocs(userQuery);
 
             if (userQuerySnapshot.empty) {
                 console.log('User not found.');
-                const responseDto = new GetMessagesByUserResponseDto(404, 'USERNOTFOUND', []);
-                return responseDto;
+                return new GetMessagesByUserResponseDto('error', 404, 'USERNOTFOUND', { result: [] });
             }
 
             const userDoc = userQuerySnapshot.docs[0];
@@ -584,7 +525,6 @@ export class MessageService {
 
             console.log(`User email: ${userEmail}`);
 
-            // Query for messages
             const messageRef = collection(this.firebaseService.fireStore, 'messages');
             const messagesSnapshot = await getDocs(messageRef);
 
@@ -625,39 +565,18 @@ export class MessageService {
             });
 
             if (matchedMessages.length === 0) {
-                const responseDto = new GetMessagesByUserResponseDto(
-                    404,
-                    'MESSAGESNOTFOUND',
-                    matchedMessages
-                );
-
                 console.log('No matching messages found.');
-                return responseDto;
+                return new GetMessagesByUserResponseDto('error', 404, 'Messages not found.', { result: matchedMessages });
             }
 
-            const responseDto = new GetMessagesByUserResponseDto(
-                200,
-                'MESSAGESRETRIEVEDSUCCESSFULLY',
-                matchedMessages
-            );
-
             console.log('Matching messages fetched successfully.');
-            return responseDto;
+            return new GetMessagesByUserResponseDto('success', 200, 'Messages retrieved successfully.', { result: matchedMessages });
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
+            return new GetMessagesByUserResponseDto('error', 400, 'Messages could not be retrieved.', { result: [] });
         }
     }
 
-
-
-
-
-    
-
-
-
-  
 
 
 
@@ -670,12 +589,8 @@ export class MessageService {
 
             if (messagesQuerySnapshot.empty) {
                 console.log('No messages found for the given ID.');
-                const response: UpdateMessageStatusResponseDto = {
-                    statusCode: 404,
-                    message: 'MESSAGE NOT FOUND',
-                };
-
-                return response;            }
+                return new UpdateMessageStatusResponseDto('error', 404, 'Message not found.', { result: {} });
+            }
 
             const messageDocRef = messagesQuerySnapshot.docs[0].ref;
 
@@ -702,48 +617,23 @@ export class MessageService {
 
             console.log('Updated message status for the given ID.');
 
-            const response: UpdateMessageStatusResponseDto = {
-                statusCode: 200,
-                message: 'MESSAGESTATUSSETSUCCESSFULLY',
-            };
-
-            return response;
+            return new UpdateMessageStatusResponseDto('success', 200, 'Message updated successfully.', { result: {} });
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error updating the message status.');
+            return new UpdateMessageStatusResponseDto('error', 400, 'Message could not be updated.', { result: {} });
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @ApiOperation({ summary: 'Get filtered messages for a user. Valid Filters: read, unread, archived, inquiry, sent, received, complaint, highlight, eliminated' })
-    @ApiOkResponse({ description: 'Filtered messages retrieved successfully', type: GetMessagesByUserResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request' })
-    @ApiNotFoundResponse({ description: 'No messages found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async getFilteredMessages(filter: string, userId: string ): Promise<GetMessagesByUserResponseDto> {
-        console.log('Filter:', filter);
-        console.log('User ID:', userId);
 
-        // Query for user's email based on userId
         const usersRef = collection(this.firebaseService.fireStore, 'users');
         const userQuery = query(usersRef, where('id', '==', userId));
         const userQuerySnapshot = await getDocs(userQuery);
 
         if (userQuerySnapshot.empty) {
             console.log('User not found.');
-            const responseDto = new GetMessagesByUserResponseDto(404, 'USERNOTFOUND', []);
-            return responseDto;
+            return new GetMessagesByUserResponseDto('error', 404, 'User not found.', { result: [] });
+
         }
 
         const userDoc = userQuerySnapshot.docs[0];
@@ -786,23 +676,15 @@ export class MessageService {
                     });
 
                     if (readMessages.length === 0) {
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'READMESSAGESNOTFOUND',
-                            readMessages
-                        );
-                        return responseDto;
+                        return new GetMessagesByUserResponseDto('error', 404, 'Read messages not found.', { result: [] });
+
                     }
 
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'READMESSAGESRETRIEVEDSUCCESSFULLY',
-                        readMessages
-                    );
-                    return responseDto;
+                    return new GetMessagesByUserResponseDto('success', 200, 'Read messages retrieved successfully.', { result: readMessages });
+
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
 
             case 'unread':
@@ -840,23 +722,15 @@ export class MessageService {
                     });
 
                     if (unreadMessages.length === 0) {
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'UNREADMESSAGESNOTFOUND',
-                            unreadMessages
-                        );
-                        return responseDto;
+                        return new GetMessagesByUserResponseDto('error', 404, 'Unread messages not found.', { result: [] });
+
                     }
 
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'UNREADMESSAGESRETRIEVEDSUCCESSFULLY',
-                        unreadMessages
-                    );
-                    return responseDto;
+                    return new GetMessagesByUserResponseDto('success', 200, 'Unread messages retrieved successfully.', { result: unreadMessages });
+
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
 
 
@@ -864,30 +738,22 @@ export class MessageService {
                 try {
                     console.log("Fetching archived messages...");
                     const archivedMessagesResponse = await this.getArchivedMessages(email);
-                    const archivedMessages = archivedMessagesResponse.messagesFound;
+                    const archivedMessages = archivedMessagesResponse.data.result;
 
                     console.log(`Archived messages found: ${archivedMessages.length}`);
 
                     if (archivedMessages.length === 0) {
                         console.log("No archived messages found.");
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'ARCHIVEDMESSAGESNOTFOUND',
-                            archivedMessages
-                        );
-                        return responseDto;
+                        return new GetMessagesByUserResponseDto('error', 404, 'Archived messages not found.', { result: [] });
+
                     }
 
                     console.log("Archived messages retrieved successfully.");
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'ARCHIVEDMESSAGESRETRIEVEDSUCCESSFULLY',
-                        archivedMessages
-                    );
-                    return responseDto;
+                    return new GetMessagesByUserResponseDto('success', 200, 'Archived messages retrieved successfully.', { result: archivedMessages });
+
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
 
 
@@ -896,7 +762,6 @@ export class MessageService {
                 try {
                     const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-                    // Query for senderEmail and isActive
                     const senderMessagesQuery = query(
                         messageRef,
                         where('senderEmail', '==', email),
@@ -904,7 +769,6 @@ export class MessageService {
                     );
                     const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
 
-                    // Query for recipientEmail and isActive
                     const recipientMessagesQuery = query(
                         messageRef,
                         where('recipientEmail', '==', email),
@@ -914,7 +778,6 @@ export class MessageService {
 
                     const userInquiryMessages = [];
 
-                    // Add Inquiry messages from sender
                     senderMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         if (data.type === MessageType.Inquiry) {
@@ -937,7 +800,6 @@ export class MessageService {
                         }
                     });
 
-                    // Add Inquiry messages from recipient
                     recipientMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         if (data.type === MessageType.Inquiry) {
@@ -961,27 +823,15 @@ export class MessageService {
                     });
 
                     if (userInquiryMessages.length === 0) {
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'INQUIRYMESSAGESNOTFOUND',
-                            userInquiryMessages
-                        );
+                        return new GetMessagesByUserResponseDto('error', 404, 'Inquiry messages not found.', { result: [] });
 
-                        console.log('No Inquiry messages found.');
-                        return responseDto;
                     }
 
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'INQUIRYMESSAGESRETRIEVEDSUCCESSFULLY',
-                        userInquiryMessages
-                    );
+                    return new GetMessagesByUserResponseDto('success', 200, 'Inquiry messages retrieved successfully.', { result: userInquiryMessages });
 
-                    console.log('User Inquiry messages fetched successfully.');
-                    return responseDto;
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
 
             case 'sent':
@@ -989,7 +839,6 @@ export class MessageService {
                 try {
                     const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-                    // Query for senderEmail and isActive
                     const senderMessagesQuery = query(
                         messageRef,
                         where('senderEmail', '==', email),
@@ -999,7 +848,6 @@ export class MessageService {
 
                     const userMessages = [];
 
-                    // Add messages from sender
                     senderMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         userMessages.push({
@@ -1021,27 +869,15 @@ export class MessageService {
                     });
 
                     if (userMessages.length === 0) {
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'MESSAGESNOTFOUND',
-                            userMessages
-                        );
+                        return new GetMessagesByUserResponseDto('error', 404, 'Sent messages not found.', { result: [] });
 
-                        console.log('No sent messages found.');
-                        return responseDto;
                     }
 
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'MESSAGESRETRIEVEDSUCCESSFULLY',
-                        userMessages
-                    );
+                    return new GetMessagesByUserResponseDto('success', 200, 'Sent messages retrieved successfully.', { result: userMessages });
 
-                    console.log('Sent messages fetched successfully.');
-                    return responseDto;
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
 
 
@@ -1050,7 +886,6 @@ export class MessageService {
                 try {
                     const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-                    // Query for recipientEmail and isActive
                     const recipientMessagesQuery = query(
                         messageRef,
                         where('recipientEmail', '==', email),
@@ -1060,7 +895,6 @@ export class MessageService {
 
                     const userMessages = [];
 
-                    // Add messages from recipient
                     recipientMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         userMessages.push({
@@ -1082,27 +916,15 @@ export class MessageService {
                     });
 
                     if (userMessages.length === 0) {
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'MESSAGESNOTFOUND',
-                            userMessages
-                        );
+                        return new GetMessagesByUserResponseDto('error', 404, 'Received messages not found.', { result: [] });
 
-                        console.log('No received messages found.');
-                        return responseDto;
                     }
 
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'MESSAGESRETRIEVEDSUCCESSFULLY',
-                        userMessages
-                    );
+                    return new GetMessagesByUserResponseDto('success', 200, 'Received messages retrieved successfully.', { result: userMessages });
 
-                    console.log('Received messages fetched successfully.');
-                    return responseDto;
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
 
             case 'complaint': 
@@ -1110,7 +932,6 @@ export class MessageService {
                 try {
                     const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-                    // Query for senderEmail and isActive
                     const senderMessagesQuery = query(
                         messageRef,
                         where('senderEmail', '==', email),
@@ -1118,7 +939,6 @@ export class MessageService {
                     );
                     const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
 
-                    // Query for recipientEmail and isActive
                     const recipientMessagesQuery = query(
                         messageRef,
                         where('recipientEmail', '==', email),
@@ -1128,7 +948,6 @@ export class MessageService {
 
                     const userComplaintMessages = [];
 
-                    // Add Complaint messages from sender
                     senderMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         if (data.type === MessageType.Complaint) {
@@ -1151,7 +970,6 @@ export class MessageService {
                         }
                     });
 
-                    // Add Complaint messages from recipient
                     recipientMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         if (data.type === MessageType.Complaint) {
@@ -1175,27 +993,15 @@ export class MessageService {
                     });
 
                     if (userComplaintMessages.length === 0) {
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'COMPLAINTMESSAGESNOTFOUND',
-                            userComplaintMessages
-                        );
+                        return new GetMessagesByUserResponseDto('error', 404, 'Complaint messages not found.', { result: [] });
 
-                        console.log('No Complaint messages found.');
-                        return responseDto;
                     }
 
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'COMPLAINTMESSAGESRETRIEVEDSUCCESSFULLY',
-                        userComplaintMessages
-                    );
+                    return new GetMessagesByUserResponseDto('success', 200, 'Complaint messages retrieved successfully.', { result: userComplaintMessages });
 
-                    console.log('User Complaint messages fetched successfully.');
-                    return responseDto;
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
 
             case 'highlighted':
@@ -1203,7 +1009,6 @@ export class MessageService {
                     const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
 
-                    // Query for recipientEmail and isActive
                     const recipientMessagesQuery = query(
                         messageRef,
                         where('recipientEmail', '==', email),
@@ -1211,11 +1016,8 @@ export class MessageService {
                     );
                     const recipientMessagesQuerySnapshot = await getDocs(recipientMessagesQuery);
 
-                    const highlightedMessages = [];
+                    const highlightedMessages = []                  
 
-                   
-
-                    // Add Highlighted messages from recipient
                     recipientMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         if (data.highlighted === true) {
@@ -1239,27 +1041,15 @@ export class MessageService {
                     });
 
                     if (highlightedMessages.length === 0) {
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'HIGHLIGHTEDMESSAGESNOTFOUND',
-                            highlightedMessages
-                        );
+                        return new GetMessagesByUserResponseDto('error', 404, 'Highlighted messages not found.', { result: [] });
 
-                        console.log('No Highlighted messages found.');
-                        return responseDto;
                     }
 
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'HIGHLIGHTEDMESSAGESRETRIEVEDSUCCESSFULLY',
-                        highlightedMessages
-                    );
+                    return new GetMessagesByUserResponseDto('success', 200, 'Highlighted messages retrieved successfully.', { result: highlightedMessages });
 
-                    console.log('Highlighted messages fetched successfully.');
-                    return responseDto;
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
 
             case 'deleted':
@@ -1267,7 +1057,6 @@ export class MessageService {
                     console.log('User Email:', email);
                     const messageRef = collection(this.firebaseService.fireStore, 'messages');
 
-                    // Query for senderEmail with isActive = false
                     const senderMessagesQuery = query(
                         messageRef,
                         where('senderEmail', '==', email),
@@ -1275,7 +1064,6 @@ export class MessageService {
                     );
                     const senderMessagesQuerySnapshot = await getDocs(senderMessagesQuery);
 
-                    // Query for recipientEmail with isActive = false
                     const recipientMessagesQuery = query(
                         messageRef,
                         where('recipientEmail', '==', email),
@@ -1285,7 +1073,6 @@ export class MessageService {
 
                     const userEliminatedMessages = [];
 
-                    // Add messages from sender
                     senderMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         userEliminatedMessages.push({
@@ -1306,7 +1093,6 @@ export class MessageService {
                         });
                     });
 
-                    // Add messages from recipient
                     recipientMessagesQuerySnapshot.forEach((doc) => {
                         const data = doc.data();
                         userEliminatedMessages.push({
@@ -1328,56 +1114,39 @@ export class MessageService {
                     });
 
                     if (userEliminatedMessages.length === 0) {
-                        const responseDto = new GetMessagesByUserResponseDto(
-                            404,
-                            'MESSAGESNOTFOUND',
-                            userEliminatedMessages
-                        );
+                        return new GetMessagesByUserResponseDto('error', 404, 'Eliminated messages not found.', { result: [] });
 
-                        console.log('No eliminated messages found.');
-                        return responseDto;
                     }
 
-                    const responseDto = new GetMessagesByUserResponseDto(
-                        200,
-                        'MESSAGESRETRIEVEDSUCCESSFULLY',
-                        userEliminatedMessages
-                    );
+                    return new GetMessagesByUserResponseDto('success', 200, 'Eliminated messages retrieved successfully.', { result: userEliminatedMessages });
 
-                    console.log('Eliminated messages fetched successfully.');
-                    return responseDto;
                 } catch (error: unknown) {
                     console.warn(`[ERROR]: ${error}`);
-                    throw new InternalServerErrorException('INTERNALERROR');
+                    return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
                 }
         
 
 
               default:
-                return new GetMessagesByUserResponseDto(400, 'INVALIDFILTER', []);
+                return new GetMessagesByUserResponseDto('error', 400, 'The filter is invalid.', { result: [] });
         }
     }
 
 
 
-    @ApiBadRequestResponse({ description: 'Bad request or not found', type: NotFoundException })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async addOrRemoveTagsFromMessage(id: string, action: 'add' | 'delete', tagsIds: string[]): Promise<AddTagsResponseDto> {
         try {
             console.log(`Adding or removing tags from a message based on action: ${action}...`);
 
-            // Query the message collection with ID condition
+
             const messagesCollectionRef = collection(this.firebaseService.fireStore, 'messages');
             const messagesQuery = query(messagesCollectionRef, where('id', '==', id));
             const messagesQuerySnapshot = await getDocs(messagesQuery);
 
             if (messagesQuerySnapshot.empty) {
-                const responseDto: AddTagsResponseDto = {
-                    statusCode: 404,
-                    message: 'MESSAGES NOT FOUND',
-                };
-
-                return responseDto;            }
+                return new AddTagsResponseDto('error', 404, 'Message not found.', { result: {} });
+            }
 
             const messageDocRef = messagesQuerySnapshot.docs[0].ref;
             const messageDocSnapshot = await getDoc(messageDocRef);
@@ -1396,15 +1165,8 @@ export class MessageService {
                         if (tagName) {
                             updatedTags.push(tagName);
                         }
-                    }
-
-                    else if (tagQuerySnapshot.empty) {
-                        const responseDto: AddTagsResponseDto = {
-                            statusCode: 404,
-                            message: 'TAGS NOT FOUND',
-                        };
-
-                        return responseDto;
+                    } else {
+                        return new AddTagsResponseDto('error', 404, 'Tags not found.', { result: {} });
                     }
                 }
             } else if (action === 'delete') {
@@ -1418,54 +1180,33 @@ export class MessageService {
                         if (tagName) {
                             updatedTags = updatedTags.filter(tag => tag !== tagName);
                         }
-                    } else if (tagQuerySnapshot.empty) {
-                        const responseDto: AddTagsResponseDto = {
-                            statusCode: 404,
-                            message: 'TAGS NOT FOUND',
-                        };
-
-                        return responseDto;    
+                    } else {
+                        return new AddTagsResponseDto('error', 404, 'Tags not found.', { result: {} });
                     }
                 }
             } else {
-                throw new Error('Invalid action. Supported actions: add, delete');
+                return new AddTagsResponseDto('error', 400, 'Invalid action, use add or delete.', { result: {} });
             }
 
             await updateDoc(messageDocRef, { tags: updatedTags });
 
             console.log('Tags added or removed from the message.');
 
-            const responseDto: AddTagsResponseDto = {
-                statusCode: 200,
-                message: 'TAGSADDEDREMOVEDSUCCESSFULLY',
-            };
-            console.log('Tags added or removed from the message successfully.');
-
-            return responseDto;
+            return new AddTagsResponseDto('success', 200, 'Tags updated successfully.', { result: {} });
         } catch (error) {
             console.error('Error:', error);
-            throw error;
+            return new AddTagsResponseDto('error', 400, 'There was an error updating the tags.', { result: {} });
         }
     }
 
 
-
-
-
-
-
-    @ApiOperation({ summary: 'Search messages by tags for a user' })
-    @ApiOkResponse({ description: 'Messages retrieved successfully', type: GetMessagesByUserResponseDto })
-    @ApiNotFoundResponse({ description: 'No matching messages found', type: GetMessagesByUserResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async searchMessagesByTags(userId: string, tags: string[]): Promise<GetMessagesByUserResponseDto> {
         try {
             const usersRef = collection(this.firebaseService.fireStore, 'users');
             const userQuerySnapshot = await getDocs(query(usersRef, where('id', '==', userId)));
 
             if (userQuerySnapshot.empty) {
-                const responseDto = new GetMessagesByUserResponseDto(404, 'USERNOTFOUND', []);
-                return responseDto;
+                return new GetMessagesByUserResponseDto('error', 404, 'User not found.', { result: {} });
             }
 
             const userDoc = userQuerySnapshot.docs[0];
@@ -1506,25 +1247,16 @@ export class MessageService {
             });
 
             if (matchedMessages.length === 0) {
-                const responseDto = new GetMessagesByUserResponseDto(
-                    404,
-                    'MESSAGESNOTFOUND',
-                    matchedMessages
-                );
-                return responseDto;
+                return new GetMessagesByUserResponseDto('error', 404, 'Messages not found.', { result: {} });
             }
 
-            const responseDto = new GetMessagesByUserResponseDto(
-                200,
-                'MESSAGESRETRIEVEDSUCCESSFULLY',
-                matchedMessages
-            );
-            return responseDto;
+            return new GetMessagesByUserResponseDto('success', 200, 'Messages retrieved successfully.', { result: matchedMessages });
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new InternalServerErrorException('INTERNALERROR');
+            return new GetMessagesByUserResponseDto('error', 400, 'There was an error retrieving the messages', { result: [] });
         }
     }
+
 
 
 
@@ -1543,21 +1275,11 @@ export class MessageService {
             const messageQuerySnapshot = await getDocs(messageQuery);
 
             if (messageQuerySnapshot.empty) {
-                const response: GetMessageByIdResponseDto = {
-                    statusCode: 404,
-                    message: 'MESSAGE NOT FOUND',
-                    senderPicture: null,
-                    username: null,
-                    messageFound: null
-                }
-
-                return response;
-
+                return new GetMessageByIdResponseDto('error', 404, 'Message not found.', { result: {} });
             }
 
             const messageDoc = messageQuerySnapshot.docs[0];
             const messageData = messageDoc.data();
-
 
             const userRef = collection(this.firebaseService.fireStore, 'users');
             const userQuery = query(
@@ -1570,44 +1292,44 @@ export class MessageService {
             let profilePicture: string | null = null;
             let username: string | null = null;
 
-
             if (!userQuerySnapshot.empty) {
                 const userDoc = userQuerySnapshot.docs[0];
                 const userData = userDoc.data();
                 profilePicture = userData.profilePicture;
                 username = userData.username;
-
             }
 
-
-
-
             const messageDto: GetMessageByIdResponseDto = {
-                statusCode: 200,
-                message: 'MESSAGERETRIEVEDSUCCESSFULLY',
-                senderPicture: profilePicture,
-                username: username,
-                messageFound: {
-                    id: messageData.id,
-                    senderEmail: messageData.senderEmail,
-                    recipientEmail: messageData.recipientEmail,
-                    content: messageData.content,
-                    read: messageData.read,
-                    highlighted: messageData.highlighted,
-                    archived: messageData.archived,
-                    attachmentUrls: messageData.attachmentUrls,
-                    subject: messageData.subject,
-                    type: messageData.type,
-                    receivedDate: this.transformTimestamp(messageData.receivedDate),
-                    sentDate: this.transformTimestamp(messageData.sentDate),
-                    readDate: this.transformTimestamp(messageData.readDate),
-                    tags: messageData.tags
+                status: 'success',
+                code: 200,
+                message: 'Message retrieved successfully.',
+                data: {
+                    result: {
+                        senderPicture: profilePicture,
+                        username: username,
+                        messageFound: {
+                            id: messageData.id,
+                            senderEmail: messageData.senderEmail,
+                            recipientEmail: messageData.recipientEmail,
+                            content: messageData.content,
+                            read: messageData.read,
+                            highlighted: messageData.highlighted,
+                            archived: messageData.archived,
+                            attachmentUrls: messageData.attachmentUrls,
+                            subject: messageData.subject,
+                            type: messageData.type,
+                            receivedDate: this.transformTimestamp(messageData.receivedDate),
+                            sentDate: this.transformTimestamp(messageData.sentDate),
+                            readDate: this.transformTimestamp(messageData.readDate),
+                            tags: messageData.tags
+                        },
+                    },
                 },
             };
 
             return messageDto;
         } catch (error: unknown) {
-            throw new InternalServerErrorException('INTERNALERROR');
+            return new GetMessageByIdResponseDto('error', 400, 'There was an error retrieving the message', { result: [] });
         }
     }
 

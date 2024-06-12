@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsArray, IsBoolean } from "class-validator";
+import { IsNotEmpty, IsString, IsArray, IsBoolean, IsOptional } from "class-validator";
 import { Section } from "../entities/sections.entity";
 
 export class UpdateSectionDto {
@@ -8,8 +8,7 @@ export class UpdateSectionDto {
         example: 'Introduction to Programming',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
+    @IsOptional()
     name?: string;
 
     @ApiProperty({
@@ -17,8 +16,7 @@ export class UpdateSectionDto {
         example: 'A comprehensive introduction to basic programming concepts.',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
+    @IsOptional()
     description?: string;
 
 
@@ -28,18 +26,8 @@ export class UpdateSectionDto {
         example: ['programming', 'introduction', 'development'],
         type: [String],
     })
-    @IsNotEmpty()
-    @IsArray()
-    @IsString({ each: true })
+    @IsOptional()
     tags?: string[];
-
-    @ApiProperty({
-        description: 'Subsections within the section.',
-        type: [Section], // Each subsection is also a Section entity
-    })
-    @IsArray()
-    public subsections?: Section[];
-
 
 
     @ApiProperty({
@@ -48,26 +36,10 @@ export class UpdateSectionDto {
         default: true,
         type: String
     })
-    @IsBoolean()
+    @IsOptional()
     active?: boolean = true;
 
 
-
-    @ApiProperty({
-        description: 'Titles of the media/ebooks that will be added to the section content.',
-        example: ['mediatitle', 'ebooktitle'],
-        type: [String],
-    })
-    @IsString({ each: true })
-    assetsTitles?: string[];
-
-
-    @ApiProperty({
-        description: 'Firestore ID of the user',
-        example: 'abcdef123456',
-        type: String
-    })
-    @IsNotEmpty()
-    id: string;
+ 
 
 }

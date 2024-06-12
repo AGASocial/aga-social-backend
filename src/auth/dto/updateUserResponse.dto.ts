@@ -3,22 +3,37 @@ import { IsAlpha, IsNotEmpty, IsNumber, IsPositive, IsString, IsUppercase } from
 
 export class UpdateUserResponseDto {
     @ApiProperty({
-        description: 'Http response status code',
-        default: 200,
-        type: Number
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "USERUPDATED"',
-        default: "USERUPDATED",
-        type: String
+        example: 200,
+        description: 'Response code.'
     })
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
+    code: number;
+
+    @ApiProperty({
+        example: 'Request successfully processed.',
+        description: 'Response message.'
+    })
+    message: string;
+
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
 }

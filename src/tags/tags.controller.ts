@@ -1,11 +1,12 @@
-import { Controller, Post, Body, Put, Query, Get, Param } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBody, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Post, Body, Put, Query, Get, Param, Res, Patch } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBody, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateTagDto } from './dto/createTag.dto';
 import { CreateTagResponseDto } from './dto/createTagResponse.dto';
 import { GetTagsResponseDto } from './dto/getTags.dto';
 import { UpdateTagDto } from './dto/updateTag.dto';
 import { UpdateTagResponseDto } from './dto/updateTagResponse.dto';
 import { TagsService } from './tags.service';
+import { Response } from "express";
 
 
 
@@ -18,53 +19,104 @@ export class TagsController {
 
 
 
+    @ApiTags('Tags')
+    @ApiOperation({ summary: 'Create a new tag' })
+    @ApiBody({ type: CreateTagDto })
+    @ApiOkResponse({ description: 'Tag created successfully', type: CreateTagResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
     @Post('tags')
-
-    @ApiOperation({ summary: 'Create a new tag and register it on Firestore using a DTO with its basic data' })
-    @ApiBody({ description: 'Tag creation details', type: CreateTagDto })
-    @ApiResponse({ status: 201, description: 'The tag has been successfully created.', type: CreateTagResponseDto })
-    @ApiResponse({ status: 400, description: 'Bad request. Check the parameters being used' })
-    @ApiResponse({ status: 500, description: 'Internal server error.' })
-    async createNewTag(@Body() createTagDto: CreateTagDto): Promise<CreateTagResponseDto> {
+    async createNewTag(
+        @Res() res: Response,
+        @Body() createTagDto: CreateTagDto,
+    ): Promise<void> {
         try {
-            return await this.tagService.createNewTag(createTagDto);
+            const response: CreateTagResponseDto = await this.tagService.createNewTag(createTagDto);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
         } catch (error) {
-            throw new Error(`Error creating a new tag: ${error.message}`);
+            console.error('Error creating a new tag:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to create a new tag',
+                data: {},
+            });
         }
     }
 
 
 
-    @Put('tags')
-    @ApiOperation({ summary: 'Update tag information using a DTO with updated data' })
-    @ApiBody({ description: 'Tag update details', type: UpdateTagDto })
-    @ApiResponse({ status: 200, description: 'The tag information has been successfully updated.', type: UpdateTagResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad request. Check the parameters being used' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
-    async updateTag(@Body() updateTagDto: Partial<UpdateTagDto>): Promise<UpdateTagResponseDto> {
+    @ApiTags('Tags')
+    @ApiOperation({ summary: 'Update a tag' })
+    @ApiParam({ name: 'id', description: 'ID of the tag', type: 'string', example: '5AGdF617CVpLyGeZerwa' })
+    @ApiBody({ type: UpdateTagDto })
+    @ApiOkResponse({ description: 'Tag updated successfully', type: UpdateTagResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @Patch('tags/:id')
+    async updateTag(
+        @Res() res: Response,
+        @Param('id') id: string,
+        @Body() updateTagDto: Partial<UpdateTagDto>,
+    ): Promise<void> {
         try {
-            const id = updateTagDto.id
+            const response: UpdateTagResponseDto = await this.tagService.updateTag(id, updateTagDto);
 
-            return await this.tagService.updateTag(id, updateTagDto);
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
         } catch (error) {
-            throw new Error(`Error updating the tag: ${error.message}`);
+            console.error('Error updating the tag:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to update the tag',
+                data: {},
+            });
         }
     }
 
 
 
-    @Get('users/:id/tags')
+    @ApiTags('Users')
     @ApiOperation({ summary: 'Get tags associated with a user' })
     @ApiOkResponse({ description: 'Tags retrieved successfully', type: GetTagsResponseDto })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getTagsById(@Param('id') id: string): Promise<GetTagsResponseDto> {
+    @ApiParam({ name: 'userId', description: 'ID of the user', type: 'string', example: 'FEXCjqRy6ga2Ioc7n3tS6MpydcZ2' })
+    @Get('users/:userId/tags')
+    async getTagsById(
+        @Res() res: Response,
+        @Param('userId')  userId: string,
+    ): Promise<void> {
         try {
-             return await this.tagService.getTagsById(id);
+            const response: GetTagsResponseDto = await this.tagService.getTagsById(userId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
         } catch (error) {
-            throw new Error(`Error retrieving tags: ${error.message}`);
+            console.error('Error retrieving tags:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to retrieve tags',
+                data: {},
+            });
         }
     }
-
 
 
 

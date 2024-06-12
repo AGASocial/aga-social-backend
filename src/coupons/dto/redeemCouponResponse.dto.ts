@@ -4,55 +4,38 @@ import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from
 export class RedeemCouponResponseDto {
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "COUPONREDEEMEDSUCCESSFULLY"',
-        default: 'COUPONREDEEMEDSUCCESSFULLY',
-        type: String,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
+    code: number;
 
     @ApiProperty({
-        description: 'Price of the resource after applying the coupon discount',
-        example: 90.00,
-        type: Number,
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public discountedPrice: number;
-
-
+    message: string;
 
     @ApiProperty({
-        description: 'Price of the resource before applying the coupon discount',
-        example: 90.00,
-        type: Number,
+        type: 'object',
+        description: 'Response data, contains the result.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public initialPrice: number;
+    data: {
+        result: Record<string, any>;
+    };
 
-
-
-    constructor(statusCode: number, message: string, discountedPrice: number, initialPrice: number) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.discountedPrice = discountedPrice;
-        this.initialPrice = initialPrice;
-
+        this.data = {
+            result: result
+        };
     }
+
 }

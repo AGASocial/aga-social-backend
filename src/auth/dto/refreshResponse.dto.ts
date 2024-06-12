@@ -4,31 +4,40 @@ import { IsNumber, IsNotEmpty, IsString, IsJWT, IsPositive, IsUppercase } from "
 
 export class RefreshResponseDto {
     @ApiProperty({
-        description: 'Http response status code',
-        default: 200,
-        type: Number
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsPositive()
-    @IsNotEmpty()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "SESSIONREFRESHED"',
-        default: "SESSIONREFRESHED",
-        type: String
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsUppercase()
-    @IsNotEmpty()
-    public message: string;
+    code: number;
 
     @ApiProperty({
-        description: 'New Bearer token created by result of refreshing the session, used for login validation. The payload is user email and user id',
-        type: String
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    @IsNotEmpty()
-    @IsString()
-    @IsJWT()
-    public bearer_token: string;
+    message: string;
+
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
+
+    public bearer_token?: string;
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
+
 }

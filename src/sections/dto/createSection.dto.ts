@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsArray } from "class-validator";
+import { IsNotEmpty, IsString, IsArray, IsOptional } from "class-validator";
 import { CreateEbookDto } from "../../ebooks/dto/createEbook.dto";
 import { Ebook } from "../../ebooks/entities/ebooks.entity";
 import { CreateMediaDto } from "../../media/dto/createMedia.dto";
@@ -12,17 +12,15 @@ export class CreateSectionDto {
         example: 'Introduction to Programming',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
-    name: string;
+    @IsOptional()
+    name?: string;
 
     @ApiProperty({
         description: 'Description of the section.',
         example: 'A comprehensive introduction to basic programming concepts.',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
+    @IsOptional()
     description?: string;
 
    
@@ -37,34 +35,28 @@ export class CreateSectionDto {
         example: ['programming', 'introduction', 'development'],
         type: [String],
     })
-    @IsNotEmpty()
-    @IsArray()
-    @IsString({ each: true })
-    tags: string[];
+    @IsOptional()
+    tags?: string[];
 
 
 
     @ApiProperty({
-        description: 'Titles of the media/ebooks that will be added to the section content. Must already exist in firestore and datastorage',
-        example: ['mediatitle', 'ebooktitle'],
+        description: 'Ids of the media/ebooks that will be added to the section content. Must already exist in firestore and datastorage',
+        example: ['65c8cf10-3726-4776-a35a-b0e5867dcf64'],
         type: [String],
     })
-    @IsString({ each: true })
+    @IsOptional()
     assetsIds?: string[];
 
 
 
 
     @ApiProperty({
-        description: 'Subsections within the section.',
-        type: [Section], // Each subsection is also a Section entity
+        description: 'Ids of subsections',
+        example: ['bb48fcc3-088a-41ed-9623-ee7be8e3fe14'],
+        type: [String],
     })
-    public subsections?: Section[];
+    @IsOptional()
+    subsections?: string[];
 
-    @ApiProperty({
-        description: 'Firestore ID of the user',
-        example: 'abcdef123456',
-        type: String
-    })
-    id?: string;
 }

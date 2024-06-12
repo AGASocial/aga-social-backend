@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
@@ -10,10 +11,12 @@ import { AppModule } from './app.module';
 import * as admin from 'firebase-admin';
 import { ConfigService } from '@nestjs/config';
 import * as dotenv from 'dotenv';
+import { OpenAiService } from './ai/openai/openai.service';
 dotenv.config();
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    app.get(OpenAiService).initializeOpenAi();
     const configService: ConfigService = app.get(ConfigService);
 
 

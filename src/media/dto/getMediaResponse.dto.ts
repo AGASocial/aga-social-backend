@@ -4,40 +4,40 @@ import { DocResult } from "../../utils/docResult.entity";
 
 export class GetMediaResponseDto {
 
-    @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
-    })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "MEDIARETRIEVEDSUCCESSFULLY"',
-        default: 'MEDIARETRIEVEDSUCCESSFULLY',
-        type: String,
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    status: string;
 
     @ApiProperty({
-        description: 'Array containing the info of every media found'
+        example: 200,
+        description: 'Response code.'
     })
-    public mediaFound: DocResult[]
+    code: number;
 
+    @ApiProperty({
+        example: 'Request successfully processed.',
+        description: 'Response message.'
+    })
+    message: string;
 
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
 
-    constructor(statusCode: number, message: string, mediaFound: DocResult[]) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.mediaFound = mediaFound;
-
-
+        this.data = {
+            result: result
+        };
     }
+
 }

@@ -3,15 +3,7 @@ import { IsNotEmpty, IsString, IsArray, IsBoolean } from "class-validator";
 import { Section } from "../entities/sections.entity";
 
 export class ManageResourceStatusInSectionDto {
-    @ApiProperty({
-        description: 'Name of the section.',
-        example: 'Introduction to Programming',
-        type: String,
-    })
-    @IsNotEmpty()
-    @IsString()
-    id?: string;
-
+ 
 
 
 
@@ -28,7 +20,7 @@ export class ManageResourceStatusInSectionDto {
 
     @ApiProperty({
         description: 'Titles of the media/ebooks that will be added to the section content.',
-        example: ['mediatitle', 'ebooktitle'],
+        example: ['65c8cf10-3726-4776-a35a-b0e5867dcf64'],
         type: [String],
     })
     @IsString({ each: true })

@@ -1,14 +1,8 @@
-import { Controller, Post, Body, Param, Get, Put, Req, Delete, InternalServerErrorException, Query, Patch, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Put, Req, Delete, InternalServerErrorException, Query, Patch, HttpException, HttpStatus, Res } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateEbookDto } from '../ebooks/dto/createEbook.dto';
-import { CreateMediaDto } from '../media/dto/createMedia.dto';
-import { AddMediaOrEbookDto } from './dto/addMediaorEbook.dto';
 import { AddMediaOrEbookResponseDto } from './dto/addMediaorEbookResponse.dto';
 import { CreateSectionDto } from './dto/createSection.dto';
 import { CreateSectionResponseDto } from './dto/createSectionResponse.dto';
-import { DeactivateMediaOrEbookFromSectionDto } from './dto/deactivateMediaOrEbookFromSection.dto';
-import { DeactivateMediaOrEbookFromSubsectionDto } from './dto/deactivateMediaOrEbookFromSubsection.dto';
-import { DeleteSectionResponseDto } from './dto/deleteSectionResponse.dto';
 import { GetSectionsResponseDto } from './dto/getSectionResponse.dto';
 import { ManageResourceStatusInSectionDto } from './dto/manageResourceStatusInSection.dto';
 import { ManageResourceStatusInSectionResponseDto } from './dto/manageResourceStatusInSectionResponse.dto';
@@ -16,204 +10,375 @@ import { ManageResourceStatusInSubsectionDto } from './dto/manageResourceStatusI
 import { UpdateSectionDto } from './dto/updateSection.dto';
 import { UpdateSectionResponseDto } from './dto/updateSectionResponse.dto';
 import { SectionService } from './sections.service';
+import { Response } from "express";
 
 
 
 
 @Controller()
-@ApiTags('sections')
 export class SectionController {
     constructor(private readonly sectionService: SectionService) { }
 
 
 
 
+   
+    @ApiTags('Sections')
     @ApiOperation({ summary: 'Create a new section' })
-    @ApiCreatedResponse({ description: 'Section created successfully', type: CreateSectionResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @ApiBadRequestResponse({ description: 'Invalid input data' })
     @ApiBody({ type: CreateSectionDto })
+    @ApiOkResponse({ description: 'Section created successfully', type: CreateSectionResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
     @Post('sections')
-    async createNewSection(@Body() createNewSectionDto: CreateSectionDto): Promise<CreateSectionResponseDto> {
-        return this.sectionService.createNewSection(createNewSectionDto);
-    }
-
-
-
-
-    @Post('sections/:id/subsections')
-    @ApiOperation({ summary: 'Create a new subsection and add it to a parent section' })
-    @ApiCreatedResponse({ description: 'Subsection created and added to parent section successfully', type: CreateSectionResponseDto })
-    @ApiNotFoundResponse({ description: 'Parent section not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @ApiBadRequestResponse({ description: 'Invalid input data' })
-    @ApiBody({ type: CreateSectionDto })
-    async createAndAddSubsectionToSection(
-        @Body() createSectionDto: CreateSectionDto,
-        @Param('id') id: string 
-    ): Promise<CreateSectionResponseDto> {
-        return this.sectionService.createAndAddSubsectionToSection(
-            id,
-            createSectionDto
-        );
-    }
-
-
-
-
-
-
-    @Put('sections')
-    @ApiOperation({ summary: 'Update a section\'s details' })
-    @ApiOkResponse({ description: 'Section updated successfully', type: UpdateSectionResponseDto })
-    @ApiNotFoundResponse({ description: 'Section not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @ApiBadRequestResponse({ description: 'Invalid input data' })
-    @ApiQuery({ name: 'name', description: 'Name of the section', required: true, type: 'string' })
-    @ApiBody({ type: UpdateSectionDto })
-    async updateSection(
-        @Body() updateSectionDto: Partial<UpdateSectionDto>,
-        @Req() req: Request
-    ): Promise<UpdateSectionResponseDto> {
-        const id = updateSectionDto.id
-
-        return await this.sectionService.updateSection(id, updateSectionDto);
-    }
-
-
-
-
-
-    @Get('sections')
-    @ApiOperation({
-        summary: 'Get all sections, or get sections by its tags or get a sections content by its name'
-    })
-    @ApiOkResponse({ description: 'Sections and media retrieved successfully', type: GetSectionsResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getSections(
-        @Req() req: Request,
-        @Query('tags') tags?: string[],
-        @Query('sectionId') sectionId?: string,
-        @Query('keywords') keywords?: string[]
-    ): Promise<GetSectionsResponseDto> {
-        if (sectionId) {
-            const response = await this.sectionService.getSectionContentById(sectionId);
-            return response;
-        }
-
-        if (tags) {
-            const response = await this.sectionService.getSectionsByTags(tags);
-            return response;
-        }
-
-        if (keywords) {
-            const response = await this.sectionService.getSectionsByKeywords(keywords);
-            return response;
-        }
-
-        return this.sectionService.getSections();
-    }
-
-
-    @Get('sections/:id')
-    @ApiOperation({ summary: 'Get a section by its ID' })
-    @ApiOkResponse({ description: 'Section retrieved successfully', type: GetSectionsResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid section ID or section not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async getSectionById(
-        @Param('id') sectionId: string,
-    ): Promise<GetSectionsResponseDto> {
-        const response = await this.sectionService.getSectionContentById(sectionId);
-        return response;
-    }
-
-
-
-
-
-
-    @ApiOperation({ summary: 'Add media or ebook to section' })
-    @ApiOkResponse({ description: 'Media or ebook added to section successfully', type: AddMediaOrEbookResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @Patch('sections/assets')
-    async addMediaOrEbookToSection(
-        @Body() requestBody: { sectionId: string, assetId: string },
-    ): Promise<AddMediaOrEbookResponseDto> {
+    async createNewSection(
+        @Res() res: Response,
+        @Body() createNewSectionDto: CreateSectionDto,
+    ): Promise<void> {
         try {
-            const { sectionId, assetId } = requestBody;
-            const response = await this.sectionService.addMediaOrEbookToSection(sectionId, assetId);
-            return response;
+            const response: CreateSectionResponseDto = await this.sectionService.createNewSection(createNewSectionDto);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
         } catch (error) {
-            throw new InternalServerErrorException('An error occurred while processing your request.');
+            console.error('Error creating new section:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to create new section',
+                data: {},
+            });
         }
     }
 
 
 
-    @Patch('sections/subsections/assets')
+
+    @ApiTags('Sections')
+    @ApiOperation({ summary: 'Create and add a subsection to a section' })
+    @ApiBody({ type: CreateSectionDto })
+    @ApiOkResponse({ description: 'Subsection created and added successfully', type: CreateSectionResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @Post('sections/:id/subsections')
+    async createAndAddSubsectionToSection(
+        @Res() res: Response,
+        @Body() createSectionDto: CreateSectionDto,
+        @Param('id') id: string,
+    ): Promise<void> {
+        try {
+            const response: CreateSectionResponseDto = await this.sectionService.createAndAddSubsectionToSection(id, createSectionDto);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+        } catch (error) {
+            console.error('Error creating and adding subsection to section:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to create and add subsection to section',
+                data: {},
+            });
+        }
+    }
+
+
+
+
+
+    @ApiTags('Sections')
+    @ApiOperation({ summary: 'Update a section' })
+    @ApiBody({ type: UpdateSectionDto })
+    @ApiOkResponse({ description: 'Section updated successfully', type: UpdateSectionResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input or section not found' })
+    @Patch('sections/:sectionId')
+    @ApiParam({ name: 'sectionId', description: 'ID of the section to update', type: 'string', example: '4AZcWZU5T55VabyeJ8QY' })
+    async updateSection(
+        @Res() res: Response,
+        @Body() updateSectionDto: Partial<UpdateSectionDto>,
+        @Param('sectionId') sectionId: string,
+    ): Promise<void> {
+        try {
+            const response: UpdateSectionResponseDto = await this.sectionService.updateSection(sectionId, updateSectionDto);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+        } catch (error) {
+            console.error('Error updating section:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Bad Request: Failed to update section',
+                data: {},
+            });
+        }
+    }
+
+
+
+
+
+
+    @ApiTags('Sections')
+    @ApiOperation({ summary: 'Get sections' })
+    @ApiQuery({ name: 'tags', type: [String], required: false,  })
+    @ApiQuery({ name: 'keywords', type: [String], required: false})
+    @ApiOkResponse({ description: 'Sections retrieved successfully', type: GetSectionsResponseDto })
+    @Get('sections')
+    async getSections(
+        @Res() res: Response,
+        @Query('tags') tags?: string[],
+        @Query('keywords') keywords?: string[]
+    ): Promise<void> {
+        try {
+            let response: GetSectionsResponseDto;
+
+            if (tags) {
+                response = await this.sectionService.getSectionsByTags(tags);
+            } else if (keywords) {
+                response = await this.sectionService.getSectionsByKeywords(keywords);
+            } else {
+                response = await this.sectionService.getSections();
+            }
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+        } catch (error) {
+            console.error('Error retrieving sections:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to retrieve sections',
+                data: {},
+            });
+        }
+    }
+
+
+    @ApiTags('Sections')
+    @ApiOperation({ summary: 'Get section by ID' })
+    @ApiParam({ name: 'id', description: 'ID of the section', type: 'string', example: '4AZcWZU5T55VabyeJ8QY' })
+    @ApiOkResponse({ description: 'Section retrieved successfully', type: GetSectionsResponseDto })
+    @Get('sections/:id')
+    async getSectionById(
+        @Res() res: Response,
+        @Param('id') sectionId: string,
+    ): Promise<void> {
+        try {
+            const response: GetSectionsResponseDto = await this.sectionService.getSectionContentById(sectionId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+        } catch (error) {
+            console.error('Error retrieving section by ID:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to retrieve section by ID',
+                data: {},
+            });
+        }
+    }
+
+
+
+
+
+   
+    @ApiTags('Sections')
+    @ApiOperation({ summary: 'Add media or ebook to section' })
+    @ApiOkResponse({ description: 'Media or ebook added successfully', type: AddMediaOrEbookResponseDto })
+    @Patch('sections/:sectionId/assets/:assetId')
+    @ApiParam({ name: 'sectionId', description: 'ID of the section', type: 'string', example: '4AZcWZU5T55VabyeJ8QY' })
+    @ApiParam({ name: 'assetId', description: 'ID of the media or ebook', type: 'string', example: '1150258b-3f5c-4f77-88b9-8a99df077c90' })
+    async addMediaOrEbookToSection(
+        @Res() res: Response,
+        @Param('sectionId') sectionId: string,
+        @Param('assetId') assetId: string,
+    ): Promise<void> {
+        try {
+            const response: AddMediaOrEbookResponseDto = await this.sectionService.addMediaOrEbookToSection(sectionId, assetId);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+        } catch (error) {
+            console.error('Error adding media or ebook to section:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to add media or ebook to section',
+                data: {},
+            });
+        }
+    }
+
+
+
+    @ApiTags('Sections')
     @ApiOperation({ summary: 'Add media or ebook to subsection' })
     @ApiOkResponse({ description: 'Media or ebook added to subsection successfully', type: AddMediaOrEbookResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Missing required parameters' })
+    @Patch('sections/:sectionId/subsections/:subsectionId/assets/:assetId')
+    @ApiParam({ name: 'sectionId', description: 'ID of the section', type: 'string', example: '4AZcWZU5T55VabyeJ8QY' })
+    @ApiParam({ name: 'subsectionId', description: 'ID of the subsection', type: 'string', example: '5a30496f-32bf-4730-bb39-4485239dbec3' })
+    @ApiParam({ name: 'assetId', description: 'ID of the media or ebook', type: 'string', example: '1150258b-3f5c-4f77-88b9-8a99df077c90' })
     async addMediaOrEbookToSubsection(
-        @Body() request: { sectionId: string, subsectionId: string, resourceId: string }
-    ): Promise<AddMediaOrEbookResponseDto> {
-        const sectionId = request.sectionId;
-        const subsectionId = request.subsectionId;
-        const resourceId = request.resourceId;
+        @Res() res: Response,
+        @Param('sectionId') sectionId: string,
+        @Param('subsectionId') subsectionId: string,
+        @Param('assetId') assetId: string,
+    ): Promise<void> {
+        try {
+            const response: AddMediaOrEbookResponseDto = await this.sectionService.addMediaOrEbookToSubsection(sectionId, subsectionId, assetId);
 
-        return this.sectionService.addMediaOrEbookToSubsection(
-            sectionId,
-            subsectionId,
-            resourceId
-        );
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+        } catch (error) {
+            console.error('Error adding media or ebook to subsection:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to add media or ebook to subsection',
+                data: {},
+            });
+        }
     }
 
 
 
-
-
-    @ApiOperation({ summary: 'Get subsections by section name' })
+    @ApiTags('Sections')
+    @ApiOperation({ summary: 'Get subsections by section ID' })
     @ApiOkResponse({ description: 'Subsections retrieved successfully', type: GetSectionsResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    @ApiParam({ name: 'id', description: 'ID of the section', type: 'string', example: '4AZcWZU5T55VabyeJ8QY' })
     @Get('sections/:id/subsections')
     async getSubsectionsBySectionId(
-        @Param('id') id: string
-    ): Promise<GetSectionsResponseDto> {
-        return this.sectionService.getSubsectionsBySectionId(id);
-    }
-
-
-
-
-    @ApiOperation({ summary: 'Update resource status in sections. Activates/Deactivates a Media/Ebook' })
-    @ApiResponse({ status: 201, description: 'Resource status updated successfully', type: ManageResourceStatusInSectionResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @ApiBadRequestResponse({ description: 'Invalid input data' })
-    @ApiBody({ type: ManageResourceStatusInSectionDto })
-    @Patch('sections')
-    async manageResourceStatus(@Body() manageResourceStatusDto: ManageResourceStatusInSectionDto): Promise<ManageResourceStatusInSectionResponseDto> {
+        @Res() res: Response,
+        @Param('id') id: string,
+    ): Promise<void> {
         try {
-            const response = await this.sectionService.manageResourceStatus(manageResourceStatusDto);
-            return response;
+            const response: GetSectionsResponseDto = await this.sectionService.getSubsectionsBySectionId(id);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
         } catch (error) {
-            throw new HttpException('Error updating resource status', HttpStatus.INTERNAL_SERVER_ERROR);
+            console.error('Error retrieving subsections by section ID:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to retrieve subsections',
+                data: {},
+            });
         }
     }
 
 
 
 
-    @ApiOperation({ summary: 'Update resource status in subsections of sections. Activates/Deactivates a Media/Ebook' })
-    @ApiResponse({ status: 201, description: 'Resource status updated successfully', type: ManageResourceStatusInSectionResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    @ApiBadRequestResponse({ description: 'Invalid input data' })
-    @ApiBody({ type: ManageResourceStatusInSubsectionDto })
-    @Patch('sections/subsections')
-    async manageResourceStatusForSubsections(
-        @Body() manageResourceStatusDto: ManageResourceStatusInSubsectionDto,
-    ): Promise<ManageResourceStatusInSectionResponseDto> {
-        return this.sectionService.manageResourceStatusInSubsections(manageResourceStatusDto);
+    @ApiTags('Sections')
+    @ApiOperation({ summary: 'Manage resource status in section' })
+    @ApiBody({ type: ManageResourceStatusInSectionDto })
+    @ApiOkResponse({ description: 'Resource status managed successfully', type: ManageResourceStatusInSectionResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @ApiParam({ name: 'sectionId', description: 'ID of the section to update', type: 'string', example: '4AZcWZU5T55VabyeJ8QY' })
+    @Patch('sections/:sectionId/assets')
+    async manageResourceStatus(
+        @Res() res: Response,
+        @Body() manageResourceStatusDto: ManageResourceStatusInSectionDto,
+        @Param('sectionId') sectionId: string
+    ): Promise<void> {
+        try {
+            const response: ManageResourceStatusInSectionResponseDto = await this.sectionService.manageResourceStatus(sectionId, manageResourceStatusDto);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+        } catch (error) {
+            console.error('Error managing resource status in section:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to manage resource status',
+                data: {},
+            });
+        }
     }
 
+
+
+
+    @ApiTags('Sections') 
+    @ApiOperation({ summary: 'Manage resource status in subsection' }) 
+    @ApiBody({ type: ManageResourceStatusInSubsectionDto }) 
+    @ApiOkResponse({ description: 'Resource status managed successfully', type: ManageResourceStatusInSectionResponseDto }) 
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' }) 
+    @ApiParam({ name: 'subsectionId', description: 'ID of the subsection to update', type: 'string', example: '4AZcWZU5T55VabyeJ8QY' })
+    @Patch('subsections/:subsectionId/assets') 
+    async manageResourceStatusForSubsections(
+        @Res() res: Response,
+        @Body() manageResourceStatusDto: ManageResourceStatusInSubsectionDto,
+        @Param('subsectionId') subsectionId: string
+    ): Promise<void> {
+        try {
+            const response: ManageResourceStatusInSectionResponseDto = await this.sectionService.manageResourceStatusInSubsections(subsectionId, manageResourceStatusDto);
+
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data.result,
+            });
+        } catch (error) {
+            console.error('Error managing resource status for subsections:', error);
+
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to manage resource status for subsections',
+                data: {},
+            });
+        }
+    }
 
 
 

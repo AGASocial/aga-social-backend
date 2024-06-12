@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -67,17 +68,21 @@ import { PluginUsersService } from './Pluggins/users/pluginsUsers.service';
 import { PluginCollectionsModule } from './Pluggins/collections/plugincollections.module';
 import { PluginCollectionsService } from './Pluggins/collections/plugincollections.service';
 import { PluginCollectionsController } from './Pluggins/collections/plugincollections.controller';
+import { AiModule } from './ai/ai.module';
+import { AiController } from './ai/ai.controller';
+import { AiService } from './ai/ai.service';
+import { OpenAiService } from './ai/openai/openai.service';
 
 
 @Module({
-    imports: [PluginCollectionsModule, PluginUsersModule, EmailsModule, TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
+    imports: [AiModule, PluginCollectionsModule, PluginUsersModule, EmailsModule, TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
         ttl: timeToLive,
         limit: throttlerLimit
     }), SessionModule, RolesModule, JwtModule.register({
         secret: process.env.jwtConstants,
         signOptions: { expiresIn: '60s' }
     })],
-    controllers: [PluginCollectionsController, PluginUsersController, EmailsController, ValidationController, TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController,LikesController,NotesController, PlugginController, StripeController, TodoController],
+    controllers: [AiController, PluginCollectionsController, PluginUsersController, EmailsController, ValidationController, TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController, LikesController, NotesController, PlugginController, StripeController, TodoController],
     providers: [
         AppService,
         DataFiltererService,
@@ -101,6 +106,8 @@ import { PluginCollectionsController } from './Pluggins/collections/plugincollec
         EmailsService,
         PluginUsersService,
         PluginCollectionsService,
+        AiService,
+        OpenAiService,
         
         {
             provide: APP_GUARD,

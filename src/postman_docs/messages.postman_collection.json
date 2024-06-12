@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"senderEmail\": \"mary@gmail.com\",\r\n  \"recipientEmail\": \"defensa123@gmail.com\",\r\n  \"content\": \"Defensa13\",\r\n  \"read\": false,\r\n  \"attachmentUrls\": [\r\n    \"https://example.com/attachment1.pdf\",\r\n    \"https://example.com/attachment2.jpg\"\r\n  ],\r\n  \"subject\": \"Defensa13\", //asunto\r\n  \"type\": \"Inquiry\" // o Complaint\r\n}\r\n",
+					"raw": "{\r\n  \"senderEmail\": \"prueba111111@gmail.com\",\r\n  \"recipientEmail\": \"xdxd@gmail.com\",\r\n  \"content\": \"Hello, I have a question regarding...\",\r\n  \"attachmentUrls\": [\r\n    \"string\"\r\n  ],\r\n  \"subject\": \"Regarding Your Recent Purchase\",\r\n  \"type\": \"Inquiry\",\r\n  \"sentDate\": \"2023-08-10T12:00:00Z\",\r\n  \"receivedDate\": \"2023-08-10T13:00:00Z\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -33,11 +33,11 @@
 		{
 			"name": "Actualizar Estado Mensaje",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"fee00b6e-c261-42e8-abd5-8e30bb8228e6\",\r\n  \"read\": true,\r\n  \"active\": true, // if active = false, message is eliminated\r\n  \"highlighted\": true,\r\n   \"archived\": false\r\n\r\n}\r\n",
+					"raw": "{\r\n  \"read\": true,\r\n  \"type\": \"Inquiry\",\r\n  \"archived\": true,\r\n  \"active\": true,\r\n  \"highlighted\": true\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,9 +45,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}messages",
+					"raw": "{{server}}messages/vBwKpakszeh6T7RBiwDz",
 					"host": [
 						"{{server}}messages"
+					],
+					"path": [
+						"vBwKpakszeh6T7RBiwDz"
 					]
 				}
 			},
@@ -101,13 +104,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2/messages?keywords=defensa",
+					"raw": "{{server}}messages/users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2?keywords=defensa",
 					"host": [
-						"{{server}}users"
+						"{{server}}messages"
 					],
 					"path": [
-						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
-						"messages"
+						"users",
+						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2"
 					],
 					"query": [
 						{
@@ -137,13 +140,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2/messages?filter=read",
+					"raw": "{{server}}messages/users/FEXCjqRy6ga2Ioc7n3tS6MpydcZ2?filter=read",
 					"host": [
-						"{{server}}users"
+						"{{server}}messages"
 					],
 					"path": [
-						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2",
-						"messages"
+						"users",
+						"FEXCjqRy6ga2Ioc7n3tS6MpydcZ2"
 					],
 					"query": [
 						{
@@ -162,7 +165,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"fee00b6e-c261-42e8-abd5-8e30bb8228e6\", \r\n  \"tagsIds\": [\"0076d467-95d1-4250-b494-145b4bb090bd\"],\r\n  \"action\": \"delete\" //add or delete\r\n}\r\n",
+					"raw": "{\r\n  \"tagsIds\": [\"5AGdF617CVpLyGeZerwa\"],\r\n  \"action\": \"delete\" //add or delete\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -170,11 +173,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}messages/tags",
+					"raw": "{{server}}messages/vBwKpakszeh6T7RBiwDz/tags",
 					"host": [
 						"{{server}}messages"
 					],
 					"path": [
+						"vBwKpakszeh6T7RBiwDz",
 						"tags"
 					]
 				}

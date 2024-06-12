@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum, IsBoolean } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsInt, IsEnum, IsBoolean, IsOptional } from "class-validator";
 import { EbookFormat, EbookGenre } from 'src/ebooks/entities/ebooks.entity';
 
 export class UpdateEbookDto {
@@ -8,6 +8,7 @@ export class UpdateEbookDto {
         example: 'Introduction to Programming',
         type: String,
     })
+    @IsOptional()
     title?: string;
 
     @ApiProperty({
@@ -15,6 +16,7 @@ export class UpdateEbookDto {
         example: ['John Smith', 'John Doe'],
         type: String,
     })
+    @IsOptional()
     author?: string[];
 
     @ApiProperty({
@@ -22,6 +24,7 @@ export class UpdateEbookDto {
         example: 'https://example.com/ebook.pdf',
         type: String,
     })
+    @IsOptional()
     url?: string;
 
 
@@ -31,6 +34,7 @@ export class UpdateEbookDto {
         example: 'https://example.com/ebook.pdf',
         type: String,
     })
+    @IsOptional()
     public titlePage?: string;
 
     @ApiProperty({
@@ -38,6 +42,7 @@ export class UpdateEbookDto {
         example: 19.99,
         type: Number,
     })
+    @IsOptional()
     price?: number;
 
     @ApiProperty({
@@ -45,6 +50,7 @@ export class UpdateEbookDto {
         example: 'A comprehensive guide to programming basics.',
         type: String,
     })
+    @IsOptional()
     description?: string;
 
     @ApiProperty({
@@ -52,6 +58,7 @@ export class UpdateEbookDto {
         example: '2023-08-01',
         type: Date,
     })
+    @IsOptional()
     releaseDate?: Date;
 
     @ApiProperty({
@@ -59,6 +66,7 @@ export class UpdateEbookDto {
         example: ['English', 'Spanish'],
         type: [String],
     })
+    @IsOptional()
     language?: string[];
 
     @ApiProperty({
@@ -66,7 +74,7 @@ export class UpdateEbookDto {
         example: 300,
         type: Number,
     })
-    @IsInt()
+    @IsOptional()
     pageCount?: number;
 
     @ApiProperty({
@@ -75,7 +83,7 @@ export class UpdateEbookDto {
         type: [String],
         enum: EbookGenre,
     })
-    @IsEnum(EbookGenre, { each: true })
+    @IsOptional()
     genres?: EbookGenre[];
 
 
@@ -84,7 +92,7 @@ export class UpdateEbookDto {
         example: 'PDF',
         enum: EbookFormat,
     })
-    @IsEnum(EbookFormat)
+    @IsOptional()
     format?: EbookFormat;
 
 
@@ -99,13 +107,8 @@ export class UpdateEbookDto {
         type: String
     })
     @IsBoolean()
+    @IsOptional()
     active?: boolean = true;
 
-    @ApiProperty({
-        description: 'Firestore ID of the ebook',
-        example: 'abcdef123456',
-        type: String
-    })
-    @IsNotEmpty()
-    id: string;
+    
 }

@@ -2,48 +2,39 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive, IsOptional } from "class-validator";
 
 export class UploadMediaResponseDto {
+    @ApiProperty({
+        example: 'success',
+        description: 'Response status.'
+    })
+    status: string;
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    code: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "MEDIAUPLOADEDSUCCESSFULLY"',
-        default: 'MEDIAUPLOADEDSUCCESSFULLY',
-        type: String,
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    message: string;
 
     @ApiProperty({
-        description: 'ID of the created media',
-        type: String
+        type: 'object',
+        description: 'Response data, contains the result.'
     })
-    public mediaId?: string;
+    data: {
+        result: Record<string, any>;
+    };
 
-    @ApiProperty({
-        description: 'url of the media from youtube or other platforms',
-        type: String,
-    })
-    @IsString()
-    @IsNotEmpty()
-    public url: string;
-
-    constructor(statusCode: number, message: string, mediaId: string, url: string) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.mediaId = mediaId;
-        this.url = url
+        this.data = {
+            result: result
+        };
     }
-}
 
+}

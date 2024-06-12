@@ -62,11 +62,11 @@
 		{
 			"name": "Actualizar Media",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"id\": \"19e5f726-cf92-42bc-adab-6e7aeee8f158\",\r\n\"active\": true,\r\n\"title\": \"aeo\",\r\n\"description\": \"Updated\"\r\n\r\n}",
+					"raw": "{\r\n\"active\": true,\r\n\"title\": \"aeo\",\r\n\"description\": \"Updated\"\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -74,12 +74,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}assets/media",
+					"raw": "{{server}}assets/media/H01GHPOJLmVEXJ5gclc2",
 					"host": [
 						"{{server}}assets"
 					],
 					"path": [
-						"media"
+						"media",
+						"H01GHPOJLmVEXJ5gclc2"
 					]
 				}
 			},
@@ -108,13 +109,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{server}}assets/media/19e5f726-cf92-42bc-adab-6e7aeee8f158",
+					"raw": "{{server}}assets/media/H01GHPOJLmVEXJ5gclc2",
 					"host": [
 						"{{server}}assets"
 					],
 					"path": [
 						"media",
-						"19e5f726-cf92-42bc-adab-6e7aeee8f158"
+						"H01GHPOJLmVEXJ5gclc2"
 					]
 				}
 			},
@@ -162,7 +163,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"type\": \"video\",\r\n  \"title\": \"ESTO\",\r\n  \"description\": \"This is a sample video description.\",\r\n  \"url\": \"https://www.youtube.com/watch?v=jUy08_MWT1k\",\r\n  \"duration\": \"00:08:55\",\r\n  \"uploadDate\": \"2023-08-03\",\r\n  \"active\": true,\r\n  \"publisher\": \"John Doe\"\r\n}\r\n",
+					"raw": "{\r\n  \"type\": \"video\",\r\n  \"title\": \"ESTO\",\r\n  \"description\": \"This is a sample video description.\",\r\n  \"url\": \"https://www.youtube.com/watch?v=jUy08_MWT1k\",\r\n  \"duration\": \"00:08:55\",\r\n  \"uploadDate\": \"2023-08-03\",\r\n\"publisher\": \"Raymond.1234\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"

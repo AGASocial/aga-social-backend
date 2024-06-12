@@ -12,7 +12,7 @@ export class SessionService {
         console.log('getSessionTime executing...');
 
         let sessionTime = Number(jwtTime);
-        const userSnap: DocumentSnapshot = user?.snapshot; 
+        const userSnap: DocumentSnapshot = user?.snapshot;
 
         if (userSnap) {
             const userRole = await this.usersService.getUserRole(userSnap);
@@ -34,12 +34,12 @@ export class SessionService {
         console.log('getRefreshTime executing...');
 
         let userRefreshTime = 0;
-        
 
-        
-            console.log('Getting default refresh time...');
-            userRefreshTime = Number(refreshTime) * timeMultiplier;
-        
+
+
+        console.log('Getting default refresh time...');
+        userRefreshTime = Number(refreshTime) * timeMultiplier;
+
 
         return userRefreshTime;
     }

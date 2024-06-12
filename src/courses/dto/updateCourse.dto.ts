@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsBoolean } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsDate, IsBoolean, IsOptional } from "class-validator";
 import { Section } from "../../sections/entities/sections.entity";
 
 export class UpdateCourseDto {
@@ -8,7 +8,7 @@ export class UpdateCourseDto {
         example: 'Introduction to Web Development',
         type: String,
     })
-    @IsString()
+    @IsOptional()
     public title?: string;
 
     @ApiProperty({
@@ -16,15 +16,15 @@ export class UpdateCourseDto {
         example: 'Learn the fundamentals of web development.',
         type: String,
     })
-    @IsString()
+    @IsOptional()
     public description?: string;
 
     @ApiProperty({
         description: 'Publisher of the course',
-        example: 'Tech Publications',
+        example: 'prueba11111',
         type: String,
     })
-    @IsString()
+    @IsOptional()
     public publisher?: string;
 
     @ApiProperty({
@@ -32,7 +32,7 @@ export class UpdateCourseDto {
         example: 49.99,
         type: Number,
     })
-    @IsNumber()
+    @IsOptional()
     public price?: number;
 
 
@@ -41,6 +41,7 @@ export class UpdateCourseDto {
         example: ['Web Development', 'HTML', 'CSS'],
         type: [String],
     })
+    @IsOptional()
     public tags?: string[];
 
     @ApiProperty({
@@ -48,7 +49,7 @@ export class UpdateCourseDto {
         example: '2023-08-01',
         type: Date,
     })
-
+    @IsOptional()
     public releaseDate?: Date;
 
     @ApiProperty({
@@ -56,8 +57,7 @@ export class UpdateCourseDto {
         example: ['John Smith', 'Jane Doe'],
         type: [String],
     })
-    @IsArray()
-    @IsString({ each: true })
+    @IsOptional()
     public instructorList?: string[];
 
     @ApiProperty({
@@ -65,8 +65,7 @@ export class UpdateCourseDto {
         example: 'English',
         type: String,
     })
-    @IsNotEmpty()
-    @IsString()
+    @IsOptional()
     public language?: string;
 
     @ApiProperty({
@@ -74,7 +73,7 @@ export class UpdateCourseDto {
         example: true,
         type: Boolean,
     })
-    @IsBoolean()
+    @IsOptional()
     public offersCertificate?: boolean;
 
 
@@ -84,7 +83,7 @@ export class UpdateCourseDto {
         example: 'https://example.com/course.jpg',
         type: String,
     })
-    @IsString()
+    @IsOptional()
     public titlePage?: string;
 
     @ApiProperty({
@@ -93,16 +92,8 @@ export class UpdateCourseDto {
         default: true,
         type: String
     })
-    @IsBoolean()
+    @IsOptional()
     active?: boolean = true;
 
-    @ApiProperty({
-        description: 'Firestore ID of the course',
-        example: 'abcdef123456',
-        type: String
-    })
-    @IsNotEmpty()
-    id: string;
-
-
+   
 }

@@ -9,7 +9,7 @@ export enum MessageType {
 export class CreateMessageDto {
     @ApiProperty({
         description: 'Email of the sender',
-        example: 'sender@example.com',
+        example: 'prueba111111@gmail.com',
         type: String,
     })
     @IsNotEmpty()
@@ -18,7 +18,7 @@ export class CreateMessageDto {
 
     @ApiProperty({
         description: 'Email of the recipient',
-        example: 'recipient@example.com',
+        example: 'xdxd@gmail.com',
         type: String,
     })
     @IsNotEmpty()
@@ -33,27 +33,6 @@ export class CreateMessageDto {
     @IsNotEmpty()
     @IsString()
     public content: string;
-
-    @ApiProperty({
-        description: 'Indicates whether the message has been read',
-        example: true,
-        type: Boolean,
-        default: false,
-    })
-    @IsBoolean()
-    public read: boolean = false;
-
-
-    @ApiProperty({
-        description: 'Indicates whether the message has been archived',
-        example: true,
-        type: Boolean,
-        default: false,
-    })
-    @IsBoolean()
-    public archived: boolean = false;
-
-
 
     @ApiProperty({
         description: 'Attachment URLs',
@@ -94,28 +73,5 @@ export class CreateMessageDto {
     })
     public receivedDate?: Date;
 
-    @ApiProperty({
-        description: 'Timestamp of when the message was received',
-        example: '2023-08-10T13:00:00Z',
-        type: Date,
-    })
-    public readDate?: Date;
-
-
-    @ApiProperty({
-        description: 'Firestore ID of the user',
-        example: 'abcdef123456',
-        type: String
-    })
-    id?: string;
-
-
-    @ApiProperty({
-        description: 'It states whether the message is highlighted or not (Destacado)',
-        example: true,
-        type: String
-    })
-    highlighted?: boolean;
-
-
+ 
 }

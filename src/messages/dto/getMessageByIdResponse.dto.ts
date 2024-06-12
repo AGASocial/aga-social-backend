@@ -5,44 +5,40 @@ import { Message } from "../entities/message.entity";
 
 export class GetMessageByIdResponseDto {
 
-    @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
-    })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "MESSAGERETRIEVEDSUCCESSFULLY"',
-        default: 'MESSAGERETRIEVEDSUCCESSFULLY',
-        type: String,
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    status: string;
 
     @ApiProperty({
-        description: 'Information about the found message'
+        example: 200,
+        description: 'Response code.'
     })
-    public messageFound: any
+    code: number;
 
     @ApiProperty({
-        description: 'Picture of the user who sent the email',
-        type: String
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    public senderPicture?: string;
+    message: string;
 
     @ApiProperty({
-        description: 'Username of the user who sent the email',
-        type: String
+        type: 'object',
+        description: 'Response data, contains the result.'
     })
-    public username?: string;
+    data: {
+        result: Record<string, any>;
+    };
 
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
 
 }

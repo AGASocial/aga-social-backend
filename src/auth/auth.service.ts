@@ -6,7 +6,7 @@ import { LogInResponseDto } from './dto/loginResponse.dto';
 import { SignUpDtoResponse } from './dto/signupResponse.dto';
 import { RecoverPasswordDto } from './dto/recoverPassword.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut, getAuth, deleteUser, updateEmail } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, signOut, getAuth, deleteUser, updateEmail, sendPasswordResetEmail } from 'firebase/auth'
 import { setDoc, DocumentReference, doc, addDoc, updateDoc, getDoc, collection, where, QueryFieldFilterConstraint, query, getDocs, DocumentSnapshot, limit, deleteDoc, orderBy } from 'firebase/firestore';
 import { RecoverPasswordDtoResponse } from './dto/recoverPasswordResponse.dto';
 import * as firebaseAdminAuth from 'firebase-admin/auth';
@@ -36,6 +36,7 @@ import { GetUsersEarningsResponseDto } from './dto/getUsersEarningsResponse.dto'
 import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
 import { validate } from 'class-validator';
+import { auth } from 'firebase-admin';
 
 
 
@@ -49,57 +50,41 @@ export class AuthService {
 
 
 
-    @ApiOperation({ summary: 'User login' })
-    @ApiBody({ type: LogInDto })
-    @ApiCreatedResponse({ description: 'Login successful', type: LogInResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid credentials' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    
     async firebaseLogin(logInDto: LogInDto): Promise<LogInResponseDto> {
-        console.log('firebaseLogin - Start of function');
+        console.log('firebaseLogin - Start');
 
         const user = await this.firebaseService.getUserByEmail(logInDto.email);
         if (!user) {
-            const badRequestResponse: LogInResponseDto = {
-                statusCode: 400,
-                message: 'User not found',
-                userId: '',
-                bearer_token: '',
-                authCookieAge: 0,
-                refresh_token: '',
-                refreshCookieAge: 0,
+            const response: LogInResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'The credentials are invalid.',
+                data: {
+                    result: {}
+                }
             };
-            return badRequestResponse;
+            return response;
         }
 
-        const hashedPassword = user.password;
-        const doPasswordsMatch = await this.hashService.compareHashedStrings(
-            logInDto.password,
-            hashedPassword,
-        );
-        console.log('firebaseLogin - Password match result:', doPasswordsMatch);
-
-        if (!doPasswordsMatch) {
-            const badRequestResponse: LogInResponseDto = {
-                statusCode: 400,
-                message: 'Invalid credentials',
-                userId: '',
-                bearer_token: '',
-                authCookieAge: 0,
-                refresh_token: '',
-                refreshCookieAge: 0,
-            };
-            return badRequestResponse;
-        }
+        console.log('User: ',user)
 
         let userCredential;
         try {
             userCredential = await signInWithEmailAndPassword(this.firebaseService.auth,
                 logInDto.email,
-                hashedPassword
-            );
+                logInDto.password)
         } catch (error: unknown) {
             console.warn(`firebaseLogin - Error while signing in with email and password: ${error}`);
-            throw new InternalServerErrorException('There was an error during the signing');
+            const response: LogInResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'There was an error processing the request. The credentials are invalid',
+                data: {
+                    result: {}
+                }
+            };
+            return response;
         }
 
         if (userCredential) {
@@ -125,43 +110,98 @@ export class AuthService {
                 expiresIn: refreshTime,
             });
             console.log('firebaseLogin - Refresh token generated');
+            console.log(user.id)
 
-            const loginResponseDto: LogInResponseDto = {
-                statusCode: 200, 
-                message: 'Login successful',
-                userId: user.id,
+
+
+
+
+
+
+            const response: LogInResponseDto = {
+                status: 'success',
+                code: 201,
+                message: 'Request successfully processed.',
                 bearer_token: token,
                 authCookieAge: sessionTime * cookieTimeMultiplier,
                 refresh_token: refreshToken,
                 refreshCookieAge: refreshTime * cookieTimeMultiplier,
+                userId: user.id,
+                data: {
+                    result: {
+                        userId: user.id,
+                    },
+                },
             };
 
+
             console.log(`The user id is: ${user.id}`);
-            return loginResponseDto;
+            return response;
         } else {
             console.log('firebaseLogin - User credential not found');
-            throw new BadRequestException('Error signing in'); 
+            const response: LogInResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'There was an error processing the request.',
+                data: {
+                    result: {}
+                }
+            };
+            return response;
         }
     }
 
 
-
-    @ApiOkResponse({ description: 'Session token successfully refreshed', type: RefreshResponseDto })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid refresh token' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    //
     async firebaseRefresh(refreshDto: RefreshDto): Promise<RefreshResponseDto> {
-        const userId = this.usersService.extractID(refreshDto.refresh_token);
-        const userSnap = await this.usersService.getUserById(userId);
-        const userEmail = this.usersService.extractEmail(refreshDto.refresh_token);
-        const payload = { email: userEmail, id: userId };
-        const newToken = this.jwtService.sign(payload, {
-            secret: jwtSecret,
-            expiresIn: await this.sessionService.getSessionTime(userSnap)
-        });
-        const refreshDtoResponse: RefreshResponseDto = { statusCode: 200, message: 'SESSIONREFRESHED', bearer_token: newToken };
-        return refreshDtoResponse;
-    }
+        try {
+            const userId = this.usersService.extractID(refreshDto.refresh_token);
+            const userSnap = await this.usersService.getUserById(userId);
+            const userEmail = this.usersService.extractEmail(refreshDto.refresh_token);
+            const payload = { email: userEmail, id: userId };
+            const expiresIn = await this.sessionService.getSessionTime(userSnap);
 
+            if (expiresIn <= 0) {
+                const errorResponse: RefreshResponseDto = {
+                    status: 'error',
+                    code: 400,
+                    message: 'There are no sessions in course or the cookies were recently refreshed',
+                    data: {
+                        result: {}
+                    }
+                };
+                return errorResponse;
+            }
+
+            const newToken = this.jwtService.sign(payload, {
+                secret: jwtSecret,
+                expiresIn: expiresIn
+            });
+
+            const response: RefreshResponseDto = {
+                status: 'success',
+                code: 200,
+                message: 'Request successfully processed.',
+                bearer_token: newToken,
+                data: {
+                    result: {}
+                }
+            };
+            return response;
+        } catch (error) {
+            console.error('An error occurred:', error);
+
+            const errorResponse: RefreshResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'There are no sessions in course or the cookies were recently refreshed',
+                data: {
+                    result: {}
+                }
+            };
+            return errorResponse;
+        }
+    }
 
 
 
@@ -194,7 +234,6 @@ export class AuthService {
 
         const usersRef = collection(this.firebaseService.fireStore, 'users');
 
-        // Query for checking if there is someone with the username in the DTO
         const customUserWhere: QueryFieldFilterConstraint = where('username', '==', username);
         const userQuery = query(usersRef, customUserWhere);
         const userQuerySnapshot = await getDocs(userQuery);
@@ -208,7 +247,7 @@ export class AuthService {
             let userCredential = await createUserWithEmailAndPassword(
                 this.firebaseService.auth,
                 email,
-                hashedPassword,
+                password,
             );
             console.log('After createUserWithEmailAndPassword...');
             const id: string = userCredential.user.uid;
@@ -241,117 +280,77 @@ export class AuthService {
                 this.firebaseService.setCollectionData('users', cachedUsers);
                 console.log('User added to the cache successfully.');
 
-                const signUpDtoResponse: SignUpDtoResponse = {
-                    statusCode: 201,
-                    message: 'User registration successful',
-                    userId: id,
+                const response: SignUpDtoResponse = {
+                    status: 'success',
+                    code: 201,
+                    message: 'Request successfully processed.',
+                    data: {
+                        result: { userId: id }
+                    }
                 };
-
-                console.log('Response:', signUpDtoResponse);
-                return signUpDtoResponse;
+                return response;
             }
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
-            throw new BadRequestException('Error signing up'); 
+            const response: SignUpDtoResponse = {
+                status: 'error',
+                code: 400,
+                message: 'There was an error processing the request.',
+                data: {
+                    result: {}
+                }
+            };
+            return response;
         }
     }
 
 
 
-
-    @ApiOkResponse({ description: 'Password successfully recovered', type: RecoverPasswordDtoResponse })
-    @ApiBadRequestResponse({ description: 'Bad Request: Invalid user, wrong security answer, or password recovery failed' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-    async firebaseRecoverPassword(recoverPasswordDto: RecoverPasswordDto, jwtToken: string): Promise<RecoverPasswordDtoResponse> {
-        console.log('firebaseRecoverPassword - Start of function');
-
-        const { security_answer, new_password } = recoverPasswordDto;
-
-        if (new_password.length < 8 || new_password.length > 30) {
-            const badRequestResponse: RecoverPasswordDtoResponse = {
-                statusCode: 400,
-                message: 'Password length must be between 8 and 30 characters',
-            };
-            return badRequestResponse;
-        }
-
-
-        const userID = this.usersService.extractID(jwtToken);
-        const singleUserReference = doc(this.firebaseService.usersCollection, userID);
-        const singleUserSnap = await getDoc(singleUserReference);
-
-        if (!singleUserSnap.exists()) {
-            console.log('firebaseRecoverPassword - User not found');
-            const badRequestResponse: RecoverPasswordDtoResponse = {
-                statusCode: 400,
-                message: 'USERNOTFOUND',
-            };
-            return badRequestResponse;
-        }
-
-        const doSecurityAnswersMatch = await this.hashService.compareHashedStrings(
-            security_answer,
-            singleUserSnap.get("security_answer")
-        );
-        if (!doSecurityAnswersMatch) {
-            console.log('firebaseRecoverPassword - Security answers do not match');
-            const badRequestResponse: RecoverPasswordDtoResponse = {
-                statusCode: 400,
-                message: 'WRONGCREDENTIALS',
-            };
-            return badRequestResponse;
-        }
-
-        const hashedPassword = singleUserSnap.get("password");
-        const newHashedPassword = await this.hashService.hashString(new_password);
-        const email: string = singleUserSnap.get("email");
-
+    //
+    async firebaseForgotPassword(email: string): Promise<UpdateUserResponseDto> {
         try {
-            const userCredential = await signInWithEmailAndPassword(this.firebaseService.auth, email, hashedPassword);
+            const user = await this.firebaseService.getUserByEmail(email);
 
-            if (userCredential) {
-                console.log('firebaseRecoverPassword - User credential found');
-
-                try {
-                    const userUpdated = await firebaseAdminAuth.getAuth().updateUser(userID, {
-                        password: newHashedPassword
-                    });
-
-                    if (userUpdated) {
-                        await updateDoc(singleUserReference, {
-                            password: newHashedPassword
-                        });
-                    } else {
-                        console.log('firebaseRecoverPassword - User not found during password update');
-                        throw new BadRequestException('USERNOTFOUND');
+            if (!user) {
+                const response: UpdateUserResponseDto = {
+                    status: 'error',
+                    code: 400,
+                    message: 'There was an error processing the request, please write the email again.',
+                    data: {
+                        result: {}
                     }
-
-                } catch (error: unknown) {
-                    console.warn(`firebaseRecoverPassword - Error while updating user password: ${error}`);
-                }
-
-                try {
-                    await this.firebaseService.auth.signOut();
-                } catch (error: unknown) {
-                    console.warn(`firebaseRecoverPassword - Error while signing out: ${error}`);
-                }
-
-                const recoverPasswordDtoResponse: RecoverPasswordDtoResponse = { statusCode: 201, message: 'NEWPASSWORDASSIGNED' }
-                console.log('firebaseRecoverPassword - New Password Assigned!');
-                return recoverPasswordDtoResponse;
-            } else {
-                console.log('firebaseRecoverPassword - User not found');
-                throw new BadRequestException('USERNOTFOUND');
+                };
+                return response;
             }
+
+            await sendPasswordResetEmail(this.firebaseService.auth, email);
+
+            const response: UpdateUserResponseDto = {
+                status: 'success',
+                code: 200,
+                message: 'Password reset email sent successfully.',
+                data: {
+                    result: {}
+                }
+            };
+            return response;
         } catch (error: unknown) {
-            console.warn(`firebaseRecoverPassword - Error during user authentication: ${error}`);
-            throw new InternalServerErrorException('AUTHENTICATIONERROR');
+            console.warn(`[ERROR]: ${error}`);
+            const response: UpdateUserResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'There was an error processing the request.',
+                data: {
+                    result: {}
+                }
+            };
+            return response;
         }
     }
 
 
 
-
+    //
     @ApiOkResponse({ description: 'Password successfully changed', type: ChangePasswordDtoResponse })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid password or password change failed' })
     @ApiInternalServerErrorResponse({ description: 'Internal server error' })
@@ -359,17 +358,19 @@ export class AuthService {
         const { password, new_password } = changePasswordDto;
 
         if (new_password.length < 8 || new_password.length > 30) {
-            const badRequestResponse: ChangePasswordDtoResponse = {
-                statusCode: 400,
+            const response: ChangePasswordDtoResponse = {
+                status: 'error',
+                code: 400,
                 message: 'Password length must be between 8 and 30 characters',
+                data: {
+                    result: {}
+                }
             };
-            return badRequestResponse;
+            return response;
         }
 
         const userID = this.usersService.extractID(jwtToken);
         const singleUserReference = doc(this.firebaseService.usersCollection, userID);
-        const singleUserSnap = await getDoc(singleUserReference);
-        this.usersService.passwordCheck(password, singleUserSnap);
 
         const newHashedPassword = await this.hashService.hashString(new_password);
 
@@ -377,46 +378,65 @@ export class AuthService {
             await updateDoc(singleUserReference, {
                 password: newHashedPassword
             });
+
+            await auth().updateUser(userID, {
+                password: new_password,
+            });
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
         }
 
         try {
             firebaseAdminAuth.getAuth().updateUser(userID, {
-                password: newHashedPassword
+                password: new_password
             })
         } catch (error: unknown) {
             console.warn(`[ERROR]: ${error}`);
         }
         console.log('Password Changed Succesfully!')
-        const changePasswordDtoResponse: ChangePasswordDtoResponse = { statusCode: 200, message: 'NEWPASSWORDASSIGNED' }
-        return changePasswordDtoResponse;
+        const response: ChangePasswordDtoResponse = {
+            status: 'success',
+            code: 200,
+            message: 'Request successfully processed.',
+            data: {
+                result: {}
+            }
+        };
+        return response;
     }
 
-
-
-    @ApiOkResponse({ description: 'Logout successful', type: LogOutResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+    //
     async firebaseLogout(): Promise<LogOutResponseDto> {
         try {
             this.firebaseService.auth.signOut;
         } catch (error: unknown) {
-            console.warn(`[ERROR]: ${error}`);
+            const response: LogOutResponseDto = {
+                status: 'error',
+                code: 400,
+                message: 'There was an error processing the request.',
+                data: {
+                    result: {}
+                }
+            };
+            return response;
         }
-        const logoutResponseDto: LogOutResponseDto = { statusCode: 200, message: 'LOGOUTSUCCESSFUL' }
-        console.log('User logged out successfully!')
-        return logoutResponseDto;
+        const response: LogOutResponseDto = {
+            status: 'success',
+            code: 200,
+            message: 'Request successfully processed.',
+            data: {
+                result: {}
+            }
+        };
+        return response;
     }
 
 
 
-    @ApiOkResponse({ description: 'Users retrieved successfully', type: GetUsersResponseDto })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
     async getUsers(): Promise<GetUsersResponseDto> {
         try {
             console.log('Initializing getUsers...');
 
-            // Tries to use data in cache if it exists
             const cachedUsers = await this.firebaseService.getCollectionData('users');
             if (cachedUsers.length > 0) {
                 console.log('Using cached users data.');
@@ -434,20 +454,12 @@ export class AuthService {
                     phoneNumber: user.phoneNumber,
                     active: user.active,
                     profilePicture: user.profilePicture,
-
-
                 }));
 
-                const getUsersDtoResponse: GetUsersResponseDto = {
-                    statusCode: 200,
-                    message: "USERSGOT",
-                    usersFound: sanitizedCachedUsers,
-                };
+                const getUsersDtoResponse: GetUsersResponseDto = new GetUsersResponseDto('success', 200, 'Users retrieved successfully', { usersFound: sanitizedCachedUsers });
                 return getUsersDtoResponse;
             }
 
-
-            // If there is no data, it uses firestore instead
             const usersRef = this.firebaseService.usersCollection;
             const usersQuery = query(usersRef, orderBy("name"));
             console.log('User query created.');
@@ -472,41 +484,31 @@ export class AuthService {
                     phoneNumber: data.phoneNumber,
                     active: data.active,
                     profilePicture: data.profilePicture,
-
-
-
                 });
             });
             console.log('Users data collected.');
 
-            // the data is saved in cache for future queries
             this.firebaseService.setCollectionData('users', queryResult);
 
-            const getUsersDtoResponse: GetUsersResponseDto = {
-                statusCode: 200,
-                message: "USERSRETRIEVED",  //REVISAR
-                usersFound: queryResult,
-            };
+            const getUsersDtoResponse: GetUsersResponseDto = new GetUsersResponseDto('success', 200, 'Users retrieved successfully', { usersFound: queryResult });
             console.log('Response created.');
 
             return getUsersDtoResponse;
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the users.');
+            const getUsersDtoResponse: GetUsersResponseDto = new GetUsersResponseDto('error', 400, 'An error occurred, bad request.', { });
+            return getUsersDtoResponse;
         }
     }
 
 
 
 
-    @ApiOkResponse({ description: 'User retrieved successfully', type: GetUsersResponseDto })
-    @ApiNotFoundResponse({ description: 'User not found' })
-    @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+   
     async getSingleUser(id: string): Promise<GetUsersResponseDto> {
         try {
             console.log('Initializing getSingleUser...');
 
-            // Query Firestore directly to retrieve user data
             const usersRef = this.firebaseService.usersCollection;
             const usersQuery = query(usersRef, where("id", "==", id));
             console.log('User query created.');
@@ -535,18 +537,19 @@ export class AuthService {
             });
             console.log('User data collected.');
 
-            const getSingleUserDtoResponse: GetUsersResponseDto = {
-                statusCode: queryResult.length > 0 ? 200 : 404,
-                message: queryResult.length > 0 ? "USER_ACCOUNT_INFORMATION_RETRIEVED" : "USERNOTFOUND",
-                usersFound: queryResult,
-            };
+            const getSingleUserDtoResponse: GetUsersResponseDto = new GetUsersResponseDto(
+                queryResult.length > 0 ? 'success' : 'error',
+                queryResult.length > 0 ? 200 : 404,
+                queryResult.length > 0 ? 'User data retrieved successfully' : 'User not found, bad request.',
+                { usersFound: queryResult }
+            );
             console.log('Response created.');
 
             return getSingleUserDtoResponse;
         } catch (error) {
             console.error('An error occurred:', error);
-            throw new Error('There was an error retrieving the user.');
-        }
+            const getUsersDtoResponse: GetUsersResponseDto = new GetUsersResponseDto('error', 400, 'An error occurred, bad request.', {});
+            return getUsersDtoResponse;        }
     }
 
 
@@ -619,113 +622,120 @@ export class AuthService {
 
 
 
-
-    async updateUser(newData: Partial<UpdateUserDto>): Promise<UpdateUserResponseDto> {
+    //
+    async updateUser(userId: string, newData: Partial<UpdateUserDto>): Promise<UpdateUserResponseDto> {
         try {
-            console.log('Initializing updateUser...');
+            const userDocumentRef: DocumentReference = doc(this.firebaseService.fireStore, 'users', userId);
+            const userDocSnapshot = await getDoc(userDocumentRef);
 
-
-
-            const {
-                username,
-                name,
-                description,
-                country,
-                phoneNumber,
-                active,
-                new_email,
-                id
-            } = newData;
+            if (!userDocSnapshot.exists()) {
+                const response: UpdateUserResponseDto = {
+                    status: 'error',
+                    code: 404,
+                    message: 'The user does not exist',
+                    data: {
+                        result: {}
+                    }
+                };
+                return response;
+            }
 
             const validationErrors = await validate(newData, { skipMissingProperties: true });
 
-
-
             const usersCollectionRef = admin.firestore().collection('users');
-
-            const querySnapshot = await usersCollectionRef.where('id', '==', id).get();
+            const querySnapshot = await usersCollectionRef.where('id', '==', userId).get();
 
             if (querySnapshot.empty) {
-                console.log(`The user with the id "${id}" does not exist.`);
                 const notFoundResponse: UpdateUserResponseDto = {
-                    statusCode: 404,
-                    message: 'USERNOTFOUND',
+                    status: 'error',
+                    code: 404,
+                    message: 'Invalid credentials.',
+                    data: {
+                        result: {}
+                    }
                 };
                 return notFoundResponse;
             }
 
             const usersRef = collection(this.firebaseService.fireStore, 'users');
 
-            if (username) {
-                const customUserWhere: QueryFieldFilterConstraint = where('username', '==', username);
-                console.log('customUserWhere:', customUserWhere);
-
+            if (newData.username) {
+                const customUserWhere: QueryFieldFilterConstraint = where('username', '==', newData.username);
                 const userQuery = query(usersRef, customUserWhere);
-
                 const userQuerySnapshot = await getDocs(userQuery);
 
                 if (!userQuerySnapshot.empty) {
                     const response: UpdateUserResponseDto = {
-                        statusCode: 400,
-                        message: 'USERNAME ALREADY EXISTS',
+                        status: 'error',
+                        code: 400,
+                        message: 'Username already exists. Try a different one.',
+                        data: {
+                            result: {}
+                        }
                     };
                     return response;
                 }
             }
 
-            if (new_email) {
+            if (newData.email) {
                 try {
                     const auth = getAuth();
-                    const userCredential = await updateEmail(auth.currentUser, new_email);
-                    console.log('Email Updated in Firebase Auth.');
+                    await updateEmail(auth.currentUser, newData.email);
                 } catch (error) {
-                    console.warn(`[ERROR]: ${error}`);
                     const emailUpdateError: UpdateUserResponseDto = {
-                        statusCode: 400,
-                        message: 'EMAIL UPDATE ERROR',
+                        status: 'error',
+                        code: 400,
+                        message: 'Email could not be updated, please try again',
+                        data: {
+                            result: {}
+                        }
                     };
                     return emailUpdateError;
                 }
 
                 try {
-                    const singleUserReference = doc(this.firebaseService.usersCollection, id);
+                    const singleUserReference = doc(this.firebaseService.usersCollection, userId);
                     await updateDoc(singleUserReference, {
-                        email: new_email
+                        email: newData.email
                     });
-                    console.log('Email updated in Firestore:', new_email);
                 } catch (error) {
-                    console.warn(`[ERROR]: ${error}`);
                     const firestoreEmailUpdateError: UpdateUserResponseDto = {
-                        statusCode: 400,
-                        message: 'EMAIL UPDATE ERROR',
+                        status: 'error',
+                        code: 400,
+                        message: 'Email could not be updated, please try again',
+                        data: {
+                            result: {}
+                        }
                     };
                     return firestoreEmailUpdateError;
                 }
             }
 
-            const batch = admin.firestore().batch();
-            querySnapshot.forEach((doc) => {
-                batch.update(doc.ref, newData);
-            });
+            const userUpdateRef = query(usersRef, where('id', '==', userId));
+            const userUpdateSnapshot = await getDocs(userUpdateRef);
 
-            await batch.commit();
-            console.log(`Updated info for user with id "${id}"`);
+            if (!userUpdateSnapshot.empty) {
+                const userDocRef = userUpdateSnapshot.docs[0].ref;
+                console.log(newData)
+                await updateDoc(userDocRef, newData);
+            }
 
-
-            //Update cache
             const cachedUsers = await this.firebaseService.getCollectionData('users');
-            const cachedUserIndex = cachedUsers.findIndex(user => user.id === id);
+            const cachedUserIndex = cachedUsers.findIndex(user => user.id === userId);
+
             if (cachedUserIndex !== -1) {
-                const updatedCachedUser = { id, ...newData };
+                const updatedCachedUser = { id: userId, ...newData };
                 cachedUsers[cachedUserIndex] = updatedCachedUser;
                 await this.firebaseService.setCollectionData('users', cachedUsers);
             }
 
-
-
             const response: UpdateUserResponseDto = {
-                statusCode: 200,
-                message: 'USERUPDATEDSUCCESSFULLY',
+                status: 'success',
+                code: 200,
+                message: 'The user was updated correctly.',
+                data: {
+                    result: {}
+                }
             };
 
             return response;
@@ -736,6 +746,7 @@ export class AuthService {
     }
 
 
+    
 
 
     async getUsersEarnings(id: string): Promise<GetUsersEarningsResponseDto> {
@@ -747,13 +758,7 @@ export class AuthService {
             const userQuerySnapshot = await getDocs(userQuery);
 
             if (userQuerySnapshot.empty) {
-                const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
-                    404,
-                    'USERNOTFOUNDORCOURSESEARNINGSMISSING',
-                    []
-                );
-
-                return usersEarningsResponse;
+                return new GetUsersEarningsResponseDto('error', 404, 'Bad request. User not found.', {});
             }
 
             const userDoc = userQuerySnapshot.docs[0];
@@ -768,13 +773,7 @@ export class AuthService {
                 totalEarnings: totalEarnings
             };
 
-            const usersEarningsResponse: GetUsersEarningsResponseDto = new GetUsersEarningsResponseDto(
-                200,
-                'EARNINGSRETRIEVEDSUCCESSFULLY',
-                [earningsInfo]
-            );
-
-            return usersEarningsResponse;
+            return new GetUsersEarningsResponseDto('success', 200, 'Earnings retrieved successfully', { earningsInfo });
         } catch (error) {
             console.error('An error occurred:', error);
             throw new Error('There was an error retrieving user earnings.');
@@ -784,32 +783,20 @@ export class AuthService {
 
 
 
-
     async uploadProfilePicture(id: string, file: any): Promise<UpdateUserResponseDto> {
         console.log('Initializing Upload of Profile Picture...');
         try {
             const maxFileSize = 10 * 1024 * 1024; // 10 MB
 
-            console.log('Before')
             const usersCollectionRef = admin.firestore().collection('users');
             const userDoc = await usersCollectionRef.doc(id).get();
-            console.log('After')
-
 
             if (!userDoc.exists) {
-                const badRequestResponse: UpdateUserResponseDto = {
-                    statusCode: 400,
-                    message: 'USERNOTFOUND',
-                };
-                return badRequestResponse;
+                return new UpdateUserResponseDto('error', 400, 'User was not found', {});
             }
 
             if (file.size > maxFileSize) {
-                const badRequestResponse: UpdateUserResponseDto = {
-                    statusCode: 400,
-                    message: 'INVALID INPUT',
-                };
-                return badRequestResponse;
+                return new UpdateUserResponseDto('error', 400, 'Bad request. File exceeds the maximun size of 10MB', {});
             }
 
             const newProfilePictureId: string = uuidv4();
@@ -847,12 +834,9 @@ export class AuthService {
                 expires: '01-01-2100',
             });
 
-
-           
-
             await usersCollectionRef.doc(id).update({ profilePicture: url });
 
-            //Update cache
+            // Update cache
             const cachedUsers = await this.firebaseService.getCollectionData('users');
             const cachedUserIndex = cachedUsers.findIndex(user => user.id === id);
             if (cachedUserIndex !== -1) {
@@ -860,19 +844,13 @@ export class AuthService {
                 await this.firebaseService.setCollectionData('users', cachedUsers);
             }
 
-
-            const response: UpdateUserResponseDto = {
-                statusCode: 200,
-                message: 'USERUPDATEDSUCCESSFULLY',
-            };
-
-            return response;
+            return new UpdateUserResponseDto('success', 200, 'Picture updated successfully', { profilePicture: url });
         } catch (error) {
             console.error('There was an error uploading the picture:', error);
-            throw new HttpException(`${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new UpdateUserResponseDto('error', 400, 'Bad request. Please, try again', {});
+
         }
     }
-
 
 
 

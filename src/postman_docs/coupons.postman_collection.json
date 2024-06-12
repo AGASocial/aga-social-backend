@@ -33,11 +33,11 @@
 		{
 			"name": "Actualizar Coupon",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"code\": \"DEFENSA144\",\r\n  \"description\": \"hola\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-11-11\",\r\n  \"maxUses\": 7,\r\n  \"maxUsesPerUser\": 7,\r\n  \"status\": \"available\",\r\n  \"assetId\": \"65c8cf10-3726-4776-a35a-b0e5867dcf64\"\r\n\r\n}\r\n",
+					"raw": "{\r\n  //\"code\": \"DEFENSA144\",\r\n  \"description\": \"hola\",\r\n  \"discountType\": \"percentual\",\r\n  \"discountAmount\": 20,\r\n  \"expiryDate\": \"2023-11-11\",\r\n  \"maxUses\": 7,\r\n  \"maxUsesPerUser\": 7,\r\n  \"status\": \"available\",\r\n  \"assetId\": \"65c8cf10-3726-4776-a35a-b0e5867dcf64\"\r\n\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,9 +45,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons",
+					"raw": "{{server}}coupons/SUMMER777",
 					"host": [
 						"{{server}}coupons"
+					],
+					"path": [
+						"SUMMER777"
 					]
 				}
 			},
@@ -60,7 +63,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"userId\": \"w7AAlcHgC4ZXl6UIZl8FDkW4aT32\",\r\n  \"couponCode\": \"DEFENSA144\",\r\n  \"resourceType\": \"Ebook\" //or Course\r\n}\r\n",
+					"raw": "{\r\n  \"couponCode\": \"DEFENSA144\",\r\n  \"resourceType\": \"Ebook\" //or Course\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -68,11 +71,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}coupons/assets",
+					"raw": "{{server}}users/0EwINikFVAg7jtRdkZYiTBXN4vW2/coupons/assets",
 					"host": [
-						"{{server}}coupons"
+						"{{server}}users"
 					],
 					"path": [
+						"0EwINikFVAg7jtRdkZYiTBXN4vW2",
+						"coupons",
 						"assets"
 					]
 				}

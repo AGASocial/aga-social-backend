@@ -4,23 +4,38 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class RecoverPasswordDtoResponse {
     @ApiProperty({
-        description: 'Http response status code',
-        minimum: 1,
-        default: 1,
-        type: Number
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, it should return "NEWPASSWORDASSIGNED"',
-        minimum: 1,
-        default: 1,
-        type: String
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    public message: string;
-    
+    code: number;
+
+    @ApiProperty({
+        example: 'Request successfully processed.',
+        description: 'Response message.'
+    })
+    message: string;
+
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
+
 }

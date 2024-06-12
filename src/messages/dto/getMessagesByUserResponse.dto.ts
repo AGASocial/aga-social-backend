@@ -5,39 +5,38 @@ import { DocResult } from "../../utils/docResult.entity";
 export class GetMessagesByUserResponseDto {
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "MESSAGESRETRIEVEDSUCCESSFULLY"',
-        default: 'MESSAGESRETRIEVEDSUCCESSFULLY',
-        type: String,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    code: number;
 
     @ApiProperty({
-        description: 'Array containing the info of every message found'
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    public messagesFound: DocResult[]
+    message: string;
 
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
 
-
-    constructor(statusCode: number, message: string, messagesFound: DocResult[]) {
-        this.statusCode = statusCode;
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
-        this.messagesFound = messagesFound;
-
-
+        this.data = {
+            result: result
+        };
     }
+
 }

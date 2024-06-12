@@ -3,30 +3,40 @@ import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from
 
 export class UpdateMediaResponseDto {
 
-    @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
-    })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "MEDIAUPDATEDSUCCESSFULLY"',
-        default: 'MEDIAUPDATEDSUCCESSFULLY',
-        type: String,
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
+    status: string;
 
+    @ApiProperty({
+        example: 200,
+        description: 'Response code.'
+    })
+    code: number;
 
-    constructor(statusCode: number, message: string) {
-        this.statusCode = statusCode;
+    @ApiProperty({
+        example: 'Request successfully processed.',
+        description: 'Response message.'
+    })
+    message: string;
+
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
         this.message = message;
+        this.data = {
+            result: result
+        };
     }
+
 }

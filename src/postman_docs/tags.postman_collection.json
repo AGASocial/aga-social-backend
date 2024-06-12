@@ -33,11 +33,11 @@
 		{
 			"name": "Actualizar Tag",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"0076d467-95d1-4250-b494-145b4bb090bd\",\r\n    \"active\": true\r\n    //\"name\": \"Hola\"\r\n}\r\n",
+					"raw": "{\r\n    \"active\": true,\r\n    \"name\": \"Hola\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -45,9 +45,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}tags",
+					"raw": "{{server}}tags/5AGdF617CVpLyGeZerwa",
 					"host": [
 						"{{server}}tags"
+					],
+					"path": [
+						"5AGdF617CVpLyGeZerwa"
 					]
 				}
 			},

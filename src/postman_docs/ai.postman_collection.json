@@ -1,0 +1,139 @@
+{
+	"info": {
+		"_postman_id": "0dffef77-347f-4da7-8795-d36faf757d97",
+		"name": "ai",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28581410"
+	},
+	"item": [
+		{
+			"name": "prompts",
+			"item": [
+				{
+					"name": "Create Prompt",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"messages\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"{{NOMBRE}} necesita ayuda profesional, su profesion es {{PROFESION}}\"\r\n    }\r\n  ],\r\n  \"creator\": \"0EwINikFVAg7jtRdkZYiTBXN4vW2\",\r\n  \"company\": \"MyCompany\",\r\n  \"app\": \"MyApp\",\r\n  \"tags\": [\r\n    \"tag1\",\r\n    \"tag2\"\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server}}prompts",
+							"host": [
+								"{{server}}prompts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Prompt",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"messages\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"{{NOMBRE}} necesita ayuda profesional, su profesion es {{PROFESION}}\"\r\n    }\r\n  ],\r\n  \"company\": \"MyCompany\",\r\n  \"app\": \"MyApp\",\r\n  \"tags\": [\r\n    \"tag1\",\r\n    \"tag2\"\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server}}prompts/B9Lkp2Ny4x89ldoxTxCn",
+							"host": [
+								"{{server}}prompts"
+							],
+							"path": [
+								"B9Lkp2Ny4x89ldoxTxCn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Prompts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server}}prompts",
+							"host": [
+								"{{server}}prompts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Prompt",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server}}prompts/B9Lkp2Ny4x89ldoxTxCn",
+							"host": [
+								"{{server}}prompts"
+							],
+							"path": [
+								"B9Lkp2Ny4x89ldoxTxCn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Prompt",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{server}}prompts/B9Lkp2Ny4x89ldoxTxCn",
+							"host": [
+								"{{server}}prompts"
+							],
+							"path": [
+								"B9Lkp2Ny4x89ldoxTxCn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Prompt",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"parameters\": {\r\n    \"NOMBRE\": \"Alex\",\r\n    \"PROFESION\": \"Medico\"\r\n  },\r\n  \"aiparameters\": {\r\n    \"model\": \"gpt-3.5-turbo\"\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server}}prompts/B9Lkp2Ny4x89ldoxTxCn/completions",
+							"host": [
+								"{{server}}prompts"
+							],
+							"path": [
+								"B9Lkp2Ny4x89ldoxTxCn",
+								"completions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

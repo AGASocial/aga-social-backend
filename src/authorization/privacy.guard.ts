@@ -10,7 +10,7 @@ export class PrivacyGuard implements CanActivate {
     constructor(private reflector: Reflector, private usersService: UsersService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        console.log('PrivacyGuard - Checking privacy...'); // Agregado console.log()
+        console.log('PrivacyGuard - Checking privacy...'); 
 
         const exceptedRoles = this.reflector.getAllAndOverride<string[]>('excepted_roles', [
             context.getHandler(),

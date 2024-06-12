@@ -4,33 +4,38 @@ import { IsString, IsNotEmpty, IsAlpha, IsUppercase, IsNumber, IsPositive } from
 export class UpdateMessageStatusResponseDto {
 
     @ApiProperty({
-        description: 'HTTP response status code',
-        default: 201,
-        type: Number,
+        example: 'success',
+        description: 'Response status.'
     })
-    @IsNumber()
-    @IsNotEmpty()
-    @IsPositive()
-    public statusCode: number;
+    status: string;
 
     @ApiProperty({
-        description: 'Descriptive response message, should return "MESSAGESTATUSSETSUCCESSFULLY"',
-        default: 'MESSAGESTATUSSETSUCCESSFULLY',
-        type: String,
+        example: 200,
+        description: 'Response code.'
     })
-    @IsString()
-    @IsNotEmpty()
-    @IsAlpha()
-    @IsUppercase()
-    public message: string;
-
+    code: number;
 
     @ApiProperty({
-        description: 'Timestamp of when the message was received',
-        example: '2023-08-10T13:00:00Z',
-        type: Date,
+        example: 'Request successfully processed.',
+        description: 'Response message.'
     })
-    public readDate?: Date;
+    message: string;
 
+    @ApiProperty({
+        type: 'object',
+        description: 'Response data, contains the result.'
+    })
+    data: {
+        result: Record<string, any>;
+    };
+
+    constructor(status: string, code: number, message: string, result: Record<string, any>) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.data = {
+            result: result
+        };
+    }
 
 }

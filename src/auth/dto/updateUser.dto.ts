@@ -10,7 +10,6 @@ export class UpdateUserDto {
         example: 'Test.1',
         type: String
     })
-    @IsString()
     @MaxLength(20)
     @Matches('^[A-Z](?=.{0}[a-z]+[-._]{1}[1-9]{1,4}$).{1,20}$', '', { message: 'INVALIDUSERNAME' })
     username?: string;  //Username
@@ -22,18 +21,10 @@ export class UpdateUserDto {
         example: 'Juan Lopez',
         type: String
     })
-    @IsAlpha()
-    @IsString()
     @Matches('^(?=.*[a-zA-Z]{1,}).{1,60}$', '', { message: 'Name must be a real name, no numbers nor special characters' })
     public name?: string;  //Real Name
 
-    @ApiProperty({
-        description: 'Security answer used by the user for recovering access when their current password has been lost',
-        example: 'perfect blue',
-        type: String
-    })
-    @IsString()
-    security_answer?: string; //Security Answer
+   
 
 
     @ApiProperty({
@@ -41,7 +32,6 @@ export class UpdateUserDto {
         example: 'Hello, I am...',
         type: String
     })
-    @IsString()
     description?: string;
 
 
@@ -50,7 +40,6 @@ export class UpdateUserDto {
         example: 'Venezuela',
         type: String
     })
-    @IsString()
     country?: string;
 
     @ApiProperty({
@@ -58,7 +47,6 @@ export class UpdateUserDto {
         example: '+58 252 6673',
         type: String
     })
-    @IsString()
     phoneNumber?: string;
 
     @ApiProperty({
@@ -67,7 +55,6 @@ export class UpdateUserDto {
         default: true,
         type: String
     })
-    @IsBoolean()
     active?: boolean = true;
 
 
@@ -79,19 +66,11 @@ export class UpdateUserDto {
         example: 'test@gmail.com',
         type: String
     })
-    @IsEmail()
-    @IsString()
-    new_email?: string; //Email
+    email?: string; //Email
 
 
 
-    @ApiProperty({
-        description: 'Firestore ID of the user',
-        example: 'abcdef123456',
-        type: String
-    })
-    id?: string;
-
+  
 }
 
 
