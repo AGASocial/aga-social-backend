@@ -164,6 +164,52 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Prompt Logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server}}prompts/B9Lkp2Ny4x89ldoxTxCn/logs",
+							"host": [
+								"{{server}}prompts"
+							],
+							"path": [
+								"B9Lkp2Ny4x89ldoxTxCn",
+								"logs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Prompt Logs By Date",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server}}prompts/B9Lkp2Ny4x89ldoxTxCn/logs?startDate=2024-01-10&endDate=2025-02-03",
+							"host": [
+								"{{server}}prompts"
+							],
+							"path": [
+								"B9Lkp2Ny4x89ldoxTxCn",
+								"logs"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2024-01-10"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-02-03"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}

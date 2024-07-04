@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { doc, getDoc, collection, addDoc, updateDoc, deleteDoc, getDocs, setDoc} from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, updateDoc, deleteDoc, getDocs, setDoc, where, query} from 'firebase/firestore';
 import { FirebaseService } from '../firebase/firebase.service';
 import { CreatePromptDto } from './dto/createPrompt.dto';
 import { ResponseDto } from '../shared/dto/response.dto';
@@ -333,6 +333,53 @@ export class AiService {
             );
         }
     }
+
+
+  async getPromptLogs(promptId: string, startDate?: string, endDate?: string): Promise<ResponseDto> {
+    try {
+        console.log('Retrieving logs for prompt:', promptId);
+
+        const logsRef = collection(this.firebaseService.fireStore, 'promptLogs');
+        const logsQuery = query(logsRef, where('promptId', '==', promptId));
+        const querySnapshot = await getDocs(logsQuery);
+
+        if (querySnapshot.empty) {
+            console.log('No logs found for prompt:', promptId);
+            return new ResponseDto('error', 404, 'LogsNotFound', null);
+        }
+
+        let logs = querySnapshot.docs.map(doc => ({ ...doc.data() }));
+
+        if (startDate || endDate) {
+            const startDateTimestamp = startDate ? new Date(startDate).getTime() : null;
+            const endDateTimestamp = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+
+            logs = logs.filter(log => {
+                const logDate = new Date(log.executionTime).getTime();
+                return (!startDateTimestamp || logDate >= startDateTimestamp) &&
+                       (!endDateTimestamp || logDate <= endDateTimestamp);
+            });
+        }
+
+        console.log('Logs retrieved successfully for prompt:', promptId);
+        return new ResponseDto(
+            'success',
+            200,
+            'LogsRetrievedSuccessfully',
+            logs,
+        );
+    } catch (error) {
+        console.error('Error retrieving prompt logs:', error);
+        return new ResponseDto(
+            'error',
+            400,
+            `UnableToCompleteOperation: ${error.message}`,
+            null,
+        );
+    }
+}
+
+
 
 
 

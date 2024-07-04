@@ -201,5 +201,36 @@ export class AiController {
             });
         }
     }
+    @ApiOperation({ summary: 'Get logs for a prompt' })
+    @ApiOkResponse({ description: 'Logs retrieved successfully', type: ResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @ApiParam({ name: 'id', required: true, description: 'The ID of the prompt', example: 'B9Lkp2Ny4x89ldoxTxCn' })
+    @ApiQuery({ name: 'startDate', required: false, description: 'Start date for filtering logs', example: '2023-01-01' })
+    @ApiQuery({ name: 'endDate', required: false, description: 'End date for filtering logs', example: '2023-01-31' })
+    @Get(':id/logs')
+    async getPromptLogsEndpoint(
+        @Res() res: Response,
+        @Param('id') promptId: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string
+    ): Promise<void> {
+        try {
+            const response: ResponseDto = await this.aiService.getPromptLogs(promptId, startDate, endDate);
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data,
+            });
+        } catch (error) {
+            console.error('Error retrieving prompt logs:', error);
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to retrieve prompt logs',
+                data: {},
+            });
+        }
+    }
 
 }
