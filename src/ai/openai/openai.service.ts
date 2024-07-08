@@ -24,12 +24,11 @@ export class OpenAiService {
                 apiKey: apiKey
             });
 
-            console.log('OpenAI initialized:', this.openai);
+            console.log('OpenAI initialized:');
         }
     }
 
     async getOpenAI() {
-        console.log('Getting OpenAI:', this.openai);
         await this.initializeOpenAi();
         return this.openai;
     }

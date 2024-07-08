@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"messages\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"{{NOMBRE}} necesita ayuda profesional, su profesion es {{PROFESION}}\"\r\n    }\r\n  ],\r\n  \"creator\": \"0EwINikFVAg7jtRdkZYiTBXN4vW2\",\r\n  \"company\": \"MyCompany\",\r\n  \"app\": \"MyApp\",\r\n  \"tags\": [\r\n    \"tag1\",\r\n    \"tag2\"\r\n  ]\r\n}",
+							"raw": "{\r\n  \"messages\": [\r\n    {\r\n      \"role\": \"user\",\r\n      \"content\": \"Este es el prompt numero 1 de una secuencia, dime la capital del estado {{ESTADO}} de {{PAIS}}\"\r\n    }\r\n  ],\r\n  \"creator\": \"0EwINikFVAg7jtRdkZYiTBXN4vW2\",\r\n  \"company\": \"MyCompany\",\r\n  \"app\": \"MyApp\",\r\n  \"tags\": [\r\n    \"tag1\",\r\n    \"tag2\"\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -206,6 +206,134 @@
 									"key": "endDate",
 									"value": "2025-02-03"
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "sequences",
+			"item": [
+				{
+					"name": "Create Sequence",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Secuencia de Ejemplo IF\",\r\n  \"description\": \"IF\",\r\n  \"prompts\": [\r\n    {\r\n      \"id\": \"HbDPZZIkkEd4jHY2m6Qi\",\r\n      \"type\": \"NONE\"\r\n    },\r\n    {\r\n      \"id\": \"Tm9U34J6qeVOcvmKZhFC\",\r\n      \"type\": \"IF\",\r\n      \"regexp\": \"\\bMaracaibo\\b\"\r\n    }\r\n  ]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server}}sequences",
+							"host": [
+								"{{server}}sequences"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Sequence",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Sequence 1 actualizada\",\r\n  \"description\": \"This is a description for Sequence 1 actualizada.\"\r\n  //\"prompts\": [\"8yyWg7lfpBX6uw3Vgyqp\", \"B9Lkp2Ny4x89ldoxTxCn\"]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server}}sequences/cCnw2hDgX1FB1tzS1pTF",
+							"host": [
+								"{{server}}sequences"
+							],
+							"path": [
+								"cCnw2hDgX1FB1tzS1pTF"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Sequence",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server}}sequences/cCnw2hDgX1FB1tzS1pTF",
+							"host": [
+								"{{server}}sequences"
+							],
+							"path": [
+								"cCnw2hDgX1FB1tzS1pTF"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All sequences",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server}}sequences",
+							"host": [
+								"{{server}}sequences"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Sequence",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{server}}sequences/WDLFjBcPp4LebkUTf8YV",
+							"host": [
+								"{{server}}sequences"
+							],
+							"path": [
+								"WDLFjBcPp4LebkUTf8YV"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Entire Sequence",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"parameters\": {\r\n    \"PAIS\": \"Venezuela\",\r\n    \"ESTADO\": \"Zulia\"\r\n  },\r\n  \"aiparameters\": {\r\n    \"model\": \"gpt-3.5-turbo\"\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server}}sequences/dlUEsLmBSnRUDE6eTqRr",
+							"host": [
+								"{{server}}sequences"
+							],
+							"path": [
+								"dlUEsLmBSnRUDE6eTqRr"
 							]
 						}
 					},
