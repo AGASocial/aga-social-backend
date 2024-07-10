@@ -11,7 +11,6 @@ import { CreateSequenceDto } from './dto/createSequence.dto';
 import { UpdateSequenceDto } from './dto/updateSequence.dto';
 
 
-@ApiTags('Prompts')
 @Controller()
 export class AiController {
     constructor(private readonly aiService: AiService) { }
@@ -19,6 +18,7 @@ export class AiController {
 
 
 
+    @ApiTags('Prompts')
 
     @ApiOperation({ summary: 'Create a new prompt' })
     @ApiOkResponse({ description: 'Prompt created successfully', type: ResponseDto })
@@ -46,6 +46,7 @@ export class AiController {
     }
 
 
+    @ApiTags('Prompts')
 
     @ApiOperation({ summary: 'Update a prompt' })
     @ApiOkResponse({ description: 'Prompt updated successfully', type: ResponseDto })
@@ -76,6 +77,7 @@ export class AiController {
 
 
 
+    @ApiTags('Prompts')
 
     @ApiOperation({ summary: 'Delete a prompt' })
     @ApiOkResponse({ description: 'Prompt deleted successfully', type: ResponseDto })
@@ -103,6 +105,7 @@ export class AiController {
     }
 
 
+    @ApiTags('Prompts')
 
     @ApiOperation({ summary: 'Get all prompts' })
     @ApiOkResponse({ description: 'Prompts retrieved successfully', type: ResponseDto })
@@ -151,6 +154,7 @@ export class AiController {
     }
 
 
+    @ApiTags('Prompts')
 
     @ApiOperation({ summary: 'Get a prompt by ID' })
     @ApiOkResponse({ description: 'Prompt retrieved successfully', type: ResponseDto })
@@ -177,6 +181,7 @@ export class AiController {
         }
     }
 
+    @ApiTags('Prompts')
 
     @ApiOperation({ summary: 'Execute a prompt' })
     @ApiOkResponse({ description: 'Prompt executed successfully', type: ResponseDto })
@@ -203,6 +208,8 @@ export class AiController {
             });
         }
     }
+    @ApiTags('Prompts')
+
     @ApiOperation({ summary: 'Get logs for a prompt' })
     @ApiOkResponse({ description: 'Logs retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -235,6 +242,8 @@ export class AiController {
         }
     }
 
+    @ApiTags('Sequences')
+
     @ApiOperation({ summary: 'Create a new sequence' })
     @ApiOkResponse({ description: 'Sequence created successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -259,6 +268,8 @@ export class AiController {
             });
         }
     }
+
+    @ApiTags('Sequences')
 
     @ApiOperation({ summary: 'Update a sequence' })
     @ApiOkResponse({ description: 'Sequence updated successfully', type: ResponseDto })
@@ -286,6 +297,9 @@ export class AiController {
         }
     }
 
+
+    @ApiTags('Sequences')
+
     @ApiOperation({ summary: 'Get a sequence by ID' })
     @ApiOkResponse({ description: 'Sequence retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -310,6 +324,9 @@ export class AiController {
             });
         }
     }
+
+
+    @ApiTags('Sequences')
 
     @ApiOperation({ summary: 'Get all sequences' })
     @ApiOkResponse({ description: 'Sequences retrieved successfully', type: ResponseDto })
@@ -336,6 +353,8 @@ export class AiController {
     }
 
 
+    @ApiTags('Sequences')
+
     @ApiOperation({ summary: 'Delete a sequence' })
     @ApiOkResponse({ description: 'Sequence deleted successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: There was an error with the request, try again.' })
@@ -360,6 +379,9 @@ export class AiController {
             });
         }
     }
+
+
+    @ApiTags('Sequences')
 
     @ApiOperation({ summary: 'Execute an entire sequence of prompts' })
     @ApiOkResponse({ description: 'Sequence executed successfully', type: [ResponseDto] })
@@ -390,6 +412,41 @@ export class AiController {
             });
         }
     }
+
+    @ApiTags('Sequences')
+
+    @ApiOperation({ summary: 'Get logs for a sequence' })
+    @ApiOkResponse({ description: 'Logs retrieved successfully', type: ResponseDto })
+    @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
+    @ApiParam({ name: 'sequenceId', required: true, description: 'The ID of the sequence', example: 'cCnw2hDgX1FB1tzS1pTF' })
+    @ApiQuery({ name: 'startDate', required: false, description: 'Start date for filtering logs', example: '2023-01-01' })
+    @ApiQuery({ name: 'endDate', required: false, description: 'End date for filtering logs', example: '2023-01-31' })
+    @Get('sequences/:sequenceId/logs')
+    async getSequenceLogsEndpoint(
+        @Res() res: Response,
+        @Param('sequenceId') sequenceId: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string
+    ): Promise<void> {
+        try {
+            const response: ResponseDto = await this.aiService.getSequenceLogs(sequenceId, startDate, endDate);
+            res.status(response.code).send({
+                status: response.status,
+                code: response.code,
+                message: response.message,
+                data: response.data,
+            });
+        } catch (error) {
+            console.error('Error retrieving sequence logs:', error);
+            res.status(400).send({
+                status: 'error',
+                code: 400,
+                message: 'Failed to retrieve sequence logs',
+                data: {},
+            });
+        }
+    }
+
 }
 
 
