@@ -625,6 +625,20 @@ export class AiService {
             }
 
             console.log('All prompts executed successfully.');
+
+            const sequenceLogData = {
+                sequenceId: sequenceId,
+                executionTime: new Date().toISOString(),
+                results: results,
+            };
+
+            const sequenceLogsRef = collection(this.firebaseService.fireStore, 'sequenceLogs');
+            const sequenceLogDocRef = await addDoc(sequenceLogsRef, sequenceLogData);
+
+            await updateDoc(sequenceLogDocRef, { id: sequenceLogDocRef.id });
+
+            console.log('Sequence log created successfully.');
+
             return new ResponseDto('success', 200, 'AllPromptsExecutedSuccessfully', results);
         } catch (error) {
             console.error('Error executing entire sequence:', error);
@@ -634,6 +648,49 @@ export class AiService {
 
 
 
+    async getSequenceLogs(sequenceId: string, startDate?: string, endDate?: string): Promise<ResponseDto> {
+        try {
+            console.log('Retrieving logs for sequence:', sequenceId);
+
+            const logsRef = collection(this.firebaseService.fireStore, 'sequenceLogs');
+            const logsQuery = query(logsRef, where('sequenceId', '==', sequenceId));
+            const querySnapshot = await getDocs(logsQuery);
+
+            if (querySnapshot.empty) {
+                console.log('No logs found for sequence:', sequenceId);
+                return new ResponseDto('error', 404, 'LogsNotFound', null);
+            }
+
+            let logs = querySnapshot.docs.map(doc => ({ ...doc.data() }));
+
+            if (startDate || endDate) {
+                const startDateTimestamp = startDate ? new Date(startDate).getTime() : null;
+                const endDateTimestamp = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+
+                logs = logs.filter(log => {
+                    const logDate = new Date(log.executionTime).getTime();
+                    return (!startDateTimestamp || logDate >= startDateTimestamp) &&
+                        (!endDateTimestamp || logDate <= endDateTimestamp);
+                });
+            }
+
+            console.log('Logs retrieved successfully for sequence:', sequenceId);
+            return new ResponseDto(
+                'success',
+                200,
+                'LogsRetrievedSuccessfully',
+                logs,
+            );
+        } catch (error) {
+            console.error('Error retrieving sequence logs:', error);
+            return new ResponseDto(
+                'error',
+                400,
+                `UnableToCompleteOperation: ${error.message}`,
+                null,
+            );
+        }
+    }
 
 
 

@@ -338,6 +338,24 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Sequence Logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server}}sequences/dlUEsLmBSnRUDE6eTqRr/logs",
+							"host": [
+								"{{server}}sequences"
+							],
+							"path": [
+								"dlUEsLmBSnRUDE6eTqRr",
+								"logs"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
