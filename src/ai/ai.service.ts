@@ -21,7 +21,7 @@ export class AiService {
         createPromptDto: CreatePromptDto,
     ): Promise<ResponseDto> {
         try {
-            const { creator, messages, company, app, tags } = createPromptDto;
+            const { creator, messages } = createPromptDto;
 
             const userRef = doc(this.firebaseService.fireStore, 'users', creator);
             const userSnapshot = await getDoc(userRef);
@@ -41,9 +41,9 @@ export class AiService {
             const newPrompt: Prompt = {
                 creator,
                 messages,
-                company,
-                app,
-                tags,
+                ...Object.fromEntries(
+                    Object.entries(createPromptDto).filter(([_, v]) => v !== undefined)
+                ),
             };
 
             const newPromptDocRef = await addDoc(promptRef, newPrompt);
@@ -68,6 +68,8 @@ export class AiService {
             return response;
         }
     }
+
+
 
 
     async updatePrompt(id: string, updatePromptDto: UpdatePromptDto): Promise<ResponseDto> {
