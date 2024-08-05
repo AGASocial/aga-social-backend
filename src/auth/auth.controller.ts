@@ -124,7 +124,6 @@ export class AuthController {
           maxAge: refreshCookieAge,
         })
         .header('authorization', `Bearer ${bearer_token}`)
-        .header('userId', userId)
         .header('sessionId', sessionId)
         .header('refreshToken', refresh_token)
         .header('authCookieAge', authCookieAge.toString())
@@ -134,7 +133,9 @@ export class AuthController {
           code: logInTokensResponseDto.code,
           message: logInTokensResponseDto.message,
           data: {
-            result: {},
+            result: {
+              userId: userId,
+            },
           },
         });
     } catch (error) {
