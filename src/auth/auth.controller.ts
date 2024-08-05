@@ -104,8 +104,14 @@ export class AuthController {
       const logInTokensResponseDto: LogInResponseDto =
         await this.authService.firebaseLogin(logInDto);
 
-      const { bearer_token, authCookieAge, refresh_token, refreshCookieAge } =
-        logInTokensResponseDto;
+      const {
+        bearer_token,
+        authCookieAge,
+        refresh_token,
+        refreshCookieAge,
+        userId,
+        sessionId,
+      } = logInTokensResponseDto.data.result;
 
       res
         .status(logInTokensResponseDto.code)
@@ -117,11 +123,19 @@ export class AuthController {
           signed: true,
           maxAge: refreshCookieAge,
         })
+        .header('authorization', `Bearer ${bearer_token}`)
+        .header('userId', userId)
+        .header('sessionId', sessionId)
+        .header('refreshToken', refresh_token)
+        .header('authCookieAge', authCookieAge.toString())
+        .header('refreshCookieAge', refreshCookieAge.toString())
         .send({
           status: logInTokensResponseDto.status,
           code: logInTokensResponseDto.code,
           message: logInTokensResponseDto.message,
-          data: logInTokensResponseDto.data.result,
+          data: {
+            result: {},
+          },
         });
     } catch (error) {
       console.error('Error in firebaseLogin:', error);
