@@ -4,7 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as session from 'express-session';
 import * as passport from 'passport';
-import { cookieAge, cookieSecret, csrfCookieName, csrfSecret, doubleCsrfProtection, jwtCookieSecret } from './utils/constants';
+import { cookieAge, cookieSecret, jwtCookieSecret } from './utils/constants';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -12,6 +12,7 @@ import * as admin from 'firebase-admin';
 import { ConfigService } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 import { OpenAiService } from './ai/openai/openai.service';
+import * as cors from 'cors';
 dotenv.config();
 
 async function bootstrap() {
@@ -19,8 +20,12 @@ async function bootstrap() {
     app.get(OpenAiService).initializeOpenAi();
     const configService: ConfigService = app.get(ConfigService);
 
-
-  
+    //CORS configuration
+    app.use(cors({
+        origin: process.env.CORS_ORIGIN,
+        credentials: true,
+        exposedHeaders: ['Authorization', 'Refreshtoken', 'Sessionid', 'authCookieAge', 'refreshCookieAge'],
+    }));
 
     const firebaseConfig = {
         credential: admin.credential.cert({
@@ -47,11 +52,6 @@ async function bootstrap() {
         console.error('Error initializing Firebase Auth:', error);
     }
 
-    const { initializeApp } = require('firebase-admin/app');
-
-
-
-
     const config = new DocumentBuilder()
         .setTitle('AGA Social Content Backend')
         .setDescription('API para la gestion de recursos digitales de AGA Social')
@@ -70,7 +70,6 @@ async function bootstrap() {
         })
     );
 
-
     app.use(helmet());
     app.enableCors();
     app.use(cookieParser(jwtCookieSecret));
@@ -81,14 +80,10 @@ async function bootstrap() {
         whitelist: true,
     }));
 
-
-
-
     const port = process.env.PORT || 3000;
     await app.listen(port);
     console.log(`App listening on port ${port}`);
 }
-
 
 export { admin };
 bootstrap();
