@@ -123,11 +123,15 @@ export class AuthController {
           signed: true,
           maxAge: refreshCookieAge,
         })
-        .header('authorization', `Bearer ${bearer_token}`)
+        .header('authorization', bearer_token)
         .header('sessionId', sessionId)
         .header('refreshToken', refresh_token)
         .header('authCookieAge', authCookieAge.toString())
         .header('refreshCookieAge', refreshCookieAge.toString())
+        .header(
+          'Access-Control-Expose-Headers',
+          'Authorization, Refreshtoken, Sessionid, authCookieAge, refreshCookieAge',
+        )
         .send({
           status: logInTokensResponseDto.status,
           code: logInTokensResponseDto.code,
