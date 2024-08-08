@@ -956,4 +956,16 @@ export class AuthService {
       );
     }
   }
+
+  //Auth Guard
+  async validateToken(token: string): Promise<boolean> {
+    try {
+      const decoded = this.jwtService.verify(token, { secret: jwtSecret });
+      const user = await this.usersService.getUserById(decoded.id);
+      return !!user;
+    } catch (error) {
+      console.warn(`[ERROR]: ${error}`);
+      return false;
+    }
+  }
 }
