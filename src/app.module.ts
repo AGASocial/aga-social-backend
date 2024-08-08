@@ -72,7 +72,7 @@ import { AiModule } from './ai/ai.module';
 import { AiController } from './ai/ai.controller';
 import { AiService } from './ai/ai.service';
 import { OpenAiService } from './ai/openai/openai.service';
-
+import { AuthGuard } from '@nestjs/passport'; 
 
 @Module({
     imports: [AiModule, PluginCollectionsModule, PluginUsersModule, EmailsModule, TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
@@ -120,15 +120,6 @@ import { OpenAiService } from './ai/openai/openai.service';
         },
     ],
 })
-export class AppModule implements NestModule {
-    configure(consumer: MiddlewareConsumer) {
-      
-        consumer
-            .apply(UnauthenticatedMiddleware)
-            .exclude({ path: 'auth/users/sessions', method: RequestMethod.GET },
-                     { path: 'auth/users', method: RequestMethod.POST },
-        )
-            .forRoutes({ path: '*', method: RequestMethod.ALL });
+export class AppModule  {
 
-    }
 }

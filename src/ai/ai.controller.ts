@@ -3,12 +3,13 @@ import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiOperation, ApiParam, 
 import { AiService } from './ai.service';
 import { CreatePromptDto } from './dto/createPrompt.dto';
 import { UpdatePromptDto } from './dto/updatePrompt.dto';
-import { Body, Controller, Param, Post, Res, Delete, Get, Patch, Query} from '@nestjs/common';
+import { Body, Controller, Param, Post, Res, Delete, Get, Patch, Query, UseGuards} from '@nestjs/common';
 import { ResponseDto } from '../shared/dto/response.dto';
 import { Response } from 'express';
 import { ExecutePromptDto } from './dto/executePrompt.dto';
 import { CreateSequenceDto } from './dto/createSequence.dto';
 import { UpdateSequenceDto } from './dto/updateSequence.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 
 @Controller()
@@ -17,9 +18,8 @@ export class AiController {
 
 
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Prompts')
-
     @ApiOperation({ summary: 'Create a new prompt' })
     @ApiOkResponse({ description: 'Prompt created successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -27,6 +27,7 @@ export class AiController {
     @Post('prompts')
     async createNewPrompt(@Res() res: Response, @Body() createPromptDto: CreatePromptDto): Promise<void> {
         try {
+
             const response: ResponseDto = await this.aiService.createNewPrompt(createPromptDto);
             res.status(response.code).send({
                 status: response.status,
@@ -45,9 +46,8 @@ export class AiController {
         }
     }
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Prompts')
-
     @ApiOperation({ summary: 'Update a prompt' })
     @ApiOkResponse({ description: 'Prompt updated successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -76,9 +76,8 @@ export class AiController {
     }
 
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Prompts')
-
     @ApiOperation({ summary: 'Delete a prompt' })
     @ApiOkResponse({ description: 'Prompt deleted successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -104,9 +103,8 @@ export class AiController {
         }
     }
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Prompts')
-
     @ApiOperation({ summary: 'Get all prompts' })
     @ApiOkResponse({ description: 'Prompts retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -153,9 +151,8 @@ export class AiController {
         }
     }
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Prompts')
-
     @ApiOperation({ summary: 'Get a prompt by ID' })
     @ApiOkResponse({ description: 'Prompt retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -181,8 +178,9 @@ export class AiController {
         }
     }
 
-    @ApiTags('Prompts')
 
+    @UseGuards(AuthGuard('jwt'))
+    @ApiTags('Prompts')
     @ApiOperation({ summary: 'Execute a prompt' })
     @ApiOkResponse({ description: 'Prompt executed successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -208,8 +206,8 @@ export class AiController {
             });
         }
     }
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Prompts')
-
     @ApiOperation({ summary: 'Get logs for a prompt' })
     @ApiOkResponse({ description: 'Logs retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -242,8 +240,8 @@ export class AiController {
         }
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Sequences')
-
     @ApiOperation({ summary: 'Create a new sequence' })
     @ApiOkResponse({ description: 'Sequence created successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -269,8 +267,8 @@ export class AiController {
         }
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Sequences')
-
     @ApiOperation({ summary: 'Update a sequence' })
     @ApiOkResponse({ description: 'Sequence updated successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -297,9 +295,8 @@ export class AiController {
         }
     }
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Sequences')
-
     @ApiOperation({ summary: 'Get a sequence by ID' })
     @ApiOkResponse({ description: 'Sequence retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -325,9 +322,8 @@ export class AiController {
         }
     }
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Sequences')
-
     @ApiOperation({ summary: 'Get all sequences' })
     @ApiOkResponse({ description: 'Sequences retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: There was an error with the request, try again.' })
@@ -352,9 +348,8 @@ export class AiController {
         }
     }
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Sequences')
-
     @ApiOperation({ summary: 'Delete a sequence' })
     @ApiOkResponse({ description: 'Sequence deleted successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: There was an error with the request, try again.' })
@@ -380,9 +375,8 @@ export class AiController {
         }
     }
 
-
+    @UseGuards(AuthGuard('jwt'))
     @ApiTags('Sequences')
-
     @ApiOperation({ summary: 'Execute an entire sequence of prompts' })
     @ApiOkResponse({ description: 'Sequence executed successfully', type: [ResponseDto] })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
@@ -413,8 +407,9 @@ export class AiController {
         }
     }
 
-    @ApiTags('Sequences')
 
+    @UseGuards(AuthGuard('jwt'))
+    @ApiTags('Sequences')
     @ApiOperation({ summary: 'Get logs for a sequence' })
     @ApiOkResponse({ description: 'Logs retrieved successfully', type: ResponseDto })
     @ApiBadRequestResponse({ description: 'Bad Request: Invalid input' })
