@@ -20,12 +20,20 @@ async function bootstrap() {
     app.get(OpenAiService).initializeOpenAi();
     const configService: ConfigService = app.get(ConfigService);
 
-    //CORS configuration
+    // Enable CORS, allow multiple origins
+    // CORS_ORIGIN should be a comma separated list of allowed origins (ex: http://localhost:3000,http://localhost:3001)
     app.use(cors({
-        origin: process.env.CORS_ORIGIN,
+        origin: (origin, callback) => {
+          const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [];
+          if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
         credentials: true,
         exposedHeaders: ['Authorization', 'Refreshtoken', 'Sessionid', 'authCookieAge', 'refreshCookieAge'],
-    }));
+      }));
 
     const firebaseConfig = {
         credential: admin.credential.cert({
