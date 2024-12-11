@@ -17,7 +17,14 @@ dotenv.config();
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-    app.get(OpenAiService).initializeOpenAi();
+    
+    // Make OpenAI initialization optional
+    try {
+        app.get(OpenAiService).initializeOpenAi();
+    } catch (error) {
+        console.warn('OpenAI initialization skipped:', error.message);
+    }
+    
     const configService: ConfigService = app.get(ConfigService);
 
     // Enable CORS, allow multiple origins

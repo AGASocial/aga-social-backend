@@ -1,12 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-
-class SendEmailDto {
-  to: string;
-  subject: string;
-  text: string;
-}
+import { SendEmailDto } from './dto/send-email.dto';
 
 @ApiTags('email')
 @Controller('email')
@@ -18,6 +13,7 @@ export class EmailController {
   @ApiResponse({ status: 200, description: 'Email sent successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   async sendEmail(@Body() sendEmailDto: SendEmailDto) {
+    console.log('EmailController - Received request body:', sendEmailDto);
     return await this.emailService.sendEmail(
       sendEmailDto.to,
       sendEmailDto.subject,
