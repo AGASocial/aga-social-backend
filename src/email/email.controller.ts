@@ -13,6 +13,7 @@ export class EmailController {
   @ApiResponse({ status: 200, description: 'Email sent successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   async sendEmail(@Body() sendEmailDto: SendEmailDto) {
+    console.log('EmailController - Received request body:', sendEmailDto);
     return await this.emailService.sendEmail(
       sendEmailDto.to,
       sendEmailDto.subject,
