@@ -52,6 +52,7 @@
     "firebase-admin": "^11.5.0",
     "formidable": "^3.5.0",
     "fs-extra": "^11.1.1",
+    "gmail-send": "^1.8.14",
     "google-auth-library": "^9.0.0",
     "handlebars": "^4.7.8",
     "helmet": "^6.0.1",
