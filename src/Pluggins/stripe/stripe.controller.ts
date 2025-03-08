@@ -148,6 +148,7 @@ export class StripeController {
     @Body('returnUrl') returnUrl: string,
     @Body('productName') productName: string,
     @Body('courseIds') courseIds: string,
+    @Body('orderId') orderId: string,
     @Response() res,
   ) {
     const session = await this.stripeService.createCheckoutSession(
@@ -156,6 +157,7 @@ export class StripeController {
       returnUrl,
       productName,
       courseIds,
+      orderId,
     );
 
     // Redirect directly to the Stripe checkout URL

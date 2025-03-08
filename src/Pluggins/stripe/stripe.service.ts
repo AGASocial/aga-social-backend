@@ -202,6 +202,7 @@ export class StripeService {
     returnUrl?: string,
     productName?: string,
     courseIds?: string,
+    orderId?: string,
   ): Promise<Stripe.Checkout.Session> {
     // Default return URL if none provided
     const baseReturnUrl = returnUrl || 'localhost:3000';
@@ -218,6 +219,7 @@ export class StripeService {
       payment_method_types: ['card'],
       metadata: {
         courseIds: courseIds ?? '[]',
+        orderId: orderId ?? '',
       },
       line_items: [
         {
