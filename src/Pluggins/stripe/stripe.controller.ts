@@ -66,7 +66,7 @@ export class StripeController {
   @ApiOperation({ summary: 'Create a Stripe Checkout Session' })
   @ApiResponse({
     status: 200,
-    description: 'Stripe Checkout Session created successfully',
+    description: 'Sesión de pago creada exitosamente',
     schema: {
       type: 'object',
       properties: {
@@ -76,10 +76,10 @@ export class StripeController {
     },
   })
   @ApiBadRequestResponse({
-    description: 'Invalid data provided',
+    description: 'Datos proporcionados inválidos',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Internal server error while creating checkout session',
+    description: 'Error interno del servidor al crear la sesión de pago',
   })
   async createCheckoutSession(
     @Body('amount') amount: number,
@@ -103,10 +103,10 @@ export class StripeController {
   @ApiOperation({ summary: 'Retrieve checkout session status' })
   @ApiResponse({
     status: 200,
-    description: 'Session status retrieved successfully',
+    description: 'Estado de la sesión recuperado exitosamente',
   })
-  @ApiBadRequestResponse({ description: 'Invalid session ID' })
-  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @ApiBadRequestResponse({ description: 'ID de sesión inválido' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })
   async getSessionStatus(@Query('session_id') sessionId: string) {
     try {
       const session = await this.stripeService.retrieveCheckoutSession(
@@ -140,7 +140,7 @@ export class StripeController {
   @ApiOperation({ summary: 'Create a Stripe Checkout Session and redirect' })
   @ApiResponse({
     status: 302,
-    description: 'Redirects to Stripe Checkout',
+    description: 'Redirigiendo a la página de pago de Stripe',
   })
   async createCheckoutSessionRedirect(
     @Body('amount') amount: number,
