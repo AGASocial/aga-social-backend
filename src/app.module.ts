@@ -74,6 +74,7 @@ import { AiService } from './ai/ai.service';
 import { OpenAiService } from './ai/openai/openai.service';
 import { AuthGuard } from '@nestjs/passport'; 
 import { EmailModule } from './email/email.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
     imports: [AiModule, PluginCollectionsModule, PluginUsersModule, EmailsModule, TagsModule, CouponModule, MessageModule, CourseModule, EbookModule, UsersModule, AuthModule, MediaModule, LikesModule, NotesModule, PlugginModule, StripeModule, TodoModule, ConfigModule.forRoot(), AuthorizationModule, AbilityModule, ThrottlerModule.forRoot({
@@ -82,7 +83,7 @@ import { EmailModule } from './email/email.module';
     }), SessionModule, RolesModule, JwtModule.register({
         secret: process.env.jwtConstants,
         signOptions: { expiresIn: '60s' }
-    }), EmailModule],
+    }), EmailModule, PaymentsModule],
     controllers: [AiController, PluginCollectionsController, PluginUsersController, EmailsController, ValidationController, TagsController, AppController, AuthController, AuthorizationController, MediaController, EbookController, SectionController, CourseController, MessageController, CouponController, LikesController, NotesController, PlugginController, StripeController, TodoController],
     providers: [
         AppService,
