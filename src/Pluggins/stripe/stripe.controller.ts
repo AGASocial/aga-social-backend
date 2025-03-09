@@ -109,15 +109,23 @@ export class StripeController {
   @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })
   async getSessionStatus(@Query('session_id') sessionId: string) {
     try {
+      console.log(`Retrieving session status for session ID: ${sessionId}`);
       const session = await this.stripeService.retrieveCheckoutSession(
         sessionId,
       );
+      console.log('Session retrieved:', {
+        id: session.id,
+        status: session.status,
+        customer_email: session.customer_details?.email,
+        metadata: session.metadata,
+      });
 
       // Parse courseIds from string to array if it exists
       let courseIds = [];
       if (session.metadata?.courseIds) {
         try {
           courseIds = JSON.parse(session.metadata.courseIds);
+          console.log('Parsed courseIds:', courseIds);
         } catch (error) {
           console.error('Error parsing courseIds:', error);
         }
@@ -132,6 +140,7 @@ export class StripeController {
         },
       };
     } catch (error) {
+      console.error('Error retrieving session status:', error);
       throw error;
     }
   }

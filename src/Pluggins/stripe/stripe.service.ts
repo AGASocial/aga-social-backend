@@ -214,7 +214,12 @@ export class StripeService {
         ? baseReturnUrl
         : `https://${baseReturnUrl}`;
 
-    return this._stripe.checkout.sessions.create({
+    console.log('Creating checkout session with metadata:', {
+      courseIds: courseIds ?? '[]',
+      orderId: orderId ?? '',
+    });
+
+    const sessionParams = {
       ui_mode: 'hosted',
       payment_method_types: ['card'],
       metadata: {
@@ -234,9 +239,21 @@ export class StripeService {
         },
       ],
       mode: 'payment',
-      success_url: `${formattedReturnUrl}?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${formattedReturnUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${formattedReturnUrl}?canceled=true`,
+    };
+
+    console.log('Session params:', JSON.stringify(sessionParams, null, 2));
+    
+    const session = await this._stripe.checkout.sessions.create(sessionParams);
+    
+    console.log('Created session:', {
+      id: session.id,
+      url: session.url,
+      metadata: session.metadata,
     });
+    
+    return session;
   }
 
   async retrieveCheckoutSession(sessionId: string) {
