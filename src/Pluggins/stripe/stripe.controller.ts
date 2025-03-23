@@ -131,9 +131,12 @@ export class StripeController {
         customer_email: session.customer_details?.email,
         metadata: {
           ...session.metadata,
-          courseIds: courseIds, // Return as actual array instead of string
+          courseIds: courseIds,
           customer_details: session.customer_details,
+          amount_subtotal: session.amount_subtotal,
+          amount_total: session.amount_total,
         },
+        livemode: session.livemode,
       };
     } catch (error) {
       console.error('Error retrieving session status:', error);
