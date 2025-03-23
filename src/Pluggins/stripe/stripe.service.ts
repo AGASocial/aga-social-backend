@@ -4,7 +4,7 @@ import { UpdateStripeDto } from './dto/update-stripe.dto';
 import { ConfigService } from '@nestjs/config';
 import { Cart } from './entities/cart.entity';
 import { JwtService } from '@nestjs/jwt';
-import Stripe from 'stripe';
+import Stripe, { Stripe as StripeTypes } from 'stripe';
 import { createReadStream } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import exp from 'constants';
@@ -219,7 +219,7 @@ export class StripeService {
       orderId: orderId ?? '',
     });
 
-    const sessionParams = {
+    const sessionParams: StripeTypes.Checkout.SessionCreateParams = {
       ui_mode: 'hosted',
       payment_method_types: ['card'],
       metadata: {
@@ -238,9 +238,12 @@ export class StripeService {
           quantity: 1,
         },
       ],
-      mode: 'payment',
+      mode: 'payment' as StripeTypes.Checkout.SessionCreateParams.Mode,
       success_url: `${formattedReturnUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${formattedReturnUrl}?canceled=true`,
+      phone_number_collection: {
+        enabled: true,
+      },
     };
 
     console.log('Session params:', JSON.stringify(sessionParams, null, 2));

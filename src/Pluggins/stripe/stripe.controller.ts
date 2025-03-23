@@ -27,7 +27,7 @@ import { CreateStripeEbookDto } from './dto/createStripeEbook.dto';
 @Controller('Payments')
 export class StripeController {
   // This is your test secret API key.
-  constructor(private readonly stripeService: StripeService) {}
+  constructor(private readonly stripeService: StripeService) { }
 
   @Post()
   public async SubscriptionIntent(
@@ -113,12 +113,7 @@ export class StripeController {
       const session = await this.stripeService.retrieveCheckoutSession(
         sessionId,
       );
-      console.log('Session retrieved:', {
-        id: session.id,
-        status: session.status,
-        customer_email: session.customer_details?.email,
-        metadata: session.metadata,
-      });
+      console.log('Session retrieved:', session);
 
       // Parse courseIds from string to array if it exists
       let courseIds = [];
@@ -137,6 +132,7 @@ export class StripeController {
         metadata: {
           ...session.metadata,
           courseIds: courseIds, // Return as actual array instead of string
+          customer_details: session.customer_details,
         },
       };
     } catch (error) {
