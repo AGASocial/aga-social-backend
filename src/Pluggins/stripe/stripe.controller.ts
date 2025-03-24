@@ -135,6 +135,8 @@ export class StripeController {
           customer_details: session.customer_details,
           amount_subtotal: session.amount_subtotal,
           amount_total: session.amount_total,
+          payment_intent: session.payment_intent,
+          payment_id: session.payment_intent,
         },
         livemode: session.livemode,
       };
